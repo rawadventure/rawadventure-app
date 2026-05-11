@@ -39,3 +39,9 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+# Claude Code (local cache, ne pas versionner)
+.claude/
+
+# Variables d'environnement (clés API, secrets)
+.env
