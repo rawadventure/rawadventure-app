@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Raw Adventure — Continue ta transformation</title>
+  <style>
+    :root {
+      --green:      #2E7D32;
+      --green-dark: #1B5E20;
+      --green-light:#4CAF50;
+      --bg:         #0A0A0A;
+      --surface:    #141414;
+      --border:     #2A2A2A;
+      --white:      #FFFFFF;
+      --gray:       #888888;
+      --gray-light: #CCCCCC;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 0 24px 80px;
+    }
+
+    /* ── Header ── */
+    .header {
+      text-align: center;
+      padding: 60px 0 40px;
+    }
+    .header .trophy { font-size: 72px; display: block; margin-bottom: 16px; }
+    .brand {
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--green-light);
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+    }
+    .header h1 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.3;
+      margin-bottom: 12px;
+    }
+    .header p {
+      font-size: 16px;
+      color: var(--gray);
+      line-height: 1.6;
+    }
+
+    /* ── Section ── */
+    .section { margin-bottom: 40px; }
+    .section-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    /* ── Bilan ── */
+    .bilan-list { display: flex; flex-direction: column; gap: 8px; }
+    .bilan-row {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+    }
+    .bilan-row.last {
+      background: rgba(27,94,32,0.2);
+      border-color: rgba(46,125,50,0.5);
+    }
+    .bilan-emoji { font-size: 20px; width: 28px; flex-shrink: 0; }
+    .bilan-label { flex: 1; font-size: 15px; color: var(--gray-light); }
+    .bilan-row.last .bilan-label { color: var(--white); font-weight: 600; }
+    .bilan-check { color: var(--green-light); font-weight: 700; font-size: 16px; }
+
+    /* ── Transition card ── */
+    .transition-card {
+      background: rgba(27,94,32,0.2);
+      border: 1px solid rgba(46,125,50,0.4);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .transition-card .emoji { font-size: 40px; margin-bottom: 12px; display: block; }
+    .transition-card h2 { font-size: 20px; font-weight: 700; margin-bottom: 12px; }
+    .transition-card p { font-size: 15px; color: var(--gray-light); line-height: 1.6; }
+
+    /* ── Next features ── */
+    .next-list { display: flex; flex-direction: column; gap: 8px; }
+    .next-card {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    .next-emoji { font-size: 24px; flex-shrink: 0; }
+    .next-title { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+    .next-desc  { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+    /* ── Plans ── */
+    .plans-list { display: flex; flex-direction: column; gap: 10px; }
+
+    .plan-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .plan-card:hover, .plan-card.selected {
+      background: rgba(27,94,32,0.2);
+      border-color: var(--green);
+    }
+    .plan-card input[type="radio"] { display: none; }
+
+    .popular-badge {
+      position: absolute;
+      top: 0; right: 0;
+      background: var(--green);
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 1px;
+      color: var(--white);
+      padding: 4px 10px;
+      border-bottom-left-radius: 8px;
+    }
+    .plan-left { flex: 1; }
+    .plan-title  { font-size: 17px; font-weight: 600; }
+    .plan-detail { font-size: 12px; color: var(--gray); margin-top: 4px; }
+    .plan-price-block { text-align: right; }
+    .plan-price  { font-size: 24px; font-weight: 800; }
+    .plan-period { font-size: 12px; color: var(--gray); }
+    .plan-card.selected .plan-price { color: var(--green-light); }
+
+    /* ── Garantie ── */
+    .guarantee {
+      display: flex;
+      align-items: flex-start;
+      gap: 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 32px;
+    }
+    .guarantee-emoji { font-size: 28px; flex-shrink: 0; }
+    .guarantee-title { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+    .guarantee-desc  { font-size: 13px; color: var(--gray); line-height: 1.5; }
+
+    /* ── CTA ── */
+    .cta { text-align: center; }
+
+    .btn-primary {
+      display: block;
+      width: 100%;
+      background: var(--green);
+      color: var(--white);
+      font-size: 17px;
+      font-weight: 700;
+      padding: 18px;
+      border-radius: 12px;
+      border: none;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+      text-decoration: none;
+    }
+    .btn-primary:hover  { background: var(--green-light); }
+    .btn-primary:active { transform: scale(0.98); }
+
+    .cta-sub {
+      font-size: 12px;
+      color: var(--gray);
+      margin-top: 10px;
+    }
+
+    /* ── Waitlist (affiché quand pas de Stripe) ── */
+    .waitlist {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px 24px;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .waitlist h2 { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+    .waitlist p  { font-size: 15px; color: var(--gray); margin-bottom: 24px; line-height: 1.6; }
+    .waitlist-form { display: flex; flex-direction: column; gap: 12px; }
+    .waitlist-input {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px 16px;
+      font-size: 16px;
+      color: var(--white);
+      width: 100%;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .waitlist-input:focus { border-color: var(--green); }
+    .waitlist-input::placeholder { color: var(--border); }
+    .waitlist-success {
+      display: none;
+      color: var(--green-light);
+      font-size: 15px;
+      padding: 12px;
+    }
+
+    /* ── Quote ── */
+    .quote-block {
+      text-align: center;
+      padding: 40px 0 20px;
+    }
+    .quote-mark { font-size: 48px; color: var(--green); line-height: 1; font-weight: 900; }
+    .quote-text {
+      font-size: 16px;
+      color: var(--gray);
+      font-style: italic;
+      line-height: 1.7;
+      margin-top: 8px;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 24px;
+      font-size: 12px;
+      color: var(--border);
+      border-top: 1px solid var(--border);
+    }
+    footer a { color: var(--gray); text-decoration: none; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Header -->
+  <div class="header">
+    <span class="trophy">🏆</span>
+    <div class="brand">⚡️ Raw Adventure</div>
+    <h1>Tu es dans les 3% qui vont au bout.</h1>
+    <p>14 jours complétés. La fondation est posée.<br>Maintenant, on construit dessus.</p>
+  </div>
+
+  <!-- Bilan -->
+  <div class="section">
+    <div class="section-title">Ce que tu as installé en 14 jours</div>
+    <div class="bilan-list">
+      <div class="bilan-row"><span class="bilan-emoji">⚡️</span><span class="bilan-label">Énergie matinale relancée</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🫁</span><span class="bilan-label">Respiration et activation intégrées</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🧊</span><span class="bilan-label">Exposition au froid apprivoisée</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🥗</span><span class="bilan-label">Fenêtre alimentaire installée</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🏃</span><span class="bilan-label">Mouvement quotidien ancré</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🧘</span><span class="bilan-label">Récupération active maîtrisée</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🌿</span><span class="bilan-label">Rythme circadien reconnecté</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">😴</span><span class="bilan-label">Protocole sommeil activé</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row"><span class="bilan-emoji">🧠</span><span class="bilan-label">Clarté mentale retrouvée</span><span class="bilan-check">✓</span></div>
+      <div class="bilan-row last"><span class="bilan-emoji">🏆</span><span class="bilan-label">14 jours de constance. Ça, ça change tout.</span></div>
+    </div>
+  </div>
+
+  <!-- Transition -->
+  <div class="transition-card">
+    <span class="emoji">🚀</span>
+    <h2>La suite t'attend.</h2>
+    <p>Les 14 premiers jours, c'était la mise en route.<br>
+    Le vrai travail — et les vrais résultats — commencent maintenant.</p>
+  </div>
+
+  <!-- Ce qui t'attend -->
+  <div class="section">
+    <div class="section-title">Avec l'abonnement Raw Adventure</div>
+    <div class="next-list">
+      <div class="next-card">
+        <span class="next-emoji">📅</span>
+        <div><div class="next-title">Nouveaux programmes</div><div class="next-desc">Sommeil, performance mentale, énergie avancée…</div></div>
+      </div>
+      <div class="next-card">
+        <span class="next-emoji">📈</span>
+        <div><div class="next-title">Suivi personnalisé</div><div class="next-desc">Tes données, tes progrès, tes tendances.</div></div>
+      </div>
+      <div class="next-card">
+        <span class="next-emoji">⚙️</span>
+        <div><div class="next-title">Protocoles avancés</div><div class="next-desc">Des routines qui s'adaptent à ton niveau.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Plans -->
+  <div class="section">
+    <div class="section-title">Choisis ton rythme</div>
+    <div class="plans-list">
+      <label class="plan-card" onclick="selectPlan(this, 'Mensuel')">
+        <input type="radio" name="plan" value="monthly" />
+        <div class="plan-left">
+          <div class="plan-title">Mensuel</div>
+          <div class="plan-detail">Résiliable à tout moment</div>
+        </div>
+        <div class="plan-price-block">
+          <div class="plan-price">19 €</div>
+          <div class="plan-period">/mois</div>
+        </div>
+      </label>
+      <label class="plan-card selected" onclick="selectPlan(this, 'Trimestriel')">
+        <input type="radio" name="plan" value="quarterly" checked />
+        <div class="popular-badge">MEILLEURE OFFRE</div>
+        <div class="plan-left">
+          <div class="plan-title">Trimestriel</div>
+          <div class="plan-detail">16 €/mois · économise 16% 👍</div>
+        </div>
+        <div class="plan-price-block">
+          <div class="plan-price">49 €</div>
+          <div class="plan-period">/3 mois</div>
+        </div>
+      </label>
+      <label class="plan-card" onclick="selectPlan(this, 'Annuel')">
+        <input type="radio" name="plan" value="yearly" />
+        <div class="plan-left">
+          <div class="plan-title">Annuel</div>
+          <div class="plan-detail">12 €/mois · économise 37% 🔥</div>
+        </div>
+        <div class="plan-price-block">
+          <div class="plan-price">149 €</div>
+          <div class="plan-period">/an</div>
+        </div>
+      </label>
+    </div>
+  </div>
+
+  <!-- Garantie -->
+  <div class="guarantee">
+    <span class="guarantee-emoji">🛡️</span>
+    <div>
+      <div class="guarantee-title">Satisfait ou remboursé — 14 jours</div>
+      <div class="guarantee-desc">Tu testes. Si ça ne te convient pas, on rembourse sans question.</div>
+    </div>
+  </div>
+
+  <!-- Liste d'attente (à remplacer par bouton Stripe quand prêt) -->
+  <div class="waitlist" id="waitlist-section">
+    <h2>🎯 Bientôt disponible</h2>
+    <p>Le programme complet est en cours de lancement.<br>
+    Laisse ton email pour être parmi les premiers informés — et bénéficier du tarif de lancement.</p>
+    <div class="waitlist-form">
+      <input
+        type="email"
+        class="waitlist-input"
+        id="waitlist-email"
+        placeholder="ton@email.com"
+      />
+      <button class="btn-primary" onclick="submitWaitlist()">
+        M'avertir en premier →
+      </button>
+      <div class="waitlist-success" id="waitlist-success">
+        ✅ C'est noté ! On te contacte dès le lancement.
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA principal (caché pour l'instant, décommenter quand Stripe est prêt) -->
+  <!--
+  <div class="cta">
+    <button class="btn-primary" id="cta-btn" onclick="handleSubscribe()">
+      Continuer avec le plan Trimestriel →
+    </button>
+    <div class="cta-sub">Paiement sécurisé · Résiliable à tout moment</div>
+  </div>
+  -->
+
+  <!-- Quote -->
+  <div class="quote-block">
+    <div class="quote-mark">"</div>
+    <div class="quote-text">
+      14 jours pour ressentir.<br>
+      3 mois pour transformer.<br>
+      1 an pour ne plus revenir en arrière.
+    </div>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <p>
+    © 2026 Raw Adventure ·
+    <a href="privacy.html">Politique de confidentialité</a> ·
+    <a href="cgv.html">CGV</a> ·
+    <a href="mailto:contact@rawadventure.world">Contact</a>
+  </p>
+</footer>
+
+<script>
+  let selectedPlanName = 'Trimestriel';
+
+  function selectPlan(el, name) {
+    document.querySelectorAll('.plan-card').forEach(c => c.classList.remove('selected'));
+    el.classList.add('selected');
+    selectedPlanName = name;
+    // Mettre à jour le bouton CTA si Stripe est actif
+    const btn = document.getElementById('cta-btn');
+    if (btn) btn.textContent = `Continuer avec le plan ${name} →`;
+  }
+
+  function submitWaitlist() {
+    const email = document.getElementById('waitlist-email').value;
+    if (!email || !email.includes('@')) {
+      alert('Entre une adresse email valide.');
+      return;
+    }
+    // TODO: envoyer l'email à Supabase ou un service d'emailing
+    // Pour l'instant on affiche juste le message de succès
+    document.getElementById('waitlist-success').style.display = 'block';
+    document.getElementById('waitlist-email').style.display = 'none';
+    document.querySelector('.waitlist .btn-primary').style.display = 'none';
+  }
+
+  function handleSubscribe() {
+    // TODO: remplacer par le lien Stripe checkout
+    const stripeLinks = {
+      'Mensuel':      'https://buy.stripe.com/XXXXXXX',
+      'Trimestriel':  'https://buy.stripe.com/XXXXXXX',
+      'Annuel':       'https://buy.stripe.com/XXXXXXX',
+    };
+    window.location.href = stripeLinks[selectedPlanName] || '#';
+  }
+</script>
+
+</body>
+</html>
