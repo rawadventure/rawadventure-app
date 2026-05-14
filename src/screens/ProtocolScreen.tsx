@@ -1,3 +1,19 @@
+/**
+ * ProtocolScreen.tsx
+ *
+ * STATUT : Prototype Phase 1 — NON BRANCHÉ en V1.
+ *
+ * Hérité du V0. Conservé comme réserve d'idées pour la refonte M5+
+ * de la Phase 1 (sessions de pratique guidées par pilier).
+ *
+ * NE PAS MODIFIER ni BRANCHER dans le RootNavigator tant que la Feature Spec
+ * S1 Respiration n'a pas été implémentée. Le pattern d'écran de session V1
+ * suivra `docs/specs/feature-spec-pilier-s1-respiration.md` (Pattern C du
+ * design system V1.1) — pas la structure de ce fichier.
+ *
+ * Référence audit V0 : CLAUDE.md § 5 « Code à conserver comme prototype ».
+ */
+
 import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet, ScrollView, SafeAreaView, Modal } from 'react-native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
