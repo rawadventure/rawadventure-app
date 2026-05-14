@@ -8,25 +8,20 @@
  *    héritée du contexte via `usePillarTheme().filigraneOpacity` (14% S1-S8,
  *    16% Phase 0, 8% neutre Toile/Profil). Asset blanc sur fond coloré.
  *  - `variant="hero"` : grand format coloré centré sur slide onboarding 1.
- *    Cercle plein `brand.deep` violet profond, rayons et pétales en blanc.
+ *    Cercle plein `brand.deep` violet profond.
  *  - `variant="splash"` : centré sur splash screen, 160x160px.
  *  - `variant="profile"` : header du profil utilisateur (IA-70), discret.
  *
- * Note technique V1 : implémentation actuelle utilise `<Image>` + asset PNG
- * (`logo-raw-adventure-white.png`). Migration vers `react-native-svg-transformer`
- * + version SVG (`logo-raw-adventure-white.svg` déjà déposée dans assets) prévue
- * en Sprint 1 quand la dépendance est ajoutée — l'API du composant reste stable.
- *
- * Pour la variante `hero` (violet plein), un second asset coloré sera fourni
- * par Stéphane (Canva export). En attendant : placeholder utilisant `tintColor`
- * sur l'asset blanc — rendu approximatif, à patcher en Sprint 1.
+ * Implémentation : SVG vectoriel via `react-native-svg-transformer`
+ * (cf. metro.config.js + declarations.d.ts). Le SVG source est blanc ;
+ * la prop `color` est appliquée comme `color` SVG global (héritée par
+ * `fill="currentColor"` ou via prop SvgProps). Rendu net à toute taille.
  */
 
 import React from 'react';
-import { Image, ImageStyle, StyleProp, View, ViewStyle } from 'react-native';
+import { StyleProp, View, ViewStyle } from 'react-native';
+import LogoSvg from '../../../assets/images/logo-raw-adventure-white.svg';
 import { brandColors } from '../../theme';
-
-const LOGO_WHITE = require('../../../assets/images/logo-raw-adventure-white.png');
 
 export type LogoVariant = 'filigrane' | 'hero' | 'splash' | 'profile';
 
@@ -36,11 +31,11 @@ export type LogoRawAdventureProps = {
   size?: number;
   /** Opacité 0-1. Par défaut selon variant. */
   opacity?: number;
-  /** Couleur de teinte (applique tintColor). Par défaut : blanc pour filigrane/splash/profile, violet profond pour hero. */
+  /** Couleur de remplissage. Par défaut : blanc pour filigrane/splash/profile, violet profond pour hero. */
   color?: string;
   /** Style additionnel (positionnement absolu pour filigrane par ex.). */
   style?: StyleProp<ViewStyle>;
-  /** Marqueur accessibilité. Par défaut décoratif (caché lecteur). */
+  /** Label accessibilité. Par défaut : décoratif (masqué du lecteur). */
   accessibilityLabel?: string;
 };
 
@@ -64,13 +59,6 @@ export function LogoRawAdventure({
   const resolvedOpacity = opacity ?? defaults.opacity;
   const resolvedColor = color ?? defaults.color;
 
-  const imageStyle: StyleProp<ImageStyle> = {
-    width: resolvedSize,
-    height: resolvedSize,
-    opacity: resolvedOpacity,
-    tintColor: resolvedColor,
-  };
-
   const isDecorative = !accessibilityLabel;
 
   return (
@@ -79,13 +67,15 @@ export function LogoRawAdventure({
       pointerEvents="none"
       accessibilityElementsHidden={isDecorative}
       importantForAccessibility={isDecorative ? 'no-hide-descendants' : 'auto'}
+      accessibilityLabel={accessibilityLabel}
+      accessible={!isDecorative}
     >
-      <Image
-        source={LOGO_WHITE}
-        style={imageStyle}
-        resizeMode="contain"
-        accessibilityLabel={accessibilityLabel}
-        accessible={!isDecorative}
+      <LogoSvg
+        width={resolvedSize}
+        height={resolvedSize}
+        opacity={resolvedOpacity}
+        color={resolvedColor}
+        fill={resolvedColor}
       />
     </View>
   );
