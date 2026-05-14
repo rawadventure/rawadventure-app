@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Raw Adventure App — 4 maquettes de référence V1</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  background: #FAF7F0;
+  color: #1F1147;
+  padding: 60px 20px;
+  line-height: 1.5;
+}
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+.doc-header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+.doc-title {
+  font-size: 48px;
+  font-weight: 800;
+  color: #1F1147;
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  margin-bottom: 14px;
+}
+.doc-subtitle {
+  font-size: 18px;
+  color: rgba(31, 17, 71, 0.7);
+  margin-bottom: 8px;
+}
+.doc-meta {
+  font-size: 14px;
+  color: rgba(31, 17, 71, 0.55);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.intro {
+  max-width: 720px;
+  margin: 0 auto 80px;
+  font-size: 17px;
+  color: rgba(31, 17, 71, 0.85);
+  line-height: 1.7;
+}
+.intro p { margin-bottom: 16px; }
+.mockup-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(420px, 1fr));
+  gap: 60px 40px;
+  justify-items: center;
+}
+.mockup-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.mockup-label-top {
+  font-size: 11px;
+  font-weight: 600;
+  color: rgba(31, 17, 71, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 8px;
+}
+.mockup-title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1F1147;
+  margin-bottom: 8px;
+  text-align: center;
+}
+.mockup-subtitle {
+  font-size: 13px;
+  color: rgba(31, 17, 71, 0.65);
+  text-align: center;
+  margin-bottom: 28px;
+  max-width: 380px;
+}
+
+/* Phone frame */
+.phone-frame {
+  width: 380px;
+  height: 800px;
+  border-radius: 44px;
+  box-shadow: 0 0 0 14px #1F1147, 0 0 0 16px #2D2A1A, 0 20px 60px rgba(31, 17, 71, 0.25);
+  overflow: hidden;
+  position: relative;
+  font-family: 'Inter', -apple-system, sans-serif;
+}
+.phone-content {
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.status-bar {
+  height: 44px;
+  padding: 14px 32px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 600;
+}
+.notch {
+  width: 110px;
+  height: 28px;
+  background: #1F1147;
+  border-radius: 14px;
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  top: 8px;
+}
+.status-icons {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab-bar {
+  height: 76px;
+  background: #FFFFFF;
+  border-top: 0.5px solid rgba(31, 17, 71, 0.08);
+  padding: 8px 0 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+.tab-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* Spec block */
+.spec-block {
+  margin-top: 20px;
+  padding: 16px 20px;
+  background: #FFFFFF;
+  border-radius: 14px;
+  max-width: 380px;
+  box-shadow: 0 2px 8px rgba(31, 17, 71, 0.04);
+  font-size: 12px;
+  line-height: 1.6;
+}
+.spec-block strong {
+  color: #1F1147;
+  font-weight: 600;
+}
+.spec-block .label {
+  font-size: 10px;
+  font-weight: 600;
+  color: rgba(31, 17, 71, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-bottom: 4px;
+}
+.spec-row {
+  margin-bottom: 8px;
+}
+.color-chip {
+  display: inline-block;
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  vertical-align: middle;
+  margin-right: 4px;
+  border: 1px solid rgba(31, 17, 71, 0.1);
+}
+
+.footer {
+  text-align: center;
+  margin-top: 100px;
+  padding-top: 40px;
+  border-top: 1px solid rgba(31, 17, 71, 0.1);
+  font-size: 13px;
+  color: rgba(31, 17, 71, 0.55);
+}
+
+@media (max-width: 900px) {
+  .mockup-grid {
+    grid-template-columns: 1fr;
+  }
+  .phone-frame {
+    transform: scale(0.85);
+    transform-origin: top center;
+  }
+  .doc-title {
+    font-size: 32px;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+
+  <div class="doc-header">
+    <div class="doc-meta">Raw Adventure App — Design System V1.1</div>
+    <h1 class="doc-title">4 maquettes de référence</h1>
+    <p class="doc-subtitle">Variante C — Maquettes produites et validées dans Claude</p>
+    <p class="doc-meta">14 mai 2026</p>
+  </div>
+
+  <div class="intro">
+    <p>Ces 4 maquettes représentent les écrans de référence validés en session design pour la V1 de Raw Adventure App. Elles démontrent que la grammaire visuelle posée dans le design système V1.1 tient sur différents types d'écrans : écran courant Phase 1 (pilier S7 Mindset), écran courant Phase 0 (amorçage multi-piliers en pêche corail vivant), écran de visualisation (toile d'araignée hybride camembert + radar), et écran narratif (slide onboarding 1 Welcome).</p>
+    <p>La signature visuelle repose sur trois piliers : fonds pastels saturés qui basculent selon le contexte (Phase 0 ou pilier en cours), header pilier illustré avec logo Raw Adventure en filigrane comme motif identitaire, et bulle streak blanche avec flamme orange intégrée à la ligne de métadonnées du header.</p>
+    <p>La maquette de la toile d'araignée est validée provisoirement et reste ouverte à itération avec Mimi à partir de références visuelles complémentaires.</p>
+  </div>
+
+  <div class="mockup-grid">
+
+    <!-- ============================================ -->
+    <!-- MAQUETTE 1 — Écran jour Phase 1 (S7 Mindset) -->
+    <!-- ============================================ -->
+    <div class="mockup-card">
+      <div class="mockup-label-top">Maquette 1 · Pattern B</div>
+      <h2 class="mockup-title">Écran jour Phase 1 — S7 Mindset</h2>
+      <p class="mockup-subtitle">Hub d'accueil quotidien Phase 1 avec header pilier illustré, bulle streak intégrée et sessions cochables.</p>
+
+      <div class="phone-frame" style="background: #FFD140;">
+        <div class="phone-content">
+          <div class="status-bar" style="color: #3D2A0A;">
+            <span>9:41</span>
+            <div class="notch"></div>
+            <div class="status-icons">
+              <i class="ti ti-signal-5" style="font-size: 14px;"></i>
+              <i class="ti ti-wifi" style="font-size: 14px;"></i>
+              <i class="ti ti-battery-3" style="font-size: 16px;"></i>
+            </div>
+          </div>
+
+          <div style="margin: 16px 16px 20px; background: #BA7517; border-radius: 24px; padding: 24px 24px 20px; position: relative; overflow: hidden; min-height: 180px;">
+            <svg width="280" height="280" viewBox="0 0 280 280" style="position: absolute; right: -60px; top: -40px; opacity: 0.14;">
+              <circle cx="140" cy="140" r="130" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="140" y2="260" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="260" y2="140" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="20" y2="140" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="55" y2="55" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="225" y2="55" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="55" y2="225" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="225" y2="225" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="78" rx="22" ry="48" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="40" x2="140" y2="60" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(45 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(90 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(135 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(180 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(225 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(270 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(315 140 140)"/>
+            </svg>
+            <div style="position: absolute; left: -25px; bottom: -25px; width: 90px; height: 90px; background: #FFD140; border-radius: 50%; opacity: 0.35;"></div>
+            <div style="position: relative; z-index: 2;">
+              <div style="font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.85); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">Semaine 7</div>
+              <div style="font-size: 32px; font-weight: 800; color: #FFFFFF; line-height: 36px; margin-bottom: 10px; letter-spacing: -0.5px;">Mindset</div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="font-size: 14px; font-weight: 500; color: rgba(255, 255, 255, 0.85);">Jour 4 sur 7</div>
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #FFFFFF; border-radius: 9999px; box-shadow: 0 2px 6px rgba(31, 17, 71, 0.12);">
+                  <i class="ti ti-flame" style="font-size: 14px; color: #E66B2E;"></i>
+                  <span style="font-size: 13px; font-weight: 700; color: #3D2A0A; font-variant-numeric: tabular-nums;">12 jours</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 0 20px; flex: 1; overflow: hidden;">
+            <div style="font-size: 16px; font-weight: 400; color: #3D2A0A; line-height: 25px; margin-bottom: 24px;">Le mental qui tourne en boucle, c'est rarement le mental. C'est le corps qui n'a pas eu de marge.</div>
+            <div style="background: #FFFFFF; border-radius: 18px; padding: 22px; box-shadow: 0 3px 12px rgba(31, 17, 71, 0.08); margin-bottom: 20px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <div style="font-size: 17px; font-weight: 600; color: #3D2A0A;">Sessions du jour</div>
+                <div style="font-size: 13px; font-weight: 600; color: rgba(61, 42, 10, 0.55);">1 / 3</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #E8DFC8;">
+                <div style="width: 28px; height: 28px; border-radius: 8px; background: #7BA84A; display: flex; align-items: center; justify-content: center;">
+                  <i class="ti ti-check" style="font-size: 18px; color: #FFFFFF;"></i>
+                </div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 500; color: #3D2A0A;">Cohérence cardiaque matin</div>
+                  <div style="font-size: 12px; color: rgba(61, 42, 10, 0.55);">5 minutes — fait</div>
+                </div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 0.5px solid #E8DFC8;">
+                <div style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 2px solid #3D2A0A;"></div>
+                <div style="flex: 1;">
+                  <div style="font-size: 16px; font-weight: 500; color: #3D2A0A;">Observation neutre</div>
+                  <div style="font-size: 12px; color: rgba(61, 42, 10, 0.65);">7 minutes</div>
+                </div>
+                <i class="ti ti-chevron-right" style="font-size: 20px; color: rgba(61, 42, 10, 0.4);"></i>
+              </div>
+              <div style="display: flex; align-items: center; gap: 12px; padding: 10px 0 0;">
+                <div style="width: 28px; height: 28px; border-radius: 8px; background: #FFFFFF; border: 2px solid #3D2A0A;"></div>
+                <div style="flex: 1;">
+                  <div style="font-size: 15px; font-weight: 500; color: #3D2A0A;">Détente du soir</div>
+                  <div style="font-size: 12px; color: rgba(61, 42, 10, 0.55);">10 minutes</div>
+                </div>
+                <i class="ti ti-chevron-right" style="font-size: 20px; color: rgba(61, 42, 10, 0.4);"></i>
+              </div>
+            </div>
+            <button style="width: 100%; padding: 16px 24px; background: #3D2A0A; border: none; border-radius: 9999px; font-size: 16px; font-weight: 600; color: #F5EEDF;">Valider ma journée</button>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item" style="color: #3D2A0A;"><i class="ti ti-home" style="font-size: 24px;"></i><span>Accueil</span></div>
+            <div class="tab-item" style="color: rgba(31, 17, 71, 0.45);"><i class="ti ti-affiliate" style="font-size: 24px;"></i><span>Toile</span></div>
+            <div class="tab-item" style="color: rgba(31, 17, 71, 0.45);"><i class="ti ti-user" style="font-size: 24px;"></i><span>Profil</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec-block">
+        <div class="spec-row"><div class="label">Pattern</div><strong>B — Hub d'accueil quotidien</strong></div>
+        <div class="spec-row"><div class="label">Référence IA</div>IA-11 état Phase 1</div>
+        <div class="spec-row"><div class="label">Palette</div>
+          <span class="color-chip" style="background: #FFD140;"></span> Fond pastel S7 #FFD140 ·
+          <span class="color-chip" style="background: #BA7517;"></span> Header ocre profond #BA7517 ·
+          <span class="color-chip" style="background: #3D2A0A;"></span> Texte #3D2A0A
+        </div>
+        <div class="spec-row"><div class="label">État affiché</div>Milieu de semaine — 1 session validée sur 3, streak 12 jours</div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAQUETTE 2 — Écran jour Phase 0 (Pêche corail) -->
+    <!-- ============================================ -->
+    <div class="mockup-card">
+      <div class="mockup-label-top">Maquette 2 · Pattern B</div>
+      <h2 class="mockup-title">Écran jour Phase 0 — Amorçage</h2>
+      <p class="mockup-subtitle">Hub d'accueil Phase 0 en pêche corail vivant avec checklist 7 actions identifiées par icônes neutres.</p>
+
+      <div class="phone-frame" style="background: #FFB87A;">
+        <div class="phone-content">
+          <div class="status-bar" style="color: #FFFFFF;">
+            <span>9:41</span>
+            <div class="notch"></div>
+            <div class="status-icons">
+              <i class="ti ti-signal-5" style="font-size: 14px;"></i>
+              <i class="ti ti-wifi" style="font-size: 14px;"></i>
+              <i class="ti ti-battery-3" style="font-size: 16px;"></i>
+            </div>
+          </div>
+
+          <div style="background: #E65D3C; border-radius: 0 0 32px 32px; padding: 18px 24px 28px; position: relative; overflow: hidden;">
+            <svg width="280" height="280" viewBox="0 0 280 280" style="position: absolute; right: -60px; top: -40px; opacity: 0.18;">
+              <circle cx="140" cy="140" r="130" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="140" y2="260" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="260" y2="140" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="20" y2="140" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="55" y2="55" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="225" y2="55" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="55" y2="225" stroke="#FFFFFF" stroke-width="1.5"/>
+              <line x1="140" y1="140" x2="225" y2="225" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="78" rx="22" ry="48" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(45 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(90 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(135 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(180 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(225 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(270 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#FFFFFF" stroke-width="1.5" transform="rotate(315 140 140)"/>
+            </svg>
+            <div style="position: absolute; left: -25px; bottom: -25px; width: 100px; height: 100px; background: #FFB87A; border-radius: 50%; opacity: 0.55;"></div>
+            <div style="position: relative; z-index: 2;">
+              <div style="font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.9); text-transform: uppercase; letter-spacing: 0.6px; margin-bottom: 6px;">Phase 0 · Amorçage</div>
+              <div style="font-size: 32px; font-weight: 800; color: #FFFFFF; line-height: 36px; margin-bottom: 10px; letter-spacing: -0.5px;">Jour 5 sur 14</div>
+              <div style="display: flex; align-items: center; gap: 10px;">
+                <div style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; background: #FFFFFF; border-radius: 9999px; box-shadow: 0 2px 6px rgba(31, 17, 71, 0.12);">
+                  <i class="ti ti-flame" style="font-size: 14px; color: #E66B2E;"></i>
+                  <span style="font-size: 13px; font-weight: 700; color: #1F1147;">5 jours</span>
+                </div>
+                <div style="font-size: 12px; font-weight: 500; color: rgba(255, 255, 255, 0.85);">Prochain palier : 7 jours</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="padding: 20px 20px 0; flex: 1; overflow: hidden;">
+            <div style="font-size: 15px; color: #3D1A0F; line-height: 23px; margin-bottom: 20px;">On installe les 7 actions du jour. Coche au fur et à mesure, valide en fin de journée.</div>
+            <div style="background: #FFFFFF; border-radius: 18px; padding: 14px 20px; box-shadow: 0 3px 12px rgba(31, 17, 71, 0.1); margin-bottom: 16px;">
+              <div style="display: flex; justify-content: space-between; padding: 4px 0 10px; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="font-size: 16px; font-weight: 600; color: #3D1A0F;">Actions du jour</div>
+                <div style="font-size: 13px; font-weight: 600; color: rgba(61, 26, 15, 0.6);">3 / 7</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #7BA84A; display: flex; align-items: center; justify-content: center;"><i class="ti ti-check" style="font-size: 16px; color: #FFFFFF;"></i></div>
+                <i class="ti ti-sun" style="font-size: 18px; color: rgba(61, 26, 15, 0.5);"></i>
+                <div style="flex: 1; font-size: 14px; color: rgba(61, 26, 15, 0.55); text-decoration: line-through;">Activation matinale</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #7BA84A; display: flex; align-items: center; justify-content: center;"><i class="ti ti-check" style="font-size: 16px; color: #FFFFFF;"></i></div>
+                <i class="ti ti-snowflake" style="font-size: 18px; color: rgba(61, 26, 15, 0.5);"></i>
+                <div style="flex: 1; font-size: 14px; color: rgba(61, 26, 15, 0.55); text-decoration: line-through;">Défi froid</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #7BA84A; display: flex; align-items: center; justify-content: center;"><i class="ti ti-check" style="font-size: 16px; color: #FFFFFF;"></i></div>
+                <i class="ti ti-droplet" style="font-size: 18px; color: rgba(61, 26, 15, 0.5);"></i>
+                <div style="flex: 1; font-size: 14px; color: rgba(61, 26, 15, 0.55); text-decoration: line-through;">Minéralisation</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #FFFFFF; border: 2px solid #3D1A0F;"></div>
+                <i class="ti ti-stretching" style="font-size: 18px; color: #3D1A0F;"></i>
+                <div style="flex: 1; font-size: 14px; font-weight: 500; color: #3D1A0F;">Mouvement de récupération</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #FFFFFF; border: 2px solid #3D1A0F;"></div>
+                <i class="ti ti-clock-hour-7" style="font-size: 18px; color: #3D1A0F;"></i>
+                <div style="flex: 1; font-size: 14px; font-weight: 500; color: #3D1A0F;">Fenêtre digestive</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 0.5px solid #F2D4CF;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #FFFFFF; border: 2px solid #3D1A0F;"></div>
+                <i class="ti ti-apple" style="font-size: 18px; color: #3D1A0F;"></i>
+                <div style="flex: 1; font-size: 14px; font-weight: 500; color: #3D1A0F;">Fruits</div>
+              </div>
+              <div style="display: flex; align-items: center; gap: 10px; padding: 8px 0 0;">
+                <div style="width: 24px; height: 24px; border-radius: 7px; background: #FFFFFF; border: 2px solid #3D1A0F;"></div>
+                <i class="ti ti-moon" style="font-size: 18px; color: #3D1A0F;"></i>
+                <div style="flex: 1; font-size: 14px; font-weight: 500; color: #3D1A0F;">Soirée sans écrans</div>
+              </div>
+            </div>
+            <button style="width: 100%; padding: 14px 24px; background: #3D1A0F; border: none; border-radius: 9999px; font-size: 15px; font-weight: 600; color: #F5EEDF;">Valider ma journée</button>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item" style="color: #3D1A0F;"><i class="ti ti-home" style="font-size: 24px;"></i><span>Accueil</span></div>
+            <div class="tab-item" style="color: rgba(31, 17, 71, 0.45);"><i class="ti ti-user" style="font-size: 24px;"></i><span>Profil</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec-block">
+        <div class="spec-row"><div class="label">Pattern</div><strong>B — Hub d'accueil quotidien (Phase 0)</strong></div>
+        <div class="spec-row"><div class="label">Référence IA</div>IA-11 état Phase 0</div>
+        <div class="spec-row"><div class="label">Palette</div>
+          <span class="color-chip" style="background: #FFB87A;"></span> Fond pêche #FFB87A ·
+          <span class="color-chip" style="background: #E65D3C;"></span> Header corail #E65D3C ·
+          <span class="color-chip" style="background: #3D1A0F;"></span> Texte #3D1A0F
+        </div>
+        <div class="spec-row"><div class="label">État affiché</div>Jour 5 sur 14, 3 actions cochées sur 7, streak 5 jours (avant 1er palier)</div>
+        <div class="spec-row"><div class="label">Spécificité</div>Tab bar 2 onglets — onglet Toile masqué en Phase 0 (D18)</div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAQUETTE 3 — Écran toile IA-25                -->
+    <!-- ============================================ -->
+    <div class="mockup-card">
+      <div class="mockup-label-top">Maquette 3 · Pattern E · Provisoire</div>
+      <h2 class="mockup-title">Écran toile — IA-25</h2>
+      <p class="mockup-subtitle">Toile hybride camembert + radar. Validée provisoirement, à itérer avec Mimi.</p>
+
+      <div class="phone-frame" style="background: #F5EEDF;">
+        <div class="phone-content">
+          <div class="status-bar" style="color: #1F1147;">
+            <span>9:41</span>
+            <div class="notch"></div>
+            <div class="status-icons">
+              <i class="ti ti-signal-5" style="font-size: 14px;"></i>
+              <i class="ti ti-wifi" style="font-size: 14px;"></i>
+              <i class="ti ti-battery-3" style="font-size: 16px;"></i>
+            </div>
+          </div>
+
+          <div style="padding: 18px 24px 12px; display: flex; justify-content: space-between; align-items: center; position: relative; overflow: hidden;">
+            <svg width="100" height="100" viewBox="0 0 280 280" style="position: absolute; right: -20px; top: -20px; opacity: 0.08;">
+              <circle cx="140" cy="140" r="130" fill="none" stroke="#1F1147" stroke-width="2.5"/>
+              <ellipse cx="140" cy="78" rx="22" ry="48" fill="none" stroke="#1F1147" stroke-width="2.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(45 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(90 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(135 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(180 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(225 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(270 140 140)"/>
+              <ellipse cx="140" cy="170" rx="14" ry="38" fill="none" stroke="#1F1147" stroke-width="2.5" transform="rotate(315 140 140)"/>
+            </svg>
+            <div style="position: relative; z-index: 2;">
+              <div style="font-size: 11px; font-weight: 500; color: rgba(31, 17, 71, 0.55); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Raw Adventure</div>
+              <div style="font-size: 28px; font-weight: 800; color: #1F1147; line-height: 32px;">Ma toile</div>
+            </div>
+            <button style="background: #FFFFFF; border: 1px solid rgba(31, 17, 71, 0.15); border-radius: 9999px; padding: 10px; box-shadow: 0 2px 6px rgba(31, 17, 71, 0.06); position: relative; z-index: 2;"><i class="ti ti-info-circle" style="font-size: 20px; color: #1F1147;"></i></button>
+          </div>
+
+          <div style="padding: 0 24px 8px; position: relative; z-index: 2;">
+            <div style="font-size: 14px; font-weight: 500; color: rgba(31, 17, 71, 0.75);">Semaine 5 sur 8 — 4 piliers travaillés, S5 Repos en cours</div>
+          </div>
+
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 0 12px;">
+            <svg width="340" height="340" viewBox="0 0 340 340">
+              <path d="M 170,170 L 119.27,52.46 A 130,130 0 0,1 220.73,52.46 Z" fill="#C9DFEC" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 220.73,52.46 A 130,130 0 0,1 287.54,119.27 Z" fill="#F4A87E" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 287.54,119.27 A 130,130 0 0,1 287.54,220.73 Z" fill="#F5C896" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 287.54,220.73 A 130,130 0 0,1 220.73,287.54 Z" fill="#D9F2B0" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 220.73,287.54 A 130,130 0 0,1 119.27,287.54 Z" fill="#DCC5F0" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 119.27,287.54 A 130,130 0 0,1 52.46,220.73 Z" fill="#F2B5C2" fill-opacity="0.45" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 52.46,220.73 A 130,130 0 0,1 52.46,119.27 Z" fill="#F7D670" fill-opacity="0.45" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 52.46,119.27 A 130,130 0 0,1 119.27,52.46 Z" fill="#B5DDD0" fill-opacity="0.45" stroke="#FFFFFF" stroke-width="2.5"/>
+              <path d="M 170,170 L 136.2,88.3 A 88.4,88.4 0 0,1 203.8,88.3 Z" fill="#4A7AB3" opacity="0.7"/>
+              <path d="M 170,170 L 204.8,85.9 A 91,91 0 0,1 254.1,135.2 Z" fill="#D4734A" opacity="0.7"/>
+              <path d="M 170,170 L 250.5,136.7 A 87.1,87.1 0 0,1 250.5,203.3 Z" fill="#C99650" opacity="0.7"/>
+              <path d="M 170,170 L 244.4,200.8 A 80.6,80.6 0 0,1 200.8,244.4 Z" fill="#7AB04A" opacity="0.7"/>
+              <path d="M 170,170 L 189.9,218 A 52,52 0 0,1 150.1,218 Z" fill="#8E6FBC" opacity="0.7"/>
+              <circle cx="170" cy="170" r="43" fill="none" stroke="rgba(31, 17, 71, 0.18)" stroke-width="1" stroke-dasharray="3,3"/>
+              <circle cx="170" cy="170" r="86" fill="none" stroke="rgba(31, 17, 71, 0.18)" stroke-width="1" stroke-dasharray="3,3"/>
+              <circle cx="170" cy="170" r="130" fill="none" stroke="rgba(31, 17, 71, 0.25)" stroke-width="1.5"/>
+              <polygon points="170,81.6 234.3,105.7 257.1,170 227,227 170,222 170,170" fill="none" stroke="#1F1147" stroke-width="2.5" stroke-linejoin="round"/>
+              <circle cx="170" cy="105" r="5" fill="#FFFFFF" stroke="#1F1147" stroke-width="2"/>
+              <circle cx="211.4" cy="128.6" r="5" fill="#FFFFFF" stroke="#1F1147" stroke-width="2"/>
+              <circle cx="241.5" cy="170" r="5" fill="#FFFFFF" stroke="#1F1147" stroke-width="2"/>
+              <circle cx="225.2" cy="225.2" r="5" fill="#FFFFFF" stroke="#1F1147" stroke-width="2"/>
+              <circle cx="170" cy="81.6" r="7" fill="#2D5085" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="234.3" cy="105.7" r="7" fill="#A4502D" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="257.1" cy="170" r="7" fill="#9A6E2E" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="227" cy="227" r="7" fill="#558030" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="170" cy="222" r="12" fill="none" stroke="#5D448F" stroke-width="2" opacity="0.4"/>
+              <circle cx="170" cy="222" r="7" fill="#5D448F" stroke="#FFFFFF" stroke-width="2"/>
+              <circle cx="170" cy="170" r="5" fill="#1F1147"/>
+              <text x="170" y="40" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#2D5085">Respiration</text>
+              <text x="262" y="65" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#A4502D">Activité</text>
+              <text x="310" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#9A6E2E">Alimentation</text>
+              <text x="272" y="290" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#558030">Vivant</text>
+              <text x="170" y="320" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#5D448F">Repos</text>
+              <text x="170" y="334" text-anchor="middle" font-family="Inter, sans-serif" font-size="9" font-weight="500" fill="#5D448F" opacity="0.7">en cours</text>
+              <text x="68" y="290" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="500" fill="rgba(138, 124, 168, 0.85)">Passion</text>
+              <text x="22" y="174" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="500" fill="rgba(138, 124, 168, 0.85)">Mindset</text>
+              <text x="68" y="60" text-anchor="middle" font-family="Inter, sans-serif" font-size="11" font-weight="500" fill="rgba(138, 124, 168, 0.85)">Détox</text>
+            </svg>
+          </div>
+
+          <div style="padding: 0 24px 16px;">
+            <div style="background: #FFFFFF; border-radius: 16px; padding: 12px 16px; box-shadow: 0 2px 8px rgba(31, 17, 71, 0.06); display: flex; align-items: center; gap: 12px;">
+              <i class="ti ti-hand-finger" style="font-size: 20px; color: #1F1147;"></i>
+              <div style="flex: 1;">
+                <div style="font-size: 13px; font-weight: 600; color: #1F1147;">Tape une part pour en voir le détail</div>
+                <div style="font-size: 11px; color: rgba(31, 17, 71, 0.6);">Le point blanc = ton point de départ. Le rond plein = aujourd'hui.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-bar">
+            <div class="tab-item" style="color: rgba(31, 17, 71, 0.45);"><i class="ti ti-home" style="font-size: 24px;"></i><span>Accueil</span></div>
+            <div class="tab-item" style="color: #1F1147;"><i class="ti ti-affiliate" style="font-size: 24px;"></i><span>Toile</span></div>
+            <div class="tab-item" style="color: rgba(31, 17, 71, 0.45);"><i class="ti ti-user" style="font-size: 24px;"></i><span>Profil</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec-block">
+        <div class="spec-row"><div class="label">Pattern</div><strong>E — Hub de visualisation</strong></div>
+        <div class="spec-row"><div class="label">Référence IA</div>IA-25 onglet Toile vue principale</div>
+        <div class="spec-row"><div class="label">Statut</div>Validé provisoirement — à itérer avec Mimi</div>
+        <div class="spec-row"><div class="label">Composant signature</div>Hybride 5 couches : parts pastels + zones saturées sous polygone + anneaux + polygone radar + points données</div>
+        <div class="spec-row"><div class="label">État affiché</div>Milieu de parcours — 4 piliers complets (S1-S4), 1 en cours (S5), 3 en attente (S6-S8)</div>
+      </div>
+    </div>
+
+    <!-- ============================================ -->
+    <!-- MAQUETTE 4 — Slide onboarding 1 Welcome      -->
+    <!-- ============================================ -->
+    <div class="mockup-card">
+      <div class="mockup-label-top">Maquette 4 · Pattern A</div>
+      <h2 class="mockup-title">Slide onboarding 1 — Welcome</h2>
+      <p class="mockup-subtitle">Premier écran que voit l'utilisateur. Logo Raw Adventure en grand format coloré comme illustration centrale.</p>
+
+      <div class="phone-frame" style="background: #FFB87A;">
+        <div class="phone-content">
+          <div class="status-bar" style="color: #3D1A0F;">
+            <span>9:41</span>
+            <div class="notch"></div>
+            <div class="status-icons">
+              <i class="ti ti-signal-5" style="font-size: 14px;"></i>
+              <i class="ti ti-wifi" style="font-size: 14px;"></i>
+              <i class="ti ti-battery-3" style="font-size: 16px;"></i>
+            </div>
+          </div>
+
+          <div style="padding: 18px 32px 0; display: flex; gap: 6px; justify-content: center; align-items: center;">
+            <div style="flex: 1; height: 4px; background: #3D1A0F; border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+            <div style="flex: 1; height: 4px; background: rgba(61, 26, 15, 0.2); border-radius: 4px;"></div>
+          </div>
+
+          <div style="padding: 28px 32px 0; text-align: center;">
+            <div style="font-size: 12px; font-weight: 600; color: rgba(61, 26, 15, 0.7); text-transform: uppercase; letter-spacing: 1.5px;">Bienvenue</div>
+          </div>
+
+          <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px 32px 0; position: relative;">
+            <div style="position: absolute; left: 10px; top: 30px; width: 60px; height: 60px; background: #FFFFFF; border-radius: 50%; opacity: 0.25;"></div>
+            <div style="position: absolute; right: 20px; bottom: 60px; width: 90px; height: 90px; background: #E65D3C; border-radius: 50%; opacity: 0.4;"></div>
+            <div style="position: absolute; right: 60px; top: 50px; width: 30px; height: 30px; background: #FFD140; border-radius: 50%; opacity: 0.7;"></div>
+            <svg width="220" height="220" viewBox="0 0 280 280" style="position: relative; z-index: 2;">
+              <circle cx="140" cy="140" r="132" fill="#1F1147" stroke="#3D1A0F" stroke-width="3"/>
+              <line x1="140" y1="140" x2="140" y2="258" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="258" y2="140" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="22" y2="140" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="58" y2="58" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="222" y2="58" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="58" y2="222" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <line x1="140" y1="140" x2="222" y2="222" stroke="#FFFFFF" stroke-width="1.5" opacity="0.75"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(45 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(90 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(135 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(180 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(225 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(270 140 140)"/>
+              <ellipse cx="140" cy="180" rx="13" ry="40" fill="none" stroke="#FFFFFF" stroke-width="2" transform="rotate(315 140 140)"/>
+              <ellipse cx="140" cy="76" rx="22" ry="48" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+              <line x1="140" y1="38" x2="140" y2="58" stroke="#FFFFFF" stroke-width="2"/>
+            </svg>
+          </div>
+
+          <div style="padding: 0 28px; text-align: center;">
+            <div style="font-size: 26px; font-weight: 800; color: #3D1A0F; line-height: 32px; letter-spacing: -0.4px; margin-bottom: 14px;">Tu es ici parce que ton corps t'envoie un signal.</div>
+            <div style="font-size: 15px; color: rgba(61, 26, 15, 0.75); line-height: 22px;">Pas un programme. Une exploration de 12 mois pour retrouver ta vitalité par l'expérience corporelle directe.</div>
+          </div>
+
+          <div style="padding: 28px 24px 32px;">
+            <button style="width: 100%; padding: 16px 24px; background: #3D1A0F; border: none; border-radius: 9999px; font-size: 16px; font-weight: 600; color: #FFFFFF; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; gap: 8px;">
+              <span>Commencer</span>
+              <i class="ti ti-arrow-right" style="font-size: 18px;"></i>
+            </button>
+            <button style="width: 100%; padding: 12px 24px; background: transparent; border: none; font-size: 14px; font-weight: 500; color: rgba(61, 26, 15, 0.75); text-decoration: underline; text-underline-offset: 4px;">J'ai déjà un compte</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="spec-block">
+        <div class="spec-row"><div class="label">Pattern</div><strong>A — Écran narratif plein</strong></div>
+        <div class="spec-row"><div class="label">Référence IA</div>IA-01 slide 1 onboarding</div>
+        <div class="spec-row"><div class="label">Palette</div>
+          <span class="color-chip" style="background: #FFB87A;"></span> Fond pêche #FFB87A (continuité avec Phase 0) ·
+          <span class="color-chip" style="background: #1F1147;"></span> Logo violet profond #1F1147 ·
+          <span class="color-chip" style="background: #3D1A0F;"></span> Texte #3D1A0F
+        </div>
+        <div class="spec-row"><div class="label">Spécificité</div>Logo Raw Adventure en grand format coloré comme illustration centrale + 3 cercles décoratifs (pêche, corail, jaune solaire) en arrière-plan + 10 segments de progression onboarding</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    <p>Raw Adventure App — Design System V1.1 — 14 mai 2026</p>
+    <p style="margin-top: 8px;">Produit en session design avec Stéphane et Claude. Variante C validée.</p>
+  </div>
+
+</div>
+
+</body>
+</html>
