@@ -1,17 +1,18 @@
 /**
- * RegisterScreen — IA-10 V1 (création de compte fin d'onboarding).
+ * RegisterScreen — IA-10 V1 (création de compte OU connexion fin d'onboarding).
  *
  * Réf IA V3 §IA-10 + Feature Spec V1 Socle minimum §2.10 (migration local
  * → distant à la création de compte) + D24 (démarrage différé optionnel).
  *
- * Différence majeure vs V0 AuthScreen :
- *  - IA-10 V1 est la SUITE de l'onboarding (l'utilisateur a déjà répondu au
- *    questionnaire). Pas un écran de login isolé en amont. Ici on crée le
- *    compte uniquement, le signIn existant passe par un autre écran.
- *  - À la sortie réussie de signUp, on appelle `migrateLocalToRemote` qui
- *    pousse les 9 clés AsyncStorage anonymes vers Supabase.
- *  - Calcule `accountCreatedAt` selon D24 : `now()` si > 4h avant minuit local,
- *    sinon délègue le choix à IA-10b via `onRequireStartChoice()`.
+ * Deux modes via toggle :
+ *  - `register` (par défaut) : signUp + migration AsyncStorage → Supabase
+ *  - `signin` : signInWithPassword pour les utilisateurs déjà inscrits. Pas
+ *    de migration — leurs données vivent déjà côté Supabase. La session
+ *    arrive → ProgressContext recharge → routeur enchaîne vers TabNavigator
+ *    automatiquement.
+ *
+ * Toggle visuel : bouton ghost "J'ai déjà un compte" / "Créer un compte"
+ * (cohérent maquette 4 onboarding slide 1 — design system V1.1 §10).
  *
  * Référence IA : IA-10. Pattern : D (variante saisie).
  */
@@ -45,39 +46,58 @@ import { hoursUntilNextLocalMidnight } from '../../lib/calendar';
 
 const D24_THRESHOLD_HOURS = 4;
 
+type Mode = 'register' | 'signin';
+
 export type RegisterScreenProps = {
   /**
    * Callback invoqué après création de compte réussie + migration AsyncStorage.
-   * - Si paramètre `requiresStartChoice` est true (heure locale dans la fenêtre
-   *   D24), le routeur doit afficher IA-10b. L'`accountCreatedAt` n'est PAS
-   *   encore posé — c'est IA-10b qui le fixera.
-   * - Sinon, l'`accountCreatedAt` est déjà posé sur `now()` et l'app peut
-   *   enchaîner sur IA-12 (vidéo bienvenue) puis TabNavigator.
+   *
+   * `requiresStartChoice` indique si IA-10b doit s'afficher (fenêtre D24).
+   *
+   * En mode `signin` (utilisateur existant), ce callback n'est pas appelé —
+   * la session arrive via `onAuthStateChange` et le routeur fait son travail
+   * automatiquement (saute IA-10 et IA-10b puisque l'utilisateur a déjà tout).
    */
   onRegistered: (args: { requiresStartChoice: boolean }) => void;
 };
 
 export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
-  const { signUpWithPassword } = useAuth();
+  const { signUpWithPassword, signInWithPassword } = useAuth();
   const { migrateLocalToRemote } = useProgress();
+  const [mode, setMode] = useState<Mode>('register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleRegister = async () => {
+  const handleSubmit = async () => {
     if (!email || !password) {
       Alert.alert('Champs manquants', 'Email et mot de passe requis.');
       return;
     }
-    if (password.length < 6) {
+    if (mode === 'register' && password.length < 6) {
       Alert.alert('Mot de passe trop court', '6 caractères minimum.');
       return;
     }
     setLoading(true);
     try {
+      if (mode === 'signin') {
+        const { error } = await signInWithPassword(email.trim(), password);
+        if (error) {
+          Alert.alert('Connexion échouée', error.message);
+          setLoading(false);
+          return;
+        }
+        // Session reçue via onAuthStateChange → ProgressContext recharge.
+        // Le routeur bascule vers TabNavigator automatiquement.
+        // Pas de callback onRegistered ni de migration ici : l'utilisateur a
+        // déjà son profil Supabase, on ne touche pas à ses données.
+        return;
+      }
+
+      // Mode register
       const { user, error } = await signUpWithPassword(email.trim(), password);
       if (error) {
-        Alert.alert('Erreur', error.message);
+        Alert.alert('Création échouée', error.message);
         setLoading(false);
         return;
       }
@@ -87,19 +107,13 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
         return;
       }
 
-      // D24 : décision de démarrage immédiat ou différé.
+      // D24 : fenêtre démarrage différé ?
       const hoursRemaining = hoursUntilNextLocalMidnight();
       const requiresStartChoice = hoursRemaining > 0 && hoursRemaining <= D24_THRESHOLD_HOURS;
 
-      // Si pas de fenêtre D24 → on pose accountCreatedAt = now() tout de suite
-      // et on migre. Sinon IA-10b se chargera de poser accountCreatedAt.
-      if (!requiresStartChoice) {
-        await migrateLocalToRemote(user.id, new Date().toISOString());
-      } else {
-        // Migration immédiate aussi MAIS sans poser accountCreatedAt définitif.
-        // On utilise now() comme valeur temporaire ; IA-10b le réécrira.
-        await migrateLocalToRemote(user.id, new Date().toISOString());
-      }
+      // Migration AsyncStorage → Supabase (M7+A3). accountCreatedAt provisoire
+      // en cas de D24 ; IA-10b le réécrira.
+      await migrateLocalToRemote(user.id, new Date().toISOString());
 
       onRegistered({ requiresStartChoice });
     } catch (e: any) {
@@ -109,6 +123,14 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
     }
   };
 
+  const isRegister = mode === 'register';
+  const title = isRegister ? 'On crée ton compte.' : 'Te revoilà.';
+  const subtitle = isRegister
+    ? 'Tes 14 premiers jours sont gratuits. On a juste besoin de ton email pour sauvegarder ta progression.'
+    : 'Connecte-toi avec ton email pour retrouver ton parcours.';
+  const ctaLabel = isRegister ? 'Créer mon compte' : 'Me connecter';
+  const toggleLabel = isRegister ? "J'ai déjà un compte" : 'Créer un compte';
+
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <KeyboardAvoidingView
@@ -116,51 +138,63 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <View style={styles.body}>
-          <Text style={styles.marker}>ÉTAPE 10 SUR 10</Text>
-          <Text style={styles.title}>On crée ton compte.</Text>
-          <Text style={styles.subtitle}>
-            Tes 14 premiers jours sont gratuits. On a juste besoin de ton email pour
-            sauvegarder ta progression.
-          </Text>
+          <View>
+            <Text style={styles.marker}>
+              {isRegister ? 'ÉTAPE 10 SUR 10' : 'CONNEXION'}
+            </Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.subtitle}>{subtitle}</Text>
 
-          <View style={styles.inputs}>
-            <TextInput
-              style={styles.input}
-              placeholder="Email"
-              placeholderTextColor={neutralColors.textMuted}
-              autoCapitalize="none"
-              autoComplete="email"
-              keyboardType="email-address"
-              value={email}
-              onChangeText={setEmail}
-              editable={!loading}
-            />
-            <TextInput
-              style={styles.input}
-              placeholder="Mot de passe (6 caractères min)"
-              placeholderTextColor={neutralColors.textMuted}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="password-new"
-              value={password}
-              onChangeText={setPassword}
-              editable={!loading}
-            />
+            <View style={styles.inputs}>
+              <TextInput
+                style={styles.input}
+                placeholder="Email"
+                placeholderTextColor={neutralColors.textMuted}
+                autoCapitalize="none"
+                autoComplete="email"
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
+                editable={!loading}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder={
+                  isRegister ? 'Mot de passe (6 caractères min)' : 'Mot de passe'
+                }
+                placeholderTextColor={neutralColors.textMuted}
+                secureTextEntry
+                autoCapitalize="none"
+                autoComplete={isRegister ? 'password-new' : 'current-password'}
+                value={password}
+                onChangeText={setPassword}
+                editable={!loading}
+              />
+            </View>
           </View>
 
           <View style={styles.actions}>
             <Button
-              label="Créer mon compte"
-              onPress={handleRegister}
+              label={ctaLabel}
+              onPress={handleSubmit}
               loading={loading}
               IconRight={ArrowRight}
               fullWidth
               size="large"
             />
-            <Text style={styles.fine}>
-              En créant ton compte, tu acceptes nos CGU et notre politique de
-              confidentialité. [copy à valider]
-            </Text>
+            <Button
+              label={toggleLabel}
+              variant="ghost"
+              onPress={() => setMode(isRegister ? 'signin' : 'register')}
+              disabled={loading}
+              fullWidth
+            />
+            {isRegister && (
+              <Text style={styles.fine}>
+                En créant ton compte, tu acceptes nos CGU et notre politique de
+                confidentialité. [copy à valider]
+              </Text>
+            )}
           </View>
         </View>
       </KeyboardAvoidingView>
