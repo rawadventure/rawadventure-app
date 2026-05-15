@@ -30,7 +30,7 @@
  */
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -198,49 +198,59 @@ export default function HomeScreenV1() {
                 {PHASE_0_ACTIONS.map((action) => {
                   const checked = checks[action.id];
                   return (
-                    <Pressable
-                      key={action.id}
-                      onPress={() => toggleAction(action.id)}
-                      onLongPress={() => openActionDetail(action.id)}
-                      hitSlop={4}
-                      style={({ pressed }) => [
-                        styles.actionRow,
-                        pressed && { opacity: 0.85 },
-                      ]}
-                      accessibilityRole="checkbox"
-                      accessibilityState={{ checked, disabled: alreadyValidatedToday }}
-                      accessibilityLabel={action.title}
-                      accessibilityHint="Tap pour cocher ou décocher. Tap long pour voir le détail."
-                    >
-                      <View
-                        style={[
-                          styles.checkbox,
-                          checked && {
-                            backgroundColor: brandColors.alive,
-                            borderColor: brandColors.alive,
-                          },
-                        ]}
+                    <View key={action.id} style={styles.actionRow}>
+                      {/* Tap court sur le carré gauche → toggle */}
+                      <TouchableOpacity
+                        onPress={() => toggleAction(action.id)}
+                        disabled={alreadyValidatedToday}
+                        activeOpacity={0.6}
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked, disabled: alreadyValidatedToday }}
+                        accessibilityLabel={`Cocher ${action.title}`}
+                        style={styles.checkboxHit}
                       >
-                        {checked && <Check size={18} color="#FFFFFF" strokeWidth={3} />}
-                      </View>
-                      <View style={styles.actionIcon}>
-                        <action.Icon size={20} color={pillarColors.phase0.text} />
-                      </View>
-                      <View style={styles.actionText}>
-                        <Text
+                        <View
                           style={[
-                            styles.actionTitle,
-                            checked && styles.actionTitleChecked,
+                            styles.checkbox,
+                            checked && {
+                              backgroundColor: brandColors.alive,
+                              borderColor: brandColors.alive,
+                            },
                           ]}
-                          numberOfLines={1}
+                          pointerEvents="none"
                         >
-                          {action.title}
-                        </Text>
-                        <Text style={styles.actionSubtitle} numberOfLines={1}>
-                          {action.subtitle}
-                        </Text>
-                      </View>
-                    </Pressable>
+                          {checked && <Check size={18} color="#FFFFFF" strokeWidth={3} />}
+                        </View>
+                      </TouchableOpacity>
+
+                      {/* Tap court sur le reste → IA-13 détail */}
+                      <TouchableOpacity
+                        onPress={() => openActionDetail(action.id)}
+                        activeOpacity={0.6}
+                        accessibilityRole="button"
+                        accessibilityLabel={`Détail ${action.title}`}
+                        accessibilityHint="Ouvre le détail de l'action."
+                        style={styles.actionTapZone}
+                      >
+                        <View style={styles.actionIcon}>
+                          <action.Icon size={20} color={pillarColors.phase0.text} />
+                        </View>
+                        <View style={styles.actionText}>
+                          <Text
+                            style={[
+                              styles.actionTitle,
+                              checked && styles.actionTitleChecked,
+                            ]}
+                            numberOfLines={1}
+                          >
+                            {action.title}
+                          </Text>
+                          <Text style={styles.actionSubtitle} numberOfLines={1}>
+                            {action.subtitle}
+                          </Text>
+                        </View>
+                      </TouchableOpacity>
+                    </View>
                   );
                 })}
               </View>
@@ -257,7 +267,7 @@ export default function HomeScreenV1() {
             />
 
             <Text style={styles.hint}>
-              Tap long sur une action pour voir le détail. (Sprint 5 — IA-13 placeholder.)
+              Tap court sur le carré pour cocher. Tap court sur l'action pour voir le détail.
             </Text>
           </View>
         </ScrollView>
@@ -297,10 +307,21 @@ const styles = StyleSheet.create({
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: space[3],
-    gap: space[3],
     borderBottomWidth: 1,
     borderBottomColor: neutralColors.borderSubtle,
+  },
+  checkboxHit: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionTapZone: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+    paddingVertical: space[2],
   },
   checkbox: {
     width: 28,
