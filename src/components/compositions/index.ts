@@ -10,5 +10,8 @@ export type { PillarHeaderProps } from './PillarHeader';
 export { TabBar } from './TabBar';
 export type { TabBarProps, TabId } from './TabBar';
 
+export { DailyCheckModal } from './DailyCheckModal';
+export type { DailyCheckModalProps } from './DailyCheckModal';
+
 export { StreakBubble } from './StreakBubble';
 export type { StreakBubbleProps } from './StreakBubble';

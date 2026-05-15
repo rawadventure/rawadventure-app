@@ -1,0 +1,346 @@
+/**
+ * HomeScreenV1 — IA-11 Hub d'accueil quotidien (Phase 0).
+ *
+ * Réf IA V3 §IA-11 + design system V1.1 §10.2 (Pattern B PATCHÉ V1.1) +
+ * Feature Spec V1 Socle minimum §2.4. Décisions D6 (seuil 5/7), D26
+ * (soft-rappel), D34 (pas de score quotidien stocké).
+ *
+ * Structure V1.1 (§10.2) :
+ *   1. Safe area + status bar adaptée
+ *   2. PillarHeader Phase 0 corail + logo filigrane + bulle streak intégrée
+ *   3. Corps fond pêche pastel
+ *   4. Message du jour Mimi & Jacky (body-large, placeholder Sprint 5)
+ *   5. Card forte "Actions du jour" avec checklist 7 actions + compteur X/7
+ *   6. Bouton primaire "Valider ma journée" pleine largeur
+ *
+ * Validation flow :
+ *   - User coche N actions sur 7 (state local persisté par localDate)
+ *   - Tap "Valider ma journée" → ouvre DailyCheckModal (IA-15)
+ *   - Selon N : soit confirmation directe (N >= 5), soit soft-rappel D26 (N < 5)
+ *   - Sur confirmation → `validateDay()` écrit progress + streak_history +
+ *     joker_consumptions + tier_reaches selon la décision déterminée
+ *   - Si palier franchi → TODO IA-50 (Sprint 6+ — pour V5 simple alert)
+ *
+ * Cette V1 NE GÈRE PAS encore :
+ *   - Vidéo de bienvenue IA-12 (premier lancement J1) — Sprint 6+
+ *   - Jours-charnière J3/J7/J11/J14 (couches superposées) — Sprint 6+
+ *   - Phase 1 (autre Hub d'accueil, Pattern B variante S{N}) — Sprint 7+
+ *
+ * Référence IA : IA-11 (Phase 0 uniquement). Pattern : B.
+ */
+
+import React, { useEffect, useMemo, useState } from 'react';
+import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { Check } from 'lucide-react-native';
+import { Button, Card } from '../../components/primitives';
+import { PillarHeader } from '../../components/compositions';
+import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
+import {
+  brandColors,
+  interTextStyle,
+  neutralColors,
+  pillarColors,
+  radiusV1,
+  space,
+} from '../../theme';
+import { getInterFamily } from '../../theme';
+import { useProgress } from '../../hooks/ProgressContext';
+import { todayLocalDate } from '../../lib/calendar';
+import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
+import type { Phase0StackParamList } from '../../navigation/HomeStack';
+
+const PHASE_0_TOTAL = 7;
+const PHASE_0_THRESHOLD = 5;
+
+type DailyChecksMap = Record<Phase0ActionId, boolean>;
+const EMPTY_CHECKS: DailyChecksMap = {
+  activation_matinale: false,
+  defi_froid: false,
+  mouvement_recuperation: false,
+  mineralisation: false,
+  fenetre_digestive: false,
+  fruits: false,
+  soiree_sans_ecrans: false,
+};
+
+const STORAGE_KEY = (localDate: string) => `daily_check_actions.${localDate}`;
+
+type NavProp = NativeStackNavigationProp<Phase0StackParamList>;
+
+export default function HomeScreenV1() {
+  const navigation = useNavigation<NavProp>();
+  const {
+    currentDay,
+    currentPhase,
+    streak,
+    streakHistory,
+    validateDay,
+  } = useProgress();
+
+  const today = todayLocalDate();
+  const [checks, setChecks] = useState<DailyChecksMap>(EMPTY_CHECKS);
+  const [validating, setValidating] = useState(false);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
+  const alreadyValidatedToday = useMemo(
+    () => streakHistory.some((e) => e.local_date === today),
+    [streakHistory, today],
+  );
+
+  // Charge l'état du jour depuis AsyncStorage au mount.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(STORAGE_KEY(today));
+        if (cancelled) return;
+        if (raw) {
+          setChecks({ ...EMPTY_CHECKS, ...JSON.parse(raw) });
+        } else {
+          setChecks(EMPTY_CHECKS);
+        }
+      } catch (e) {
+        console.warn('[HomeScreenV1] load checks failed', e);
+      } finally {
+        if (!cancelled) setLoaded(true);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [today]);
+
+  // Persiste à chaque modification.
+  useEffect(() => {
+    if (!loaded) return;
+    AsyncStorage.setItem(STORAGE_KEY(today), JSON.stringify(checks)).catch((e) =>
+      console.warn('[HomeScreenV1] save checks failed', e),
+    );
+  }, [checks, today, loaded]);
+
+  const checkedCount = Object.values(checks).filter(Boolean).length;
+  const canValidate = checkedCount > 0 && !alreadyValidatedToday;
+
+  const toggleAction = (id: Phase0ActionId) => {
+    if (alreadyValidatedToday) return;
+    setChecks((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const openActionDetail = (id: Phase0ActionId) => {
+    navigation.navigate('Phase0ActionDetail', { actionId: id });
+  };
+
+  const handleConfirmValidation = async () => {
+    setValidating(true);
+    try {
+      const result = await validateDay({
+        day: currentDay > 0 && currentDay <= 14 ? currentDay : undefined,
+        phase: 'phase_0',
+        actionsCount: checkedCount,
+        userValidatedManually: true,
+      });
+      setModalVisible(false);
+
+      // Reset local des coches après validation (la journée est figée — D27).
+      await AsyncStorage.removeItem(STORAGE_KEY(today));
+      setChecks(EMPTY_CHECKS);
+
+      // TODO Sprint 6+ : IA-50 modale palier si result.tierReached. Pour
+      // l'instant, simple alerte placeholder.
+      if (result.tierReached) {
+        Alert.alert(
+          `Palier ${result.tierReached} jours atteint`,
+          `Streak : ${result.newStreak}. (IA-50 à coder en Sprint 6+)`,
+        );
+      } else if (result.jokerUsed) {
+        Alert.alert(
+          'Joker consommé',
+          `Streak conservé à ${result.newStreak}. Réinitialisation lundi.`,
+        );
+      }
+    } catch (e: any) {
+      Alert.alert('Erreur', e.message ?? 'Validation échouée');
+    } finally {
+      setValidating(false);
+    }
+  };
+
+  // Marqueur dynamique pour le header — placeholder Sprint 5, à enrichir
+  // copy V1 quand le brief contenu sera produit.
+  const dayLabel = currentDay > 0 ? `Jour ${currentDay} sur 14` : 'Jour 0';
+  const messageDuJour = alreadyValidatedToday
+    ? 'Journée validée. Tu peux te reposer ou explorer les détails des actions.'
+    : 'Coche les actions que tu as pratiquées aujourd\'hui. Cinq sur sept suffisent pour valider ta journée. [copy à valider]';
+
+  return (
+    <View style={styles.container}>
+      <SafeAreaView style={styles.safeTop} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+          <PillarHeader
+            context="phase0"
+            marker="Phase 0 · Amorçage"
+            title="Amorçage"
+            dayLabel={dayLabel}
+            streakDays={streak}
+          />
+
+          <View style={styles.body}>
+            <Text style={styles.message}>{messageDuJour}</Text>
+
+            <Card title="Actions du jour" subtitle={`${checkedCount} / ${PHASE_0_TOTAL} cochées`} variant="forte">
+              <View style={styles.actionsList}>
+                {PHASE_0_ACTIONS.map((action) => {
+                  const checked = checks[action.id];
+                  return (
+                    <Pressable
+                      key={action.id}
+                      onPress={() => toggleAction(action.id)}
+                      onLongPress={() => openActionDetail(action.id)}
+                      hitSlop={4}
+                      style={({ pressed }) => [
+                        styles.actionRow,
+                        pressed && { opacity: 0.85 },
+                      ]}
+                      accessibilityRole="checkbox"
+                      accessibilityState={{ checked, disabled: alreadyValidatedToday }}
+                      accessibilityLabel={action.title}
+                      accessibilityHint="Tap pour cocher ou décocher. Tap long pour voir le détail."
+                    >
+                      <View
+                        style={[
+                          styles.checkbox,
+                          checked && {
+                            backgroundColor: brandColors.alive,
+                            borderColor: brandColors.alive,
+                          },
+                        ]}
+                      >
+                        {checked && <Check size={18} color="#FFFFFF" strokeWidth={3} />}
+                      </View>
+                      <View style={styles.actionIcon}>
+                        <action.Icon size={20} color={pillarColors.phase0.text} />
+                      </View>
+                      <View style={styles.actionText}>
+                        <Text
+                          style={[
+                            styles.actionTitle,
+                            checked && styles.actionTitleChecked,
+                          ]}
+                          numberOfLines={1}
+                        >
+                          {action.title}
+                        </Text>
+                        <Text style={styles.actionSubtitle} numberOfLines={1}>
+                          {action.subtitle}
+                        </Text>
+                      </View>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </Card>
+
+            <Button
+              label={alreadyValidatedToday ? 'Journée déjà validée' : 'Valider ma journée'}
+              onPress={() => setModalVisible(true)}
+              disabled={!canValidate}
+              fullWidth
+              size="large"
+              context="phase0"
+              style={styles.validateBtn}
+            />
+
+            <Text style={styles.hint}>
+              Tap long sur une action pour voir le détail. (Sprint 5 — IA-13 placeholder.)
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+
+      <DailyCheckModal
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        onConfirm={handleConfirmValidation}
+        actionsCount={checkedCount}
+        phase={currentPhase}
+        loading={validating}
+      />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1, backgroundColor: pillarColors.phase0.bg },
+  safeTop: { flex: 1, backgroundColor: pillarColors.phase0.headerBg },
+  scroll: {
+    backgroundColor: pillarColors.phase0.bg,
+    paddingBottom: space[8],
+  },
+  body: {
+    padding: space[5],
+    gap: space[5],
+  },
+  message: {
+    ...interTextStyle('bodyLarge'),
+    color: pillarColors.phase0.text,
+  },
+  actionsList: {
+    gap: space[2],
+    marginTop: space[2],
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: space[3],
+    gap: space[3],
+    borderBottomWidth: 1,
+    borderBottomColor: neutralColors.borderSubtle,
+  },
+  checkbox: {
+    width: 28,
+    height: 28,
+    borderRadius: radiusV1.md,
+    borderWidth: 2,
+    borderColor: pillarColors.phase0.text,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIcon: {
+    width: 32,
+    alignItems: 'center',
+  },
+  actionText: { flex: 1 },
+  actionTitle: {
+    fontFamily: getInterFamily('600'),
+    fontSize: 16,
+    lineHeight: 22,
+    color: pillarColors.phase0.text,
+  },
+  actionTitleChecked: {
+    textDecorationLine: 'line-through',
+    opacity: 0.6,
+  },
+  actionSubtitle: {
+    fontFamily: getInterFamily('400'),
+    fontSize: 13,
+    lineHeight: 18,
+    color: pillarColors.phase0.text,
+    opacity: 0.75,
+  },
+  validateBtn: {
+    marginTop: space[2],
+  },
+  hint: {
+    ...interTextStyle('caption'),
+    color: pillarColors.phase0.text,
+    opacity: 0.6,
+    textAlign: 'center',
+    marginTop: space[3],
+  },
+});
