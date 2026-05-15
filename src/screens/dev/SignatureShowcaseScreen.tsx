@@ -19,6 +19,7 @@ import { brandColors, neutralColors, pillarColors, space, interTextStyle } from 
 
 export default function SignatureShowcaseScreen() {
   const empty = makeMockScores('empty');
+  const level1 = makeMockScores('level1');
   const midway = makeMockScores('midway');
   const full = makeMockScores('full');
 
@@ -70,7 +71,14 @@ export default function SignatureShowcaseScreen() {
 
         {/* TOILES */}
         <View style={styles.toileSection}>
-          <Text style={styles.h2}>Toile — état midway (1 completed, 1 started, 6 pending)</Text>
+          <Text style={styles.h2}>Toile — état level1 (tous à 20%, état amorçage post-S0.1)</Text>
+          <View style={styles.toileCenter}>
+            <Toile scores={level1} variant="full" />
+          </View>
+        </View>
+
+        <View style={styles.toileSection}>
+          <Text style={styles.h2}>Toile — état midway (S1 completed, S2 started, reste level1)</Text>
           <View style={styles.toileCenter}>
             <Toile scores={midway} variant="full" />
           </View>
@@ -105,15 +113,15 @@ export default function SignatureShowcaseScreen() {
         </View>
 
         <View style={styles.toileSection}>
-          <Text style={styles.h2}>Toile — variant comparison (avant / après)</Text>
+          <Text style={styles.h2}>Toile — variant comparison (avant level1 / après full)</Text>
           <View style={[styles.toileCenter, { flexDirection: 'row', gap: space[4], justifyContent: 'center' }]}>
-            <Toile scores={empty} variant="comparison" />
+            <Toile scores={level1} variant="comparison" />
             <Toile scores={full} variant="comparison" />
           </View>
         </View>
 
         <View style={styles.toileSection}>
-          <Text style={styles.h2}>Toile — état empty (avant S0.1)</Text>
+          <Text style={styles.h2}>Toile — état empty (edge case avant éval initiale)</Text>
           <View style={styles.toileCenter}>
             <Toile scores={empty} variant="full" />
           </View>

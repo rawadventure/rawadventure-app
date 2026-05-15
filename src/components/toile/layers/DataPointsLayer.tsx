@@ -12,6 +12,14 @@
  */
 
 import React from 'react';
+import Animated, {
+  useAnimatedProps,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+  Easing,
+  cancelAnimation,
+} from 'react-native-reanimated';
 import { Circle } from 'react-native-svg';
 import { brandColors, treeColors } from '../../../theme';
 import {
@@ -20,6 +28,8 @@ import {
   type PillarScore,
   type PillarSlot,
 } from '../geometry';
+
+const AnimatedCircle = Animated.createAnimatedComponent(Circle);
 
 type Props = {
   cx: number;
@@ -51,32 +61,66 @@ export function DataPointsLayer({ cx, cy, radius, scores, focusedPillar }: Props
         );
       })}
 
-      {/* Sommets finaux + halo focused */}
+      {/* Sommets finaux + halo focused (animé) */}
       {finals.map((entry) => {
         if (!entry) return null;
         const isFocused = focusedPillar === entry.pillarId;
         return (
           <React.Fragment key={`final-${entry.pillarId}`}>
             {isFocused && (
-              <Circle
+              <PulsingHalo
                 cx={entry.point.x}
                 cy={entry.point.y}
-                r={12}
-                fill={treeColors[entry.pillarId].tip}
-                fillOpacity={0.4}
+                color={treeColors[entry.pillarId].tip}
               />
             )}
             <Circle
               cx={entry.point.x}
               cy={entry.point.y}
-              r={7}
+              r={isFocused ? 8 : 7}
               fill={treeColors[entry.pillarId].tip}
               stroke="#FFFFFF"
-              strokeWidth={2}
+              strokeWidth={isFocused ? 2.5 : 2}
             />
           </React.Fragment>
         );
       })}
     </>
+  );
+}
+
+/**
+ * PulsingHalo — anneau qui pulse autour d'un sommet focused.
+ *
+ * Anime simultanément le rayon (10 → 16 → 10) et l'opacité (0.55 → 0.1 → 0.55)
+ * en boucle 1300ms easing easeInOut. Désactivé Reduce Motion à terme via
+ * AccessibilityInfo (Sprint 3+).
+ */
+function PulsingHalo({ cx, cy, color }: { cx: number; cy: number; color: string }) {
+  const t = useSharedValue(0);
+
+  React.useEffect(() => {
+    t.value = withRepeat(
+      withTiming(1, { duration: 1300, easing: Easing.inOut(Easing.ease) }),
+      -1,
+      true,
+    );
+    return () => {
+      cancelAnimation(t);
+    };
+  }, [t]);
+
+  const animatedProps = useAnimatedProps(() => ({
+    r: 10 + t.value * 6,
+    fillOpacity: 0.55 - t.value * 0.45,
+  }));
+
+  return (
+    <AnimatedCircle
+      cx={cx}
+      cy={cy}
+      fill={color}
+      animatedProps={animatedProps}
+    />
   );
 }

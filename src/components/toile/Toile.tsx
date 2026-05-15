@@ -134,18 +134,25 @@ export function Toile({
       }
     >
       <Svg width={resolvedSize} height={resolvedSize} viewBox={`0 0 ${resolvedSize} ${resolvedSize}`}>
-        {/* Ordre Z important : camembert → saturated zones → rings → polygon → points */}
+        {/* Ordre Z important : camembert → saturated zones → rings → polygon → points
+            Variant 'mini' (96px) : camembert + zones saturées uniquement. Les anneaux,
+            polygone radar et points de données sont supprimés car illisibles à cette
+            taille — la vue compacte sert juste à signaler "où tu en es" globalement. */}
         <CamembertLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
         <SaturatedZonesLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
-        <ReferenceRingsLayer cx={cx} cy={cy} radius={radius} />
-        <RadarPolygonLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
-        <DataPointsLayer
-          cx={cx}
-          cy={cy}
-          radius={radius}
-          scores={orderedScores}
-          focusedPillar={focusedPillar}
-        />
+        {variant !== 'mini' && (
+          <>
+            <ReferenceRingsLayer cx={cx} cy={cy} radius={radius} />
+            <RadarPolygonLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
+            <DataPointsLayer
+              cx={cx}
+              cy={cy}
+              radius={radius}
+              scores={orderedScores}
+              focusedPillar={focusedPillar}
+            />
+          </>
+        )}
 
         {/* Labels textuels autour (variant full / detail uniquement) */}
         {shouldShowLabels &&
@@ -210,15 +217,30 @@ const styles = StyleSheet.create({
  * Utilitaire de test : génère un état de scores cohérent pour le showcase.
  * À retirer ou déplacer ailleurs en Sprint 3+ quand le store réel alimente la Toile.
  */
-export function makeMockScores(pattern: 'empty' | 'midway' | 'full'): PillarScore[] {
+export function makeMockScores(
+  pattern: 'empty' | 'level1' | 'midway' | 'full',
+): PillarScore[] {
   if (pattern === 'empty') {
+    // État brut : aucune éval initiale réalisée. Polygone collapse au centre.
+    // Rare en pratique (la Phase 0 alimente déjà les premières valeurs des
+    // branches via le profil onboarding) — conservé pour test edge case.
     return PILLAR_ORDER.map((id) => ({ pillarId: id, state: 'pending' as const }));
+  }
+  if (pattern === 'level1') {
+    // Tous les piliers au niveau 1 (20%) — état d'amorçage typique post-S0.1.
+    // Polygone visible petit, montre la construction sans cas dégénéré à 0.
+    return PILLAR_ORDER.map((id) => ({
+      pillarId: id,
+      state: 'started' as const,
+      initialScore: 20,
+    }));
   }
   if (pattern === 'midway') {
     return PILLAR_ORDER.map((id, idx) => {
       if (idx === 0) return { pillarId: id, state: 'completed', initialScore: 35, finalScore: 72 };
       if (idx === 1) return { pillarId: id, state: 'started', initialScore: 42 };
-      return { pillarId: id, state: 'pending' };
+      // Piliers restants au niveau 1 plutôt que zéro brut.
+      return { pillarId: id, state: 'started' as const, initialScore: 20 };
     });
   }
   // full
