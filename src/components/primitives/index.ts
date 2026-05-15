@@ -1,13 +1,23 @@
 /**
- * Composants primitifs — boutons, cards, inputs, checkbox, modales.
+ * Composants primitifs — boutons, cards, inputs, checkbox, échelles, modales.
  *
  * Réf design system V1.1 §5.1 à §5.7.
- * À implémenter en Sprint 1 (cf. `docs/raw-adventure-claude-code-brief-v1.md`) :
- *  - Button (primaire / secondaire / ghost / destructive, 3 tailles, états)
- *  - Card (standard / forte / action / pilier)
- *  - Checkbox (grande Phase 0 + standard)
- *  - Scale15 (échelle 1-5 pour évaluations)
- *  - LevelSelector (Moins / Pareil / Plus)
- *  - Modal (plein écran + standard + bottom sheet)
  */
-export {};
+
+export { Button } from './Button';
+export type { ButtonProps, ButtonVariant, ButtonSize } from './Button';
+
+export { Card } from './Card';
+export type { CardProps, CardVariant } from './Card';
+
+export { Checkbox } from './Checkbox';
+export type { CheckboxProps, CheckboxSize } from './Checkbox';
+
+export { Scale15 } from './Scale15';
+export type { Scale15Props, Scale15Value } from './Scale15';
+
+export { LevelSelector } from './LevelSelector';
+export type { LevelSelectorProps, AdaptiveLevel } from './LevelSelector';
+
+export { Modal } from './Modal';
+export type { ModalProps, ModalVariant } from './Modal';

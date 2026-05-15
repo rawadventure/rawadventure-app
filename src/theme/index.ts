@@ -45,6 +45,8 @@ export type { PillarKey } from './theme-tokens';
 export { usePillarTheme } from './usePillarTheme';
 export type { PillarContext, PillarTheme } from './usePillarTheme';
 export { useScaledFontSize, useFontScale } from './useScaledFontSize';
+export { getInterFamily, interTextStyle } from './fontHelpers';
+export type { InterWeight, TypographyScale } from './fontHelpers';
 
 // ─── Strate legacy V0 — à retirer au fil des refontes ─────────────────────────
 // Palette sombre flat héritée du V0. NE PAS UTILISER pour le nouveau code.
