@@ -263,11 +263,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, [accountCreatedAt]);
 
   const currentPhase: Phase = useMemo(() => {
-    // Phase 0 = J1 à J14. Au-delà, on bascule conceptuellement en S0 puis Phase 1.
-    // Pour l'instant, tout ce qui est > 14 est traité comme Phase 1 côté streak.
-    // La nuance S0 (jours 15-16, transition) sera distinguée plus tard quand
-    // les écrans S0.1 / S0.2 seront codés.
-    return currentDay > 0 && currentDay <= 14 ? 'phase_0' : 'phase_1';
+    // Phase 0 = J1 à J14, plus l'état initial (currentDay = 0, accountCreatedAt
+    // null ou futur). Au-delà de J14 on bascule en S0 puis Phase 1 — pour
+    // l'instant tout > 14 est traité comme Phase 1 côté streak. La nuance S0
+    // (jours 15-16) sera distinguée quand IA-20 / IA-21 seront codés.
+    return currentDay <= 14 ? 'phase_0' : 'phase_1';
   }, [currentDay]);
 
   const streak = useMemo(
