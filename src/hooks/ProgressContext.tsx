@@ -94,6 +94,10 @@ interface ProgressContextType {
   // ── API V1 (Sprint 3+)
   validateDay: (args: ValidateDayArgs) => Promise<ValidateDayResult>;
   setAccountCreatedAt: (iso: string) => Promise<void>;
+  /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
+   *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
+   *  avec un `userId` valide (issu de `signUpWithPassword`). */
+  migrateLocalToRemote: (userId: string, accountCreatedAtIso: string) => Promise<void>;
 
   // ── lifecycle
   completeOnboarding: (
@@ -453,6 +457,95 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     ],
   );
 
+  /**
+   * Migration des données AsyncStorage anonymes vers Supabase à la création
+   * de compte (M7+A3 — Feature Spec V1 Socle minimum §2.10).
+   *
+   * À appeler depuis IA-10 RegisterScreen après `signUpWithPassword`
+   * réussi. Effectue :
+   *  1. Update profile (onboarding_done + onboarding_data + profile_dynamic_id
+   *     + account_created_at)
+   *  2. Upsert progress (Phase 0 jours déjà cochés en anonyme, généralement vide)
+   *  3. Upsert streak_history / joker_consumptions / tier_reaches (idem)
+   *  4. Clear des 9 clés AsyncStorage anonymes
+   *  5. Met à jour le state local accountCreatedAt
+   *
+   * Le trigger Supabase `on_auth_user_created` a déjà créé la ligne `profiles`
+   * avec des valeurs par défaut — on l'update simplement.
+   */
+  const migrateLocalToRemote = useCallback(
+    async (userId: string, accountCreatedAtIso: string) => {
+      const dynamicId =
+        profileDynamicId ??
+        (await AsyncStorage.getItem(LOCAL_KEYS.profileDynamicId).then((v) =>
+          v ? JSON.parse(v) : null,
+        ));
+
+      // 1. Update profil distant avec onboarding_data + profile_dynamic_id
+      await supabase
+        .from('profiles')
+        .update({
+          onboarding_done: true,
+          onboarding_data: onboardingData,
+          profile_dynamic_id: dynamicId,
+          account_created_at: accountCreatedAtIso,
+        })
+        .eq('id', userId);
+
+      // 2. Progress (Phase 0 jours déjà cochés) — généralement vide à la création
+      //    de compte mais on copie pour être robuste.
+      if (completedDays.length > 0) {
+        const rows = completedDays.map((day) => ({
+          user_id: userId,
+          day_id: day,
+          is_minimum: minimumDays.includes(day),
+          actions_count: minimumDays.includes(day) ? 3 : 7,
+        }));
+        await supabase.from('progress').upsert(rows, { onConflict: 'user_id,day_id' });
+      }
+
+      // 3. streak_history (idem)
+      if (streakHistory.length > 0) {
+        const rows = streakHistory.map((e) => ({ user_id: userId, ...e }));
+        await supabase
+          .from('streak_history')
+          .upsert(rows, { onConflict: 'user_id,local_date' });
+      }
+
+      // 4. joker_consumptions
+      if (jokerConsumptions.length > 0) {
+        const rows = jokerConsumptions.map((c) => ({ user_id: userId, ...c }));
+        await supabase
+          .from('joker_consumptions')
+          .upsert(rows, { onConflict: 'user_id,week_key' });
+      }
+
+      // 5. tier_reaches
+      if (tierReaches.length > 0) {
+        const rows = tierReaches.map((t) => ({ user_id: userId, ...t }));
+        await supabase
+          .from('tier_reaches')
+          .upsert(rows, { onConflict: 'user_id,tier_id' });
+      }
+
+      // 6. Clear local
+      await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
+
+      // 7. Met à jour le state in-memory accountCreatedAt pour que currentDay
+      //    se recalcule immédiatement.
+      setAccountCreatedAtState(accountCreatedAtIso);
+    },
+    [
+      onboardingData,
+      profileDynamicId,
+      completedDays,
+      minimumDays,
+      streakHistory,
+      jokerConsumptions,
+      tierReaches,
+    ],
+  );
+
   const setAccountCreatedAt = useCallback(
     async (iso: string) => {
       setAccountCreatedAtState(iso);
@@ -583,6 +676,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         completeDay,
         validateDay,
         setAccountCreatedAt,
+        migrateLocalToRemote,
         completeOnboarding,
         resetAll,
       }}

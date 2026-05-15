@@ -7,5 +7,8 @@
 export { PillarHeader } from './PillarHeader';
 export type { PillarHeaderProps } from './PillarHeader';
 
+export { TabBar } from './TabBar';
+export type { TabBarProps, TabId } from './TabBar';
+
 export { StreakBubble } from './StreakBubble';
 export type { StreakBubbleProps } from './StreakBubble';
