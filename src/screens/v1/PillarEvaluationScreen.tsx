@@ -101,7 +101,11 @@ export default function PillarEvaluationScreen() {
         engagementLevelChosen: result.recommendedEngagement, // défaut = recommandé
       });
 
-      navigation.replace('PillarRecap', { pillarId, evaluationType });
+      if (evaluationType === 'final') {
+        navigation.replace('PillarFinalRecap', { pillarId });
+      } else {
+        navigation.replace('PillarRecap', { pillarId, evaluationType });
+      }
     } catch (e: any) {
       Alert.alert('Erreur', e?.message ?? "Impossible d'enregistrer l'évaluation.");
     } finally {

@@ -31,6 +31,7 @@ export default function ProfilTabScreen() {
     accountCreatedAt,
     resetAll,
     seedDevStreak,
+    seedDevPillarDay,
   } = useProgress();
 
   return (
@@ -99,6 +100,18 @@ export default function ProfilTabScreen() {
                   label="(DEV) Aller au jour 16 (S0.2)"
                   variant="ghost"
                   onPress={() => seedDevStreak(16)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S1 — Jour 7 (éval finale)"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S1', 7)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S1 — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S1', 1)}
                   fullWidth
                 />
                 <Button

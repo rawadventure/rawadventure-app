@@ -120,6 +120,10 @@ interface ProgressContextType {
   /** Enregistre une évaluation 12 questions (IA-40 initiale ou IA-46 finale).
    *  Réf Feature Spec S1 §2.5 + Schéma de données V1.1 §2.4. */
   savePillarEvaluation: (args: SavePillarEvaluationArgs) => Promise<void>;
+  /** DEV uniquement : simule un pilier au jour cible (1-7). Pose
+   *  currentPillarId + pillarStartedAt = (targetDay-1) jours dans le passé.
+   *  Ne touche pas streak_history. */
+  seedDevPillarDay: (pillarId: string, targetDay: number) => Promise<void>;
   /** Démarre la semaine d'un pilier de Phase 1 (sortie IA-41 "Démarrer cette
    *  semaine"). Pose `currentPillarId` et `pillarStartedAt = now()`. */
   startPillarWeek: (pillarId: string) => Promise<void>;
@@ -539,6 +543,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.multiSet([
         [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
         [LOCAL_KEYS.pillarStartedAt, JSON.stringify(nowIso)],
+      ]);
+    },
+    [],
+  );
+
+  const seedDevPillarDay = useCallback(
+    async (pillarId: string, targetDay: number) => {
+      if (targetDay < 1 || targetDay > 7) {
+        console.warn('[seedDevPillarDay] targetDay doit être entre 1 et 7');
+        return;
+      }
+      const offsetMs = (targetDay - 1) * 24 * 60 * 60 * 1000;
+      const startedAt = new Date(Date.now() - offsetMs).toISOString();
+      setCurrentPillarId(pillarId);
+      setPillarStartedAt(startedAt);
+      await AsyncStorage.multiSet([
+        [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
+        [LOCAL_KEYS.pillarStartedAt, JSON.stringify(startedAt)],
       ]);
     },
     [],
@@ -1022,6 +1044,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         savePillarEvaluation,
         startPillarWeek,
         savePillarSession,
+        seedDevPillarDay,
         currentPillarId,
         pillarStartedAt,
         dayInPillarWeek,

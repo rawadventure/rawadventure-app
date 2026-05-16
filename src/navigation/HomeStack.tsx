@@ -17,6 +17,7 @@ import HomeScreenV1 from '../screens/v1/HomeScreenV1';
 import Phase0ActionDetailScreen from '../screens/v1/Phase0ActionDetailScreen';
 import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
+import PillarFinalRecapScreen from '../screens/v1/PillarFinalRecapScreen';
 import SessionScreen from '../screens/v1/SessionScreen';
 import DayScreen from '../screens/DayScreen';
 import SettingsScreen from '../screens/SettingsScreen';
@@ -28,6 +29,7 @@ export type Phase0StackParamList = {
   Phase0ActionDetail: { actionId: Phase0ActionId };
   PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
+  PillarFinalRecap: { pillarId: string };
   Session: { sessionIndex: 1 | 2 | 3 };
   // Routes legacy V0 (Sprint 5 conserve, à retirer Sprint 7+)
   Day: { dayId: number };
@@ -44,6 +46,7 @@ export default function HomeStack() {
       <Stack.Screen name="Phase0ActionDetail" component={Phase0ActionDetailScreen} />
       <Stack.Screen name="PillarEvaluation" component={PillarEvaluationScreen} />
       <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />
+      <Stack.Screen name="PillarFinalRecap" component={PillarFinalRecapScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
       <Stack.Screen name="Day" component={DayScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />

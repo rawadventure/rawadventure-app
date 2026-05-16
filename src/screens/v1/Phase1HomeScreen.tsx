@@ -29,9 +29,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { CheckCircle2, Sun, Clock, Moon } from 'lucide-react-native';
+import { CheckCircle2, Sun, Clock, Moon, ClipboardCheck } from 'lucide-react-native';
 import { PillarHeader } from '../../components/compositions';
-import { Card } from '../../components/primitives';
+import { Button, Card } from '../../components/primitives';
 import {
   brandColors,
   interTextStyle,
@@ -70,19 +70,30 @@ export default function Phase1HomeScreen() {
   const day = getS1Day(dayId);
 
   const [validatedSessions, setValidatedSessions] = useState<Set<SessionIndex>>(new Set());
+  const [hasFinalEval, setHasFinalEval] = useState(false);
 
   const fetchTodaySessions = useCallback(async () => {
     if (!user) return;
     const today = todayLocalDate();
-    const { data } = await supabase
-      .from('pillar_sessions')
-      .select('session_index')
-      .eq('user_id', user.id)
-      .eq('pillar_id', pillarId)
-      .eq('local_date', today);
-    if (data) {
-      setValidatedSessions(new Set(data.map((r: any) => r.session_index as SessionIndex)));
+    const [{ data: sessions }, { data: finalEval }] = await Promise.all([
+      supabase
+        .from('pillar_sessions')
+        .select('session_index')
+        .eq('user_id', user.id)
+        .eq('pillar_id', pillarId)
+        .eq('local_date', today),
+      supabase
+        .from('pillar_evaluations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('pillar_id', pillarId)
+        .eq('evaluation_type', 'final')
+        .maybeSingle(),
+    ]);
+    if (sessions) {
+      setValidatedSessions(new Set(sessions.map((r: any) => r.session_index as SessionIndex)));
     }
+    setHasFinalEval(!!finalEval);
   }, [user, pillarId]);
 
   useEffect(() => {
@@ -98,9 +109,22 @@ export default function Phase1HomeScreen() {
 
   const allDone = validatedSessions.size === 3;
   const dayValidated = validatedSessions.size >= 1; // Phase 1 D6 : 1/3 suffit
+  const isEvaluationDay = dayId >= 7;
+  const showFinalEvalCta = isEvaluationDay && !hasFinalEval;
 
   const openSession = (idx: SessionIndex) => {
     navigation.navigate('Session', { sessionIndex: idx });
+  };
+
+  const openFinalEvaluation = () => {
+    navigation.navigate('PillarEvaluation', {
+      pillarId,
+      evaluationType: 'final',
+    });
+  };
+
+  const openFinalRecap = () => {
+    navigation.navigate('PillarFinalRecap', { pillarId });
   };
 
   return (
@@ -176,6 +200,41 @@ export default function Phase1HomeScreen() {
 
             {!allDone && (
               <Text style={styles.pedagogy}>{day?.pedagogy}</Text>
+            )}
+
+            {showFinalEvalCta && (
+              <Card
+                variant="forte"
+                title="Évaluation finale de la semaine"
+                subtitle="12 questions — environ 2 minutes"
+              >
+                <Text style={styles.evalIntro}>
+                  Tu arrives en fin de semaine S1. Refais les mêmes 12 questions
+                  qu'au début pour mesurer le différentiel sur ta toile. [copy à valider]
+                </Text>
+                <Button
+                  label="Faire mon évaluation finale"
+                  onPress={openFinalEvaluation}
+                  IconLeft={ClipboardCheck}
+                  fullWidth
+                  size="large"
+                  context="s1"
+                  style={{ marginTop: space[3] }}
+                />
+              </Card>
+            )}
+
+            {isEvaluationDay && hasFinalEval && (
+              <Card variant="forte" title="Semaine S1 terminée" subtitle="Tu as bouclé ta première semaine de Phase 1">
+                <Button
+                  label="Revoir mon récap final"
+                  variant="secondary"
+                  onPress={openFinalRecap}
+                  fullWidth
+                  context="s1"
+                  style={{ marginTop: space[3] }}
+                />
+              </Card>
             )}
 
             <Text style={styles.hint}>
@@ -261,6 +320,11 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: 'center',
     marginTop: space[3],
+  },
+  evalIntro: {
+    ...interTextStyle('body'),
+    color: pillarColors.s1.text,
+    marginTop: space[2],
   },
 });
 
