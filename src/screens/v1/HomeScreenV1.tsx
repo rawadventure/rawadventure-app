@@ -102,25 +102,15 @@ export default function HomeScreenV1() {
     [streakHistory, today],
   );
 
-  // File d'attente narrative simplifiée Sprint 6 : si currentDay est un
-  // jour-charnière Phase 0 (3/7/11/14) ET le flag correspondant n'a jamais
-  // été posé, on déclenche IA-14. Marquage au déclenchement (§2.3, D25).
-  // Sprint 7+ : queue complète pour les autres écrans narratifs (S0.1,
-  // welcome video, etc.) qui s'enchaîneront un par lancement.
-  useEffect(() => {
-    const map: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
-      3: { day: 3, flag: 'j3_charniere' },
-      7: { day: 7, flag: 'j7_charniere' },
-      11: { day: 11, flag: 'j11_charniere' },
-      14: { day: 14, flag: 'j14_charniere' },
-    };
-    const entry = map[currentDay];
-    if (!entry) return;
-    if (narrativeFlags[entry.flag]) return; // déjà vu
-    if (charniereDay) return; // déjà affiché ce render
-    setCharniereDay(entry.day);
-    void markNarrativeSeen(entry.flag);
-  }, [currentDay, narrativeFlags, markNarrativeSeen, charniereDay]);
+  // Map streak → IA-14 jour-charnière. Le déclenchement se fait à la
+  // VALIDATION du jour (après IA-15), pas à l'arrivée sur le jour, pour
+  // que le copy rétrospectif "Trois jours derrière toi" soit cohérent.
+  const CHARNIERE_BY_STREAK: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
+    3: { day: 3, flag: 'j3_charniere' },
+    7: { day: 7, flag: 'j7_charniere' },
+    11: { day: 11, flag: 'j11_charniere' },
+    14: { day: 14, flag: 'j14_charniere' },
+  };
 
   // Charge l'état du jour depuis AsyncStorage au mount.
   useEffect(() => {
@@ -180,15 +170,20 @@ export default function HomeScreenV1() {
       await AsyncStorage.removeItem(STORAGE_KEY(today));
       setChecks(EMPTY_CHECKS);
 
+      // Cascade narrative post-validation. Priorité tier > IA-14 charnière >
+      // joker alert. Un seul écran/modal à la fois ; les autres sont juste
+      // skip (le tier 7/15j coïncide avec IA-14 J7/J14 — le tier l'emporte
+      // car c'est l'événement le plus structurant).
+      const charniere = CHARNIERE_BY_STREAK[result.newStreak];
       if (result.tierReached) {
-        // IA-50 (Sprint 6) — modale palier streak. Variante selon D29 via
-        // tierIsFirstReach. La modale s'affiche en cascade narrative après
-        // la fermeture de IA-15 (Feature Spec §2.6).
         setTierModal({
           tierId: result.tierReached,
           isFirstReach: result.tierIsFirstReach,
           streakValue: result.newStreak,
         });
+      } else if (charniere && !narrativeFlags[charniere.flag]) {
+        setCharniereDay(charniere.day);
+        await markNarrativeSeen(charniere.flag);
       } else if (result.jokerUsed) {
         Alert.alert(
           'Joker consommé',

@@ -37,6 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import {
+  addDays,
   currentDayInParcours,
   currentWeekKey,
   todayLocalDate,
@@ -98,6 +99,13 @@ interface ProgressContextType {
   narrativeFlags: Partial<Record<NarrativeEventId, string>>;
   /** Marque un écran narratif comme déjà vu. Idempotent. Pose un timestamp ISO. */
   markNarrativeSeen: (id: NarrativeEventId) => Promise<void>;
+  /**
+   * DEV uniquement (gated par __DEV__ côté caller) : simule un parcours
+   * jusqu'au jour cible avec `targetDay - 1` jours valid_above_threshold
+   * pré-remplis. Pose `accountCreatedAt = targetDay - 1` jours dans le passé.
+   * Clear streak_history / joker_consumptions / tier_reaches existants.
+   */
+  seedDevStreak: (targetDay: number) => Promise<void>;
   /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
@@ -321,6 +329,84 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
     },
     [narrativeFlags],
+  );
+
+  // ── DEV : seedDevStreak ───────────────────────────────────────────────────
+  // Simule un parcours à un jour donné. NE PAS exposer en production. Le
+  // caller (ProfilTabScreen) doit gater l'appel via __DEV__.
+  const seedDevStreak = useCallback(
+    async (targetDay: number) => {
+      if (targetDay < 1 || targetDay > 14) {
+        console.warn('[seedDevStreak] targetDay doit être entre 1 et 14');
+        return;
+      }
+      const today = todayLocalDate();
+      const newCreatedAtIso = new Date(
+        Date.now() - (targetDay - 1) * 24 * 60 * 60 * 1000,
+      ).toISOString();
+
+      // 1) Construit les targetDay-1 entrées streak_history valides
+      const entries: StreakEntry[] = [];
+      for (let i = 1; i <= targetDay - 1; i++) {
+        entries.push({
+          local_date: addDays(today, -(targetDay - i)),
+          validation_status: 'valid_above_threshold',
+          phase: 'phase_0',
+          streak_value_after: i,
+          joker_used: false,
+        });
+      }
+
+      // 2) Reset local state + persist
+      setAccountCreatedAtState(newCreatedAtIso);
+      setStreakHistory(entries);
+      setJokerConsumptions([]);
+      setTierReaches([]);
+      setNarrativeFlags({});
+      setCompletedDays(entries.map((_, idx) => idx + 1));
+      setMinimumDays([]);
+
+      if (user) {
+        // Reset distant
+        await Promise.all([
+          supabase
+            .from('profiles')
+            .update({ account_created_at: newCreatedAtIso })
+            .eq('id', user.id),
+          supabase.from('progress').delete().eq('user_id', user.id),
+          supabase.from('streak_history').delete().eq('user_id', user.id),
+          supabase.from('joker_consumptions').delete().eq('user_id', user.id),
+          supabase.from('tier_reaches').delete().eq('user_id', user.id),
+        ]);
+        // Insert les nouvelles entrées
+        if (entries.length > 0) {
+          await supabase.from('streak_history').insert(
+            entries.map((e) => ({ user_id: user.id, ...e })),
+          );
+          await supabase.from('progress').insert(
+            entries.map((_, idx) => ({
+              user_id: user.id,
+              day_id: idx + 1,
+              is_minimum: false,
+              actions_count: 7,
+            })),
+          );
+        }
+      } else {
+        await AsyncStorage.multiSet([
+          [LOCAL_KEYS.accountCreatedAt, JSON.stringify(newCreatedAtIso)],
+          [LOCAL_KEYS.streakHistory, JSON.stringify(entries)],
+          [LOCAL_KEYS.jokerConsumptions, JSON.stringify([])],
+          [LOCAL_KEYS.tierReaches, JSON.stringify([])],
+          [LOCAL_KEYS.narrativeFlags, JSON.stringify({})],
+          [LOCAL_KEYS.completedDays, JSON.stringify(entries.map((_, idx) => idx + 1))],
+          [LOCAL_KEYS.minimumDays, JSON.stringify([])],
+        ]);
+      }
+      // Reset les coches en cours du jour courant
+      await AsyncStorage.removeItem(`daily_check_actions.${today}`);
+    },
+    [user],
   );
 
   // ── Calculs dérivés ───────────────────────────────────────────────────────
@@ -770,6 +856,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         migrateLocalToRemote,
         narrativeFlags,
         markNarrativeSeen,
+        seedDevStreak,
         completeOnboarding,
         resetAll,
       }}

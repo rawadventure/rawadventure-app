@@ -19,7 +19,6 @@ import { Button, Card } from '../../components/primitives';
 import { brandColors, interTextStyle, neutralColors, space } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
-import { todayLocalDate, addDays } from '../../lib/calendar';
 
 export default function ProfilTabScreen() {
   const { user, signOut } = useAuth();
@@ -31,29 +30,8 @@ export default function ProfilTabScreen() {
     profileDynamicId,
     accountCreatedAt,
     resetAll,
-    setAccountCreatedAt,
-    validateDay,
+    seedDevStreak,
   } = useProgress();
-
-  // DEV helper : recule accountCreatedAt de N jours et pré-remplit N jours
-  // de streak_history validés. Permet de tester les paliers (7/15/30) et
-  // les écrans jour-charnière (J3/J7/J11/J14) sans attendre N jours réels.
-  const advanceParcours = async (days: number) => {
-    const newCreatedAt = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-    await setAccountCreatedAt(newCreatedAt);
-    // Pré-remplit N-1 jours validés (le jour courant restera à valider via IA-15).
-    const today = todayLocalDate();
-    for (let i = 1; i < days; i++) {
-      const date = addDays(today, -(days - i));
-      await validateDay({
-        day: i,
-        phase: 'phase_0',
-        localDate: date,
-        actionsCount: 7,
-        userValidatedManually: true,
-      });
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -94,15 +72,21 @@ export default function ProfilTabScreen() {
             {__DEV__ && (
               <>
                 <Button
-                  label="(DEV) Avancer 7 jours"
+                  label="(DEV) Aller au jour 3"
                   variant="ghost"
-                  onPress={() => advanceParcours(7)}
+                  onPress={() => seedDevStreak(3)}
                   fullWidth
                 />
                 <Button
-                  label="(DEV) Avancer 15 jours"
+                  label="(DEV) Aller au jour 7 (palier)"
                   variant="ghost"
-                  onPress={() => advanceParcours(15)}
+                  onPress={() => seedDevStreak(7)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Aller au jour 14"
+                  variant="ghost"
+                  onPress={() => seedDevStreak(14)}
                   fullWidth
                 />
                 <Button
