@@ -639,6 +639,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setOnboardingDone(true);
       if (dynamicId) setProfileDynamicId(dynamicId);
 
+      // Pose accountCreatedAt = now() si pas encore défini. Couvre :
+      //  - user connecté qui re-passe par l'onboarding après resetAll
+      //  - user anonyme qui finit onboarding avant IA-10 (le RegisterScreen
+      //    écrasera avec sa propre valeur si nécessaire)
+      const nowIso = new Date().toISOString();
+      const shouldSetCreatedAt = !accountCreatedAt;
+      if (shouldSetCreatedAt) {
+        setAccountCreatedAtState(nowIso);
+      }
+
       if (user) {
         await supabase
           .from('profiles')
@@ -646,6 +656,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             onboarding_done: true,
             onboarding_data: answers,
             ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
+            ...(shouldSetCreatedAt ? { account_created_at: nowIso } : {}),
           })
           .eq('id', user.id);
       } else {
@@ -657,9 +668,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             JSON.stringify(dynamicId),
           );
         }
+        if (shouldSetCreatedAt) {
+          await AsyncStorage.setItem(
+            LOCAL_KEYS.accountCreatedAt,
+            JSON.stringify(nowIso),
+          );
+        }
       }
     },
-    [user],
+    [user, accountCreatedAt],
   );
 
   // ── API legacy V0 (compat écrans non migrés) ──────────────────────────────
