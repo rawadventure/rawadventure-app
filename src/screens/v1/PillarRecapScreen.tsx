@@ -66,6 +66,12 @@ export default function PillarRecapScreen() {
   const pillarId = route.params.pillarId;
   const evaluationType = route.params.evaluationType ?? 'initial';
 
+  // Palette + styles dynamiques par pilier — déclarés tôt pour être dispo
+  // dans les rendus de loading / error.
+  const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
+  const palette = pillarColors[pillarKey] ?? pillarColors.s1;
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
+
   const { user } = useAuth();
   const { savePillarEvaluation, markNarrativeSeen, startPillarWeek } = useProgress();
 
@@ -171,11 +177,12 @@ export default function PillarRecapScreen() {
     );
   }
 
-  const meta = getPillarMeta(pillarId);
-  const diag = meta?.diagnostics[diagnostic] ?? getPillarMeta('S1')!.diagnostics[diagnostic];
-  const durations = meta?.durationsMin ?? getPillarMeta('S1')!.durationsMin;
+  const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
+  const diag = meta.diagnostics[diagnostic];
+  const durations = meta.durationsMin;
   const duration = durations[chosen];
   const isRecommended = chosen === recommended;
+  const isTypeB = meta.type === 'B';
 
   // Mapping AdaptiveLevel actuel pour la modale
   const adaptiveFromEngagement: Record<EngagementLevel, AdaptiveLevel> = {
@@ -188,11 +195,11 @@ export default function PillarRecapScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.markerRow}>
-          <Sparkle size={16} color={pillarColors.s1.text} fill={pillarColors.s1.text} />
-          <Text style={styles.marker}>Pilier S1 · Évaluation initiale</Text>
+          <Sparkle size={16} color={pillarColors[pillarKey].text} fill={pillarColors[pillarKey].text} />
+          <Text style={styles.marker}>{`Pilier ${pillarId} · Évaluation initiale`}</Text>
         </View>
 
-        <Text style={styles.title}>Ta respiration{'\n'}aujourd'hui.</Text>
+        <Text style={styles.title}>{`Ton diagnostic\n${meta.name.toLowerCase()}.`}</Text>
 
         {/* Diagnostic */}
         <View style={styles.diagnosticBlock}>
@@ -200,31 +207,45 @@ export default function PillarRecapScreen() {
           <Text style={styles.diagnosticMessage}>{diag.message}</Text>
         </View>
 
-        {/* Niveau d'engagement */}
-        <View style={styles.engagementBlock}>
-          <Text style={styles.sectionTitle}>Ton niveau pour la semaine</Text>
-          <View style={styles.levelRow}>
-            <View style={styles.levelBadge}>
-              <Text style={styles.levelBadgeText}>{ENGAGEMENT_LABEL[chosen]}</Text>
+        {/* Niveau d'engagement — Type A uniquement (D41) */}
+        {!isTypeB && (
+          <View style={styles.engagementBlock}>
+            <Text style={styles.sectionTitle}>Ton niveau pour la semaine</Text>
+            <View style={styles.levelRow}>
+              <View style={styles.levelBadge}>
+                <Text style={styles.levelBadgeText}>{ENGAGEMENT_LABEL[chosen]}</Text>
+              </View>
+              <Text style={styles.levelStatus}>
+                {isRecommended ? '— recommandé' : '— choisi'}
+              </Text>
             </View>
-            <Text style={styles.levelStatus}>
-              {isRecommended ? '— recommandé' : '— choisi'}
+            <Text style={styles.parametre}>
+              {`Cette semaine, 3 ${meta.parameterLabel} par jour, de `}
+              <Text style={styles.parametreBold}>{duration} minutes</Text> chacune.
+            </Text>
+            <Button
+              label="Modifier mon niveau"
+              variant="ghost"
+              onPress={() => {
+                setPendingLevel(adaptiveFromEngagement[chosen]);
+                setModalVisible(true);
+              }}
+              context={pillarKey}
+            />
+          </View>
+        )}
+
+        {/* Bloc Type B (D41) — pas de niveau modulé */}
+        {isTypeB && (
+          <View style={styles.engagementBlock}>
+            <Text style={styles.sectionTitle}>Comment se déroule la semaine</Text>
+            <Text style={styles.parametre}>
+              Pour ce pilier, pas de niveau d'intensité — tout le monde démarre au
+              même endroit. La progression se joue dans la structure narrative des
+              7 jours, pas dans la dose. [copy à valider]
             </Text>
           </View>
-          <Text style={styles.parametre}>
-            Cette semaine, 3 sessions de cohérence cardiaque par jour, de{' '}
-            <Text style={styles.parametreBold}>{duration} minutes</Text> chacune.
-          </Text>
-          <Button
-            label="Modifier mon niveau"
-            variant="ghost"
-            onPress={() => {
-              setPendingLevel(adaptiveFromEngagement[chosen]);
-              setModalVisible(true);
-            }}
-            context="s1"
-          />
-        </View>
+        )}
       </ScrollView>
 
       <View style={styles.footer}>
@@ -233,7 +254,7 @@ export default function PillarRecapScreen() {
           onPress={handleStart}
           fullWidth
           size="large"
-          context="s1"
+          context={pillarKey}
         />
       </View>
 
@@ -247,7 +268,7 @@ export default function PillarRecapScreen() {
           <LevelSelector
             value={pendingLevel}
             onChange={setPendingLevel}
-            context="s1"
+            context={pillarKey}
           />
         </View>
         <View style={styles.modalDurations}>
@@ -266,87 +287,108 @@ export default function PillarRecapScreen() {
 
 function DurationRow({ label, duration }: { label: string; duration: number }) {
   return (
-    <View style={styles.durationRow}>
-      <Text style={styles.durationLabel}>{label}</Text>
-      <Text style={styles.durationValue}>{duration} min</Text>
+    <View style={staticStyles.durationRow}>
+      <Text style={staticStyles.durationLabel}>{label}</Text>
+      <Text style={staticStyles.durationValue}>{duration} min</Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: pillarColors.s1.bg },
-  loadingText: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
-    textAlign: 'center',
-    marginTop: space[8],
-  },
-  scroll: {
-    padding: layout.screen.marginHorizontal,
-    paddingTop: space[5],
-    gap: space[5],
-  },
-  markerRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
-  marker: {
-    ...interTextStyle('caption'),
-    color: pillarColors.s1.text,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    opacity: 0.85,
-  },
-  title: {
-    ...interTextStyle('display'),
-    color: pillarColors.s1.text,
-  },
-  diagnosticBlock: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: radiusV1.xl,
-    padding: space[5],
-    gap: space[2],
-    borderWidth: 1.5,
-    borderColor: pillarColors.s1.headerBg,
-  },
-  diagnosticLabel: {
-    fontFamily: getInterFamily('800'),
-    fontSize: 28,
-    lineHeight: 32,
-    color: pillarColors.s1.text,
-  },
-  diagnosticMessage: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
-  },
-  engagementBlock: { gap: space[3] },
-  sectionTitle: {
-    ...interTextStyle('h3'),
-    color: pillarColors.s1.text,
-  },
-  levelRow: {
+type Palette = { bg: string; text: string; headerBg: string };
+
+/** Styles dépendant du brand (statiques) — partagés DurationRow / modale. */
+const staticStyles = StyleSheet.create({
+  durationRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[2],
+    justifyContent: 'space-between',
   },
-  levelBadge: {
-    backgroundColor: pillarColors.s1.headerBg,
-    paddingHorizontal: space[3],
-    paddingVertical: 6,
-    borderRadius: radiusV1.pill,
-  },
-  levelBadgeText: {
-    fontFamily: getInterFamily('700'),
-    fontSize: 14,
-    color: '#FFFFFF',
-  },
-  levelStatus: {
+  durationLabel: {
     ...interTextStyle('bodySmall'),
-    color: pillarColors.s1.text,
+    color: brandColors.deep,
     opacity: 0.7,
   },
-  parametre: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
+  durationValue: {
+    fontFamily: getInterFamily('700'),
+    fontSize: 13,
+    color: brandColors.deep,
   },
-  parametreBold: { fontFamily: getInterFamily('700') },
+});
+
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: palette.bg },
+    loadingText: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+      textAlign: 'center',
+      marginTop: space[8],
+    },
+    scroll: {
+      padding: layout.screen.marginHorizontal,
+      paddingTop: space[5],
+      gap: space[5],
+    },
+    markerRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
+    marker: {
+      ...interTextStyle('caption'),
+      color: palette.text,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      opacity: 0.85,
+    },
+    title: {
+      ...interTextStyle('display'),
+      color: palette.text,
+    },
+    diagnosticBlock: {
+      backgroundColor: '#FFFFFF',
+      borderRadius: radiusV1.xl,
+      padding: space[5],
+      gap: space[2],
+      borderWidth: 1.5,
+      borderColor: palette.headerBg,
+    },
+    diagnosticLabel: {
+      fontFamily: getInterFamily('800'),
+      fontSize: 28,
+      lineHeight: 32,
+      color: palette.text,
+    },
+    diagnosticMessage: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+    },
+    engagementBlock: { gap: space[3] },
+    sectionTitle: {
+      ...interTextStyle('h3'),
+      color: palette.text,
+    },
+    levelRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space[2],
+    },
+    levelBadge: {
+      backgroundColor: palette.headerBg,
+      paddingHorizontal: space[3],
+      paddingVertical: 6,
+      borderRadius: radiusV1.pill,
+    },
+    levelBadgeText: {
+      fontFamily: getInterFamily('700'),
+      fontSize: 14,
+      color: '#FFFFFF',
+    },
+    levelStatus: {
+      ...interTextStyle('bodySmall'),
+      color: palette.text,
+      opacity: 0.7,
+    },
+    parametre: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+    },
+    parametreBold: { fontFamily: getInterFamily('700') },
   footer: {
     padding: layout.screen.marginHorizontal,
   },
@@ -363,19 +405,5 @@ const styles = StyleSheet.create({
   },
   modalLevels: { marginBottom: space[4] },
   modalDurations: { gap: space[2], marginBottom: space[5] },
-  durationRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  durationLabel: {
-    ...interTextStyle('bodySmall'),
-    color: brandColors.deep,
-    opacity: 0.7,
-  },
-  durationValue: {
-    fontFamily: getInterFamily('700'),
-    fontSize: 13,
-    color: brandColors.deep,
-  },
   modalActions: { gap: space[2] },
-});
+  });
