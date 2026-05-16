@@ -336,8 +336,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // caller (ProfilTabScreen) doit gater l'appel via __DEV__.
   const seedDevStreak = useCallback(
     async (targetDay: number) => {
-      if (targetDay < 1 || targetDay > 14) {
-        console.warn('[seedDevStreak] targetDay doit être entre 1 et 14');
+      if (targetDay < 1 || targetDay > 16) {
+        console.warn('[seedDevStreak] targetDay doit être entre 1 et 16 (S0 inclus)');
         return;
       }
       const today = todayLocalDate();
@@ -345,9 +345,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         Date.now() - (targetDay - 1) * 24 * 60 * 60 * 1000,
       ).toISOString();
 
-      // 1) Construit les targetDay-1 entrées streak_history valides
+      // 1) Construit les entrées streak_history valides. Cappé à 14 entrées
+      // Phase 0 max (day_id 1..14). Pour targetDay 15/16 (S0), on garde
+      // 14 entrées validées — la transition S0 n'incrémente pas le streak
+      // en V1 jusqu'à validation Phase 1 (cf. Feature Spec V1 §2.5).
+      const numEntries = Math.min(targetDay - 1, 14);
       const entries: StreakEntry[] = [];
-      for (let i = 1; i <= targetDay - 1; i++) {
+      for (let i = 1; i <= numEntries; i++) {
         entries.push({
           local_date: addDays(today, -(targetDay - i)),
           validation_status: 'valid_above_threshold',

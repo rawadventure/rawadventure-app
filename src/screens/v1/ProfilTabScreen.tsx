@@ -90,6 +90,18 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
+                  label="(DEV) Aller au jour 15 (S0.1)"
+                  variant="ghost"
+                  onPress={() => seedDevStreak(15)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Aller au jour 16 (S0.2)"
+                  variant="ghost"
+                  onPress={() => seedDevStreak(16)}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Reset complet"
                   variant="destructive"
                   onPress={resetAll}

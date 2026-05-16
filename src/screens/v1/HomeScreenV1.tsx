@@ -40,6 +40,8 @@ import { Button, Card } from '../../components/primitives';
 import { PillarHeader, TierReachedModal } from '../../components/compositions';
 import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
 import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
+import S01Screen from './S01Screen';
+import S02Screen from './S02Screen';
 import type { TierId } from '../../lib/streak';
 import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
@@ -95,6 +97,8 @@ export default function HomeScreenV1() {
     { tierId: TierId; isFirstReach: boolean; streakValue: number } | null
   >(null);
   const [charniereDay, setCharniereDay] = useState<CharniereDay | null>(null);
+  const [showS01, setShowS01] = useState(false);
+  const [showS02, setShowS02] = useState(false);
 
   // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
   const alreadyValidatedToday = useMemo(
@@ -111,6 +115,20 @@ export default function HomeScreenV1() {
     11: { day: 11, flag: 'j11_charniere' },
     14: { day: 14, flag: 'j14_charniere' },
   };
+
+  // S0.1 / S0.2 : couches narratives plein écran déclenchées au premier
+  // lancement du J15 / J16 (Feature Spec V1 §3 fiches IA-20 / IA-21).
+  // Marquage au déclenchement (§2.3) — si user ferme app pendant, ne se
+  // rejoue pas. Reste accessible via IA-25 / IA-21 plus tard (Sprint 8+).
+  useEffect(() => {
+    if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
+      setShowS01(true);
+      void markNarrativeSeen('s0_1_screen');
+    } else if (currentDay === 16 && !narrativeFlags.s0_2_screen && !showS02) {
+      setShowS02(true);
+      void markNarrativeSeen('s0_2_screen');
+    }
+  }, [currentDay, narrativeFlags, markNarrativeSeen, showS01, showS02]);
 
   // Charge l'état du jour depuis AsyncStorage au mount.
   useEffect(() => {
@@ -343,6 +361,25 @@ export default function HomeScreenV1() {
         day={charniereDay}
         streak={streak}
         onClose={() => setCharniereDay(null)}
+      />
+
+      <S01Screen
+        visible={showS01}
+        streak={streak}
+        onContinue={() => setShowS01(false)}
+      />
+
+      <S02Screen
+        visible={showS02}
+        onStartEvaluation={() => {
+          setShowS02(false);
+          // TODO Sprint 8 : navigate vers IA-40 (évaluation initiale S1).
+          // En Sprint 7 on ferme juste la couche, l'utilisateur revient au home.
+          Alert.alert(
+            'Évaluation S1',
+            'IA-40 (évaluation 12 questions Respiration) sera codée en Sprint 8.',
+          );
+        }}
       />
     </View>
   );

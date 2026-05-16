@@ -75,16 +75,21 @@ const VARIANT_DEFAULT_SIZE: Record<ToileVariant, number> = {
   comparison: 150,
 };
 
-/** Labels courts par pilier — affichés autour des branches (§6.5 « intitulés courts »). */
+/**
+ * Intitulés courts validés (Q1.4 — session design Stéphane × Claude).
+ * Design system V1.1 §6.5 « Intitulés courts pour les labels piliers ».
+ * Les noms canoniques complets (D39, Métriques V1.5) restent affichés sur
+ * la roadmap S0.2 et IA-26 détail branche.
+ */
 const PILLAR_LABEL: Record<PillarSlot, string> = {
   s1: 'Respiration',
-  s2: 'Activité',
+  s2: 'Activité physique',
   s3: 'Alimentation',
-  s4: 'Vivant',
-  s5: 'Repos',
+  s4: 'Connexion vivant',
+  s5: 'Repos & régé.',
   s6: 'Passion',
   s7: 'Mindset',
-  s8: 'Détox',
+  s8: 'Élim. & détox',
 };
 
 export function Toile({
@@ -101,13 +106,13 @@ export function Toile({
 
   // Labels affichés autour : on étend le viewBox pour leur faire de la place.
   const shouldShowLabels = showLabels ?? (variant === 'full' || variant === 'detail');
-  const labelPadding = shouldShowLabels ? 28 : 8;
+  const labelPadding = shouldShowLabels ? 58 : 8;
 
   const viewBoxSize = resolvedSize;
   const cx = viewBoxSize / 2;
   const cy = viewBoxSize / 2;
   const radius = (viewBoxSize - labelPadding * 2) / 2;
-  const labelRadius = radius + labelPadding * 0.55;
+  const labelRadius = radius + labelPadding * 0.45;
 
   // Sécurité : si scores n'est pas length 8 ou pas dans l'ordre canonique,
   // on re-trie pour éviter de produire un rendu incorrect.
@@ -154,7 +159,8 @@ export function Toile({
           </>
         )}
 
-        {/* Labels textuels autour (variant full / detail uniquement) */}
+        {/* Labels textuels autour (variant full / detail uniquement).
+            Intitulés courts §6.5 — 1 ligne, rendu via <SvgText>. */}
         {shouldShowLabels &&
           PILLAR_ORDER.map((pid) => {
             const angle = PILLAR_CENTER_ANGLE[pid];
