@@ -15,6 +15,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreenV1 from '../screens/v1/HomeScreenV1';
 import Phase0ActionDetailScreen from '../screens/v1/Phase0ActionDetailScreen';
+import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
+import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
 import DayScreen from '../screens/DayScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import ConversionScreen from '../screens/ConversionScreen';
@@ -23,6 +25,8 @@ import type { Phase0ActionId } from '../data/phase0-actions';
 export type Phase0StackParamList = {
   HomeV1: undefined;
   Phase0ActionDetail: { actionId: Phase0ActionId };
+  PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
+  PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
   // Routes legacy V0 (Sprint 5 conserve, à retirer Sprint 7+)
   Day: { dayId: number };
   Settings: undefined;
@@ -36,6 +40,8 @@ export default function HomeStack() {
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="HomeV1" component={HomeScreenV1} />
       <Stack.Screen name="Phase0ActionDetail" component={Phase0ActionDetailScreen} />
+      <Stack.Screen name="PillarEvaluation" component={PillarEvaluationScreen} />
+      <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />
       <Stack.Screen name="Day" component={DayScreen} />
       <Stack.Screen name="Settings" component={SettingsScreen} />
       <Stack.Screen name="Conversion" component={ConversionScreen} />

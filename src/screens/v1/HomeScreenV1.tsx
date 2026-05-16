@@ -373,12 +373,11 @@ export default function HomeScreenV1() {
         visible={showS02}
         onStartEvaluation={() => {
           setShowS02(false);
-          // TODO Sprint 8 : navigate vers IA-40 (évaluation initiale S1).
-          // En Sprint 7 on ferme juste la couche, l'utilisateur revient au home.
-          Alert.alert(
-            'Évaluation S1',
-            'IA-40 (évaluation 12 questions Respiration) sera codée en Sprint 8.',
-          );
+          // Sprint 8 : navigation vers IA-40 (évaluation initiale S1).
+          navigation.navigate('PillarEvaluation', {
+            pillarId: 'S1',
+            evaluationType: 'initial',
+          });
         }}
       />
     </View>

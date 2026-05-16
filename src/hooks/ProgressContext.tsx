@@ -106,6 +106,9 @@ interface ProgressContextType {
    * Clear streak_history / joker_consumptions / tier_reaches existants.
    */
   seedDevStreak: (targetDay: number) => Promise<void>;
+  /** Enregistre une évaluation 12 questions (IA-40 initiale ou IA-46 finale).
+   *  Réf Feature Spec S1 §2.5 + Schéma de données V1.1 §2.4. */
+  savePillarEvaluation: (args: SavePillarEvaluationArgs) => Promise<void>;
   /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
@@ -129,6 +132,20 @@ export type ValidateDayArgs = {
   actionsCount: number;
   /** Soft-rappel D26 dépassé ? `true` si l'utilisateur a tapé "Valider quand même". */
   userValidatedManually?: boolean;
+};
+
+export type SavePillarEvaluationArgs = {
+  /** Identifiant du pilier ('S1' à 'S8'). */
+  pillarId: string;
+  /** 'initial' (IA-40) ou 'final' (IA-46). */
+  evaluationType: 'initial' | 'final';
+  /** Tableau brut des 12 réponses ([{ question_id, value }]). */
+  responses: Array<{ question_id: number; value: 1 | 2 | 3 | 4 | 5 }>;
+  rawScore: number;
+  normalizedScore: number;
+  diagnosticLevel: 1 | 2 | 3 | 4 | 5;
+  engagementLevelRecommended: 'essentiel' | 'progression' | 'immersion';
+  engagementLevelChosen: 'essentiel' | 'progression' | 'immersion';
 };
 
 export type ValidateDayResult = {
@@ -329,6 +346,44 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
     },
     [narrativeFlags],
+  );
+
+  // ── Persistance des évaluations 12 questions ──────────────────────────────
+
+  const savePillarEvaluation = useCallback(
+    async (args: SavePillarEvaluationArgs) => {
+      const row = {
+        pillar_id: args.pillarId,
+        evaluation_type: args.evaluationType,
+        responses: args.responses,
+        raw_score: args.rawScore,
+        normalized_score: args.normalizedScore,
+        diagnostic_level: args.diagnosticLevel,
+        engagement_level_recommended: args.engagementLevelRecommended,
+        engagement_level_chosen: args.engagementLevelChosen,
+        completed_at: new Date().toISOString(),
+      };
+      if (user) {
+        const { error } = await supabase
+          .from('pillar_evaluations')
+          .upsert(
+            { user_id: user.id, ...row },
+            { onConflict: 'user_id,pillar_id,evaluation_type' },
+          );
+        if (error) {
+          console.warn('[savePillarEvaluation] supabase upsert failed', error);
+          throw error;
+        }
+      } else {
+        // Mode anonyme : pas de support V1 pour les éval en local-only — l'utilisateur
+        // doit être connecté pour qu'une éval soit persistée. À étendre Sprint 9+
+        // si besoin (mais le flow normal arrive à IA-40 après IA-10 register).
+        console.warn(
+          '[savePillarEvaluation] user non connecté — évaluation non persistée',
+        );
+      }
+    },
+    [user],
   );
 
   // ── DEV : seedDevStreak ───────────────────────────────────────────────────
@@ -861,6 +916,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         narrativeFlags,
         markNarrativeSeen,
         seedDevStreak,
+        savePillarEvaluation,
         completeOnboarding,
         resetAll,
       }}
