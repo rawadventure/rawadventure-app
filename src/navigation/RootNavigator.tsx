@@ -25,7 +25,7 @@ import React, { useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '../hooks/AuthContext';
 import { useProgress } from '../hooks/ProgressContext';
-import OnboardingScreen from '../screens/OnboardingScreen';
+import OnboardingScreen from '../screens/v1/OnboardingScreenV1';
 import RegisterScreen from '../screens/v1/RegisterScreen';
 import StartChoiceScreen from '../screens/v1/StartChoiceScreen';
 import WaitingScreen from '../screens/v1/WaitingScreen';
