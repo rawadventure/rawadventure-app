@@ -554,16 +554,45 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         console.warn('[seedDevPillarDay] targetDay doit être entre 1 et 7');
         return;
       }
-      const offsetMs = (targetDay - 1) * 24 * 60 * 60 * 1000;
-      const startedAt = new Date(Date.now() - offsetMs).toISOString();
+      // Pillar started (targetDay - 1) days ago.
+      const pillarOffsetMs = (targetDay - 1) * 24 * 60 * 60 * 1000;
+      const startedAt = new Date(Date.now() - pillarOffsetMs).toISOString();
+
+      // Pour que currentPhase soit 'phase_1', il faut currentDay > 14.
+      // On pose accountCreatedAt = (14 + targetDay) jours dans le passé →
+      // currentDay = 15 + targetDay > 14, donc phase_1.
+      const accountOffsetMs = (14 + targetDay) * 24 * 60 * 60 * 1000;
+      const accountIso = new Date(Date.now() - accountOffsetMs).toISOString();
+
       setCurrentPillarId(pillarId);
       setPillarStartedAt(startedAt);
+      setAccountCreatedAtState(accountIso);
+
+      // Marque les écrans narratifs S0 comme déjà vus pour éviter qu'ils
+      // pop par-dessus le HomeScreen Phase 1.
+      const flags = {
+        ...narrativeFlags,
+        s0_1_screen: new Date().toISOString(),
+        s0_2_screen: new Date().toISOString(),
+      };
+      setNarrativeFlags(flags);
+
       await AsyncStorage.multiSet([
         [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
         [LOCAL_KEYS.pillarStartedAt, JSON.stringify(startedAt)],
+        [LOCAL_KEYS.accountCreatedAt, JSON.stringify(accountIso)],
+        [LOCAL_KEYS.narrativeFlags, JSON.stringify(flags)],
       ]);
+
+      // Sync accountCreatedAt distant si connecté.
+      if (user) {
+        await supabase
+          .from('profiles')
+          .update({ account_created_at: accountIso })
+          .eq('id', user.id);
+      }
     },
-    [],
+    [user, narrativeFlags],
   );
 
   const savePillarSession = useCallback(
