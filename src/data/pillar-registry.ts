@@ -19,6 +19,18 @@ import { S1_EVALUATION_QUESTIONS, S1_DIAGNOSTICS } from './s1-evaluation';
 import { S1_PROGRAM, S1_DURATIONS_MIN } from './s1-program';
 import { S2_EVALUATION_QUESTIONS, S2_DIAGNOSTICS } from './s2-evaluation';
 import { S2_PROGRAM } from './s2-program';
+import { S3_EVALUATION_QUESTIONS, S3_DIAGNOSTICS } from './s3-evaluation';
+import { S3_PROGRAM } from './s3-program';
+import { S4_EVALUATION_QUESTIONS, S4_DIAGNOSTICS } from './s4-evaluation';
+import { S4_PROGRAM } from './s4-program';
+import { S5_EVALUATION_QUESTIONS, S5_DIAGNOSTICS } from './s5-evaluation';
+import { S5_PROGRAM } from './s5-program';
+import { S6_EVALUATION_QUESTIONS, S6_DIAGNOSTICS } from './s6-evaluation';
+import { S6_PROGRAM } from './s6-program';
+import { S7_EVALUATION_QUESTIONS, S7_DIAGNOSTICS } from './s7-evaluation';
+import { S7_PROGRAM } from './s7-program';
+import { S8_EVALUATION_QUESTIONS, S8_DIAGNOSTICS } from './s8-evaluation';
+import { S8_PROGRAM } from './s8-program';
 
 export type PillarId = 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'S7' | 'S8';
 
@@ -65,9 +77,80 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     questions: S2_EVALUATION_QUESTIONS,
     diagnostics: S2_DIAGNOSTICS,
     program: S2_PROGRAM,
-    // Sprint 11 placeholder : mêmes durées que S1. La Feature Spec S2 redéfinira.
     durationsMin: S1_DURATIONS_MIN,
     parameterLabel: 'sessions de mouvement',
+  },
+  S3: {
+    id: 'S3',
+    weekIndex: 3,
+    name: 'Alimentation',
+    shortName: 'Alimentation',
+    type: 'A',
+    questions: S3_EVALUATION_QUESTIONS,
+    diagnostics: S3_DIAGNOSTICS,
+    program: S3_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'pratiques alimentaires',
+  },
+  S4: {
+    id: 'S4',
+    weekIndex: 4,
+    name: 'Connexion au vivant',
+    shortName: 'Connexion vivant',
+    type: 'A',
+    questions: S4_EVALUATION_QUESTIONS,
+    diagnostics: S4_DIAGNOSTICS,
+    program: S4_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'temps dehors',
+  },
+  S5: {
+    id: 'S5',
+    weekIndex: 5,
+    name: 'Repos et régénération',
+    shortName: 'Repos & régé.',
+    type: 'B', // D41 — pas de mapping diagnostic → engagement
+    questions: S5_EVALUATION_QUESTIONS,
+    diagnostics: S5_DIAGNOSTICS,
+    program: S5_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'pratiques de récupération',
+  },
+  S6: {
+    id: 'S6',
+    weekIndex: 6,
+    name: 'Passion et chemin de vie',
+    shortName: 'Passion',
+    type: 'A',
+    questions: S6_EVALUATION_QUESTIONS,
+    diagnostics: S6_DIAGNOSTICS,
+    program: S6_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'temps d\'écoute',
+  },
+  S7: {
+    id: 'S7',
+    weekIndex: 7,
+    name: 'Mindset',
+    shortName: 'Mindset',
+    type: 'B', // D41 — pas de mapping diagnostic → engagement
+    questions: S7_EVALUATION_QUESTIONS,
+    diagnostics: S7_DIAGNOSTICS,
+    program: S7_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'pratiques mentales',
+  },
+  S8: {
+    id: 'S8',
+    weekIndex: 8,
+    name: 'Élimination et détox',
+    shortName: 'Élim. & détox',
+    type: 'A',
+    questions: S8_EVALUATION_QUESTIONS,
+    diagnostics: S8_DIAGNOSTICS,
+    program: S8_PROGRAM,
+    durationsMin: S1_DURATIONS_MIN,
+    parameterLabel: 'pratiques d\'élimination',
   },
 };
 

@@ -115,6 +115,48 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
+                  label="(DEV) S2 Activité physique — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S2', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S3 Alimentation — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S3', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S4 Connexion vivant — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S4', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S5 Repos & régé. — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S5', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S6 Passion — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S6', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S7 Mindset — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S7', 1)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) S8 Élim. & détox — Jour 1"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S8', 1)}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Reset complet"
                   variant="destructive"
                   onPress={resetAll}

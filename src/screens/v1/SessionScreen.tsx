@@ -74,7 +74,7 @@ export default function SessionScreen() {
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
   const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
   const day = meta.program.find((d) => d.id === dayId);
-  const pillarKey = pillarId.toLowerCase() as 's1' | 's2';
+  const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
   const palette = pillarColors[pillarKey] ?? pillarColors.s1;
   const styles = React.useMemo(() => makeStyles(palette), [palette]);
 
