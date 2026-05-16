@@ -35,10 +35,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { Check } from 'lucide-react-native';
+import { Check, CheckCircle2 } from 'lucide-react-native';
 import { Button, Card } from '../../components/primitives';
-import { PillarHeader } from '../../components/compositions';
+import { PillarHeader, TierReachedModal } from '../../components/compositions';
 import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
+import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
+import type { TierId } from '../../lib/streak';
+import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
   brandColors,
   interTextStyle,
@@ -79,6 +82,8 @@ export default function HomeScreenV1() {
     streak,
     streakHistory,
     validateDay,
+    narrativeFlags,
+    markNarrativeSeen,
   } = useProgress();
 
   const today = todayLocalDate();
@@ -86,12 +91,36 @@ export default function HomeScreenV1() {
   const [validating, setValidating] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
   const [loaded, setLoaded] = useState(false);
+  const [tierModal, setTierModal] = useState<
+    { tierId: TierId; isFirstReach: boolean; streakValue: number } | null
+  >(null);
+  const [charniereDay, setCharniereDay] = useState<CharniereDay | null>(null);
 
   // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
   const alreadyValidatedToday = useMemo(
     () => streakHistory.some((e) => e.local_date === today),
     [streakHistory, today],
   );
+
+  // File d'attente narrative simplifiée Sprint 6 : si currentDay est un
+  // jour-charnière Phase 0 (3/7/11/14) ET le flag correspondant n'a jamais
+  // été posé, on déclenche IA-14. Marquage au déclenchement (§2.3, D25).
+  // Sprint 7+ : queue complète pour les autres écrans narratifs (S0.1,
+  // welcome video, etc.) qui s'enchaîneront un par lancement.
+  useEffect(() => {
+    const map: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
+      3: { day: 3, flag: 'j3_charniere' },
+      7: { day: 7, flag: 'j7_charniere' },
+      11: { day: 11, flag: 'j11_charniere' },
+      14: { day: 14, flag: 'j14_charniere' },
+    };
+    const entry = map[currentDay];
+    if (!entry) return;
+    if (narrativeFlags[entry.flag]) return; // déjà vu
+    if (charniereDay) return; // déjà affiché ce render
+    setCharniereDay(entry.day);
+    void markNarrativeSeen(entry.flag);
+  }, [currentDay, narrativeFlags, markNarrativeSeen, charniereDay]);
 
   // Charge l'état du jour depuis AsyncStorage au mount.
   useEffect(() => {
@@ -151,13 +180,15 @@ export default function HomeScreenV1() {
       await AsyncStorage.removeItem(STORAGE_KEY(today));
       setChecks(EMPTY_CHECKS);
 
-      // TODO Sprint 6+ : IA-50 modale palier si result.tierReached. Pour
-      // l'instant, simple alerte placeholder.
       if (result.tierReached) {
-        Alert.alert(
-          `Palier ${result.tierReached} jours atteint`,
-          `Streak : ${result.newStreak}. (IA-50 à coder en Sprint 6+)`,
-        );
+        // IA-50 (Sprint 6) — modale palier streak. Variante selon D29 via
+        // tierIsFirstReach. La modale s'affiche en cascade narrative après
+        // la fermeture de IA-15 (Feature Spec §2.6).
+        setTierModal({
+          tierId: result.tierReached,
+          isFirstReach: result.tierIsFirstReach,
+          streakValue: result.newStreak,
+        });
       } else if (result.jokerUsed) {
         Alert.alert(
           'Joker consommé',
@@ -191,6 +222,18 @@ export default function HomeScreenV1() {
           />
 
           <View style={styles.body}>
+            {alreadyValidatedToday && (
+              <View style={styles.validatedBanner}>
+                <CheckCircle2 size={28} color={brandColors.alive} strokeWidth={2.5} />
+                <View style={styles.validatedBannerText}>
+                  <Text style={styles.validatedTitle}>Journée validée</Text>
+                  <Text style={styles.validatedSubtitle}>
+                    Streak {streak} jour{streak > 1 ? 's' : ''}. À demain.
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <Text style={styles.message}>{messageDuJour}</Text>
 
             <Card title="Actions du jour" subtitle={`${checkedCount} / ${PHASE_0_TOTAL} cochées`} variant="forte">
@@ -198,7 +241,13 @@ export default function HomeScreenV1() {
                 {PHASE_0_ACTIONS.map((action) => {
                   const checked = checks[action.id];
                   return (
-                    <View key={action.id} style={styles.actionRow}>
+                    <View
+                      key={action.id}
+                      style={[
+                        styles.actionRow,
+                        alreadyValidatedToday && { opacity: 0.5 },
+                      ]}
+                    >
                       {/* Tap court sur le carré gauche → toggle */}
                       <TouchableOpacity
                         onPress={() => toggleAction(action.id)}
@@ -256,18 +305,22 @@ export default function HomeScreenV1() {
               </View>
             </Card>
 
-            <Button
-              label={alreadyValidatedToday ? 'Journée déjà validée' : 'Valider ma journée'}
-              onPress={() => setModalVisible(true)}
-              disabled={!canValidate}
-              fullWidth
-              size="large"
-              context="phase0"
-              style={styles.validateBtn}
-            />
+            {!alreadyValidatedToday && (
+              <Button
+                label="Valider ma journée"
+                onPress={() => setModalVisible(true)}
+                disabled={!canValidate}
+                fullWidth
+                size="large"
+                context="phase0"
+                style={styles.validateBtn}
+              />
+            )}
 
             <Text style={styles.hint}>
-              Tap court sur le carré pour cocher. Tap court sur l'action pour voir le détail.
+              {alreadyValidatedToday
+                ? 'Tap sur une action pour revoir le détail.'
+                : 'Tap court sur le carré pour cocher. Tap court sur l\'action pour voir le détail.'}
             </Text>
           </View>
         </ScrollView>
@@ -280,6 +333,21 @@ export default function HomeScreenV1() {
         actionsCount={checkedCount}
         phase={currentPhase}
         loading={validating}
+      />
+
+      <TierReachedModal
+        visible={tierModal != null}
+        tierId={tierModal?.tierId ?? null}
+        isFirstReach={tierModal?.isFirstReach ?? false}
+        streakValue={tierModal?.streakValue ?? 0}
+        onClose={() => setTierModal(null)}
+      />
+
+      <JourCharniereScreen
+        visible={charniereDay != null}
+        day={charniereDay}
+        streak={streak}
+        onClose={() => setCharniereDay(null)}
       />
     </View>
   );
@@ -299,6 +367,30 @@ const styles = StyleSheet.create({
   message: {
     ...interTextStyle('bodyLarge'),
     color: pillarColors.phase0.text,
+  },
+  validatedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: space[3],
+    backgroundColor: neutralColors.surfaceElevated,
+    borderRadius: radiusV1.lg,
+    paddingVertical: space[4],
+    paddingHorizontal: space[4],
+    borderWidth: 1.5,
+    borderColor: brandColors.alive,
+  },
+  validatedBannerText: { flex: 1 },
+  validatedTitle: {
+    fontFamily: getInterFamily('700'),
+    fontSize: 17,
+    lineHeight: 22,
+    color: brandColors.deep,
+  },
+  validatedSubtitle: {
+    fontFamily: getInterFamily('400'),
+    fontSize: 14,
+    lineHeight: 20,
+    color: neutralColors.textSecondary,
   },
   actionsList: {
     gap: space[2],

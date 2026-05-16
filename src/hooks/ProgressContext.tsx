@@ -94,6 +94,10 @@ interface ProgressContextType {
   // ── API V1 (Sprint 3+)
   validateDay: (args: ValidateDayArgs) => Promise<ValidateDayResult>;
   setAccountCreatedAt: (iso: string) => Promise<void>;
+  /** Flags des écrans narratifs déjà vus (Feature Spec V1 §2.3). */
+  narrativeFlags: Partial<Record<NarrativeEventId, string>>;
+  /** Marque un écran narratif comme déjà vu. Idempotent. Pose un timestamp ISO. */
+  markNarrativeSeen: (id: NarrativeEventId) => Promise<void>;
   /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
@@ -123,6 +127,9 @@ export type ValidateDayResult = {
   newStreak: number;
   jokerUsed: boolean;
   tierReached: TierId | null;
+  /** `true` si c'est la première fois que ce palier est franchi (D29 →
+   *  IA-50 variante vidéo). `false` pour redéclenchements après cassure. */
+  tierIsFirstReach: boolean;
 };
 
 const ProgressContext = createContext<ProgressContextType | null>(null);
@@ -138,7 +145,27 @@ const LOCAL_KEYS = {
   streakHistory: 'streak_history',
   jokerConsumptions: 'joker_consumptions',
   tierReaches: 'tier_reaches',
+  narrativeFlags: 'narrative_flags',
 };
+
+/**
+ * Identifiants stables des écrans narratifs qui ne doivent se jouer qu'une
+ * seule fois (Feature Spec V1 Socle minimum §2.3).
+ *
+ * Stockés dans `narrativeFlags` (AsyncStorage en V1 — pas encore synchronisés
+ * vers Supabase). Le flag est posé au déclenchement, pas à la fermeture
+ * (§2.3 — si l'utilisateur ferme pendant la vidéo, l'écran ne se rejoue pas).
+ */
+export type NarrativeEventId =
+  | 'welcome_video'    // IA-12 J1
+  | 'j3_charniere'     // IA-14 J3
+  | 'j7_charniere'     // IA-14 J7
+  | 'j11_charniere'    // IA-14 J11
+  | 'j14_charniere'    // IA-14 J14
+  | 's0_1_screen'      // IA-20 S0.1
+  | 's0_2_screen'      // IA-21 S0.2
+  | 'phase0_to_s1_transition' // IA-45
+  | 's8_exit_screen';  // IA-22
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -161,6 +188,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // API legacy V0
   const [completedDays, setCompletedDays] = useState<number[]>([]);
   const [minimumDays, setMinimumDays] = useState<number[]>([]);
+
+  // Flags écrans narratifs déjà vus (§2.3) — local-only V1.
+  const [narrativeFlags, setNarrativeFlags] = useState<
+    Partial<Record<NarrativeEventId, string>>
+  >({});
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -209,7 +241,26 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setOnboardingDone(profileRes.data.onboarding_done ?? false);
       setOnboardingData(profileRes.data.onboarding_data ?? {});
       setProfileDynamicId(profileRes.data.profile_dynamic_id ?? null);
-      setAccountCreatedAtState(profileRes.data.account_created_at ?? null);
+
+      // Backfill `account_created_at` pour les comptes V0 antérieurs à la
+      // migration 001 (colonne ajoutée mais non renseignée). On pose `now()`
+      // sur le premier boot V1 — l'utilisateur démarre son parcours
+      // calendaire au moment où il revient dans l'app V1. Idempotent.
+      const remoteCreatedAt = profileRes.data.account_created_at ?? null;
+      if (!remoteCreatedAt && (profileRes.data.onboarding_done ?? false)) {
+        const nowIso = new Date().toISOString();
+        setAccountCreatedAtState(nowIso);
+        // Fire-and-forget : si l'écriture échoue, on retentera au prochain boot.
+        supabase
+          .from('profiles')
+          .update({ account_created_at: nowIso })
+          .eq('id', userId)
+          .then(({ error }) => {
+            if (error) console.warn('[ProgressContext] backfill accountCreatedAt failed', error);
+          });
+      } else {
+        setAccountCreatedAtState(remoteCreatedAt);
+      }
     }
     if (progressRes.data) {
       setCompletedDays(progressRes.data.map((r: any) => r.day_id));
@@ -220,6 +271,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (streakRes.data) setStreakHistory(streakRes.data as StreakEntry[]);
     if (jokerRes.data) setJokerConsumptions(jokerRes.data as JokerConsumption[]);
     if (tierRes.data) setTierReaches(tierRes.data as TierReach[]);
+
+    // Narrative flags : local-only V1 même en mode connecté (pas de table
+    // distante dédiée pour l'instant — Sprint 7+).
+    const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
+    if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
   };
 
   const loadFromAsyncStorage = async () => {
@@ -253,7 +309,19 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (history) setStreakHistory(JSON.parse(history));
     if (consumptions) setJokerConsumptions(JSON.parse(consumptions));
     if (tiers) setTierReaches(JSON.parse(tiers));
+    const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
+    if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
   };
+
+  const markNarrativeSeen = useCallback(
+    async (id: NarrativeEventId) => {
+      if (narrativeFlags[id]) return; // déjà marqué — idempotent
+      const next = { ...narrativeFlags, [id]: new Date().toISOString() };
+      setNarrativeFlags(next);
+      await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
+    },
+    [narrativeFlags],
+  );
 
   // ── Calculs dérivés ───────────────────────────────────────────────────────
 
@@ -434,15 +502,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }
 
       // 4) Enregistre le franchissement de palier
+      let tierIsFirstReach = false;
       if (tierReached) {
         const updated = await persistTierReach(tierReached, newStreak, user?.id);
+        tierIsFirstReach = updated.reach_count === 1;
         setTierReaches((prev) => [
           ...prev.filter((t) => t.tier_id !== tierReached),
           updated,
         ]);
       }
 
-      return { newStreak, jokerUsed: decision.jokerUsed, tierReached };
+      return { newStreak, jokerUsed: decision.jokerUsed, tierReached, tierIsFirstReach };
     },
     [
       currentPhase,
@@ -633,6 +703,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setStreakHistory([]);
     setJokerConsumptions([]);
     setTierReaches([]);
+    setNarrativeFlags({});
+    if (user) {
+      await AsyncStorage.removeItem(LOCAL_KEYS.narrativeFlags);
+    }
 
     if (user) {
       await Promise.all([
@@ -677,6 +751,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         validateDay,
         setAccountCreatedAt,
         migrateLocalToRemote,
+        narrativeFlags,
+        markNarrativeSeen,
         completeOnboarding,
         resetAll,
       }}
