@@ -42,7 +42,7 @@ import { getInterFamily } from '../../theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
-import { S1_DIAGNOSTICS } from '../../data/s1-evaluation';
+import { getPillarMeta } from '../../data/pillar-registry';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 import type {
   DiagnosticLevel,
@@ -52,12 +52,7 @@ import type {
 type Route = NativeStackScreenProps<Phase0StackParamList, 'PillarRecap'>['route'];
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
 
-/** Durées du paramètre principal S1 par niveau d'engagement (Feature Spec S1 §3.3). */
-const S1_DURATIONS_MIN: Record<EngagementLevel, number> = {
-  essentiel: 5,
-  progression: 10,
-  immersion: 20,
-};
+// Durations + diagnostics + name lookupés via registry au runtime.
 
 const ENGAGEMENT_LABEL: Record<EngagementLevel, string> = {
   essentiel: 'Essentiel',
@@ -176,8 +171,10 @@ export default function PillarRecapScreen() {
     );
   }
 
-  const diag = S1_DIAGNOSTICS[diagnostic];
-  const duration = S1_DURATIONS_MIN[chosen];
+  const meta = getPillarMeta(pillarId);
+  const diag = meta?.diagnostics[diagnostic] ?? getPillarMeta('S1')!.diagnostics[diagnostic];
+  const durations = meta?.durationsMin ?? getPillarMeta('S1')!.durationsMin;
+  const duration = durations[chosen];
   const isRecommended = chosen === recommended;
 
   // Mapping AdaptiveLevel actuel pour la modale
@@ -254,9 +251,9 @@ export default function PillarRecapScreen() {
           />
         </View>
         <View style={styles.modalDurations}>
-          <DurationRow label="Moins (Essentiel)" duration={S1_DURATIONS_MIN.essentiel} />
-          <DurationRow label="Pareil (Progression)" duration={S1_DURATIONS_MIN.progression} />
-          <DurationRow label="Plus (Immersion)" duration={S1_DURATIONS_MIN.immersion} />
+          <DurationRow label="Moins (Essentiel)" duration={durations.essentiel} />
+          <DurationRow label="Pareil (Progression)" duration={durations.progression} />
+          <DurationRow label="Plus (Immersion)" duration={durations.immersion} />
         </View>
         <View style={styles.modalActions}>
           <Button label="Annuler" variant="secondary" onPress={() => setModalVisible(false)} fullWidth />

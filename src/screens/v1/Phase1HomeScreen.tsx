@@ -44,12 +44,8 @@ import { getInterFamily } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { supabase } from '../../lib/supabase';
-import {
-  S1_PROGRAM,
-  SESSION_INDEX_LABEL,
-  getS1Day,
-  type SessionIndex,
-} from '../../data/s1-program';
+import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
+import { getPillarMeta } from '../../data/pillar-registry';
 import { todayLocalDate } from '../../lib/calendar';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
@@ -67,7 +63,11 @@ export default function Phase1HomeScreen() {
   const { currentPillarId, dayInPillarWeek, streak } = useProgress();
   const pillarId = currentPillarId ?? 'S1';
   const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
-  const day = getS1Day(dayId);
+  const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
+  const day = meta.program.find((d) => d.id === dayId);
+  const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
+  const palette = pillarColors[pillarKey] ?? pillarColors.s1;
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
 
   const [validatedSessions, setValidatedSessions] = useState<Set<SessionIndex>>(new Set());
   const [hasFinalEval, setHasFinalEval] = useState(false);
@@ -132,9 +132,9 @@ export default function Phase1HomeScreen() {
       <SafeAreaView style={styles.safeTop} edges={['top']}>
         <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
           <PillarHeader
-            context="s1"
-            marker={`Semaine 1 · ${pillarId === 'S1' ? 'Respiration' : pillarId}`}
-            title="Respiration"
+            context={pillarKey}
+            marker={`Semaine ${meta.weekIndex} · ${meta.name}`}
+            title={meta.name}
             dayLabel={`Jour ${dayId} sur 7`}
             streakDays={streak}
           />
@@ -176,7 +176,7 @@ export default function Phase1HomeScreen() {
                         {isDone ? (
                           <CheckCircle2 size={20} color="#FFFFFF" strokeWidth={3} />
                         ) : (
-                          <Icon size={20} color={pillarColors.s1.text} />
+                          <Icon size={20} color={palette.text} />
                         )}
                       </View>
                       <View style={styles.sessionText}>
@@ -206,7 +206,7 @@ export default function Phase1HomeScreen() {
               <Card
                 variant="forte"
                 title="Évaluation finale de la semaine"
-                subtitle="12 questions — environ 2 minutes"
+                subtitle={`Pilier ${pillarId} — 12 questions, environ 2 minutes`}
               >
                 <Text style={styles.evalIntro}>
                   Tu arrives en fin de semaine S1. Refais les mêmes 12 questions
@@ -218,20 +218,24 @@ export default function Phase1HomeScreen() {
                   IconLeft={ClipboardCheck}
                   fullWidth
                   size="large"
-                  context="s1"
+                  context={pillarKey}
                   style={{ marginTop: space[3] }}
                 />
               </Card>
             )}
 
             {isEvaluationDay && hasFinalEval && (
-              <Card variant="forte" title="Semaine S1 terminée" subtitle="Tu as bouclé ta première semaine de Phase 1">
+              <Card
+                variant="forte"
+                title={`Semaine ${pillarId} terminée`}
+                subtitle={`Tu as bouclé la semaine ${meta.weekIndex} de Phase 1`}
+              >
                 <Button
                   label="Revoir mon récap final"
                   variant="secondary"
                   onPress={openFinalRecap}
                   fullWidth
-                  context="s1"
+                  context={pillarKey}
                   style={{ marginTop: space[3] }}
                 />
               </Card>
@@ -248,85 +252,87 @@ export default function Phase1HomeScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: pillarColors.s1.bg },
-  safeTop: { flex: 1, backgroundColor: pillarColors.s1.headerBg },
-  scroll: { backgroundColor: pillarColors.s1.bg, paddingBottom: space[8] },
-  body: { padding: space[5], gap: space[4] },
-  validatedBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[3],
-    backgroundColor: neutralColors.surfaceElevated,
-    borderRadius: radiusV1.lg,
-    paddingVertical: space[3],
-    paddingHorizontal: space[4],
-    borderWidth: 1.5,
-    borderColor: brandColors.alive,
-  },
-  validatedText: {
-    ...interTextStyle('body'),
-    color: brandColors.deep,
-    flex: 1,
-  },
-  dayTitle: {
-    ...interTextStyle('h1'),
-    color: pillarColors.s1.text,
-  },
-  objective: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
-    opacity: 0.85,
-  },
-  sessionList: { gap: space[2], marginTop: space[2] },
-  sessionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[3],
-    paddingVertical: space[3],
-    borderBottomWidth: 1,
-    borderBottomColor: neutralColors.borderSubtle,
-  },
-  sessionIconWrap: {
-    width: 40,
-    height: 40,
-    borderRadius: 9999,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: pillarColors.s1.bg,
-    borderWidth: 1.5,
-    borderColor: pillarColors.s1.text,
-  },
-  sessionText: { flex: 1 },
-  sessionLabel: {
-    fontFamily: getInterFamily('600'),
-    fontSize: 16,
-    color: pillarColors.s1.text,
-  },
-  sessionHint: {
-    fontFamily: getInterFamily('400'),
-    fontSize: 13,
-    color: pillarColors.s1.text,
-    opacity: 0.65,
-  },
-  pedagogy: {
-    ...interTextStyle('body'),
-    color: pillarColors.s1.text,
-    opacity: 0.85,
-  },
-  hint: {
-    ...interTextStyle('caption'),
-    color: pillarColors.s1.text,
-    opacity: 0.6,
-    textAlign: 'center',
-    marginTop: space[3],
-  },
-  evalIntro: {
-    ...interTextStyle('body'),
-    color: pillarColors.s1.text,
-    marginTop: space[2],
-  },
-});
+type Palette = { bg: string; text: string; headerBg: string };
 
-// S1_PROGRAM utilisé via getS1Day(dayId) — import conservé pour cohérence.
-void S1_PROGRAM;
+/** Styles paramétrés par palette pilier (Sprint 11 — multi-pilier). */
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    container: { flex: 1, backgroundColor: palette.bg },
+    safeTop: { flex: 1, backgroundColor: palette.headerBg },
+    scroll: { backgroundColor: palette.bg, paddingBottom: space[8] },
+    body: { padding: space[5], gap: space[4] },
+    validatedBanner: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space[3],
+      backgroundColor: neutralColors.surfaceElevated,
+      borderRadius: radiusV1.lg,
+      paddingVertical: space[3],
+      paddingHorizontal: space[4],
+      borderWidth: 1.5,
+      borderColor: brandColors.alive,
+    },
+    validatedText: {
+      ...interTextStyle('body'),
+      color: brandColors.deep,
+      flex: 1,
+    },
+    dayTitle: {
+      ...interTextStyle('h1'),
+      color: palette.text,
+    },
+    objective: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+      opacity: 0.85,
+    },
+    sessionList: { gap: space[2], marginTop: space[2] },
+    sessionRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: space[3],
+      paddingVertical: space[3],
+      borderBottomWidth: 1,
+      borderBottomColor: neutralColors.borderSubtle,
+    },
+    sessionIconWrap: {
+      width: 40,
+      height: 40,
+      borderRadius: 9999,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: palette.bg,
+      borderWidth: 1.5,
+      borderColor: palette.text,
+    },
+    sessionText: { flex: 1 },
+    sessionLabel: {
+      fontFamily: getInterFamily('600'),
+      fontSize: 16,
+      color: palette.text,
+    },
+    sessionHint: {
+      fontFamily: getInterFamily('400'),
+      fontSize: 13,
+      color: palette.text,
+      opacity: 0.65,
+    },
+    pedagogy: {
+      ...interTextStyle('body'),
+      color: palette.text,
+      opacity: 0.85,
+    },
+    hint: {
+      ...interTextStyle('caption'),
+      color: palette.text,
+      opacity: 0.6,
+      textAlign: 'center',
+      marginTop: space[3],
+    },
+    evalIntro: {
+      ...interTextStyle('body'),
+      color: palette.text,
+      marginTop: space[2],
+    },
+  });
+

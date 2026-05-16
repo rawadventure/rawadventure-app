@@ -39,7 +39,7 @@ import {
   radiusV1,
   space,
 } from '../../theme';
-import { S1_EVALUATION_QUESTIONS } from '../../data/s1-evaluation';
+import { getPillarMeta } from '../../data/pillar-registry';
 import { aggregateEvaluation, type RawResponse } from '../../lib/metrics';
 import { useProgress } from '../../hooks/ProgressContext';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
@@ -61,9 +61,9 @@ export default function PillarEvaluationScreen() {
   const [answers, setAnswers] = useState<Record<number, Scale15Value>>({});
   const [saving, setSaving] = useState(false);
 
-  // V1 Sprint 8 : seul S1 a son fichier de questions. À étendre.
-  const questions =
-    pillarId === 'S1' ? S1_EVALUATION_QUESTIONS : S1_EVALUATION_QUESTIONS;
+  // Lookup via registry pillar (Sprint 11). Fallback S1 si pillarId inconnu.
+  const meta = getPillarMeta(pillarId);
+  const questions = meta?.questions ?? getPillarMeta('S1')!.questions;
 
   const current = questions[index];
   const currentValue = answers[current.id] ?? null;

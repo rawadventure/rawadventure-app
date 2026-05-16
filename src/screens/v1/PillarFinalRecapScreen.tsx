@@ -38,7 +38,8 @@ import {
 import { getInterFamily } from '../../theme';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../hooks/AuthContext';
-import { S1_DIAGNOSTICS } from '../../data/s1-evaluation';
+import { useProgress } from '../../hooks/ProgressContext';
+import { getNextPillarId, getPillarMeta } from '../../data/pillar-registry';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 import type { DiagnosticLevel } from '../../lib/metrics';
 
@@ -57,6 +58,7 @@ export default function PillarFinalRecapScreen() {
   const pillarId = route.params.pillarId;
 
   const { user } = useAuth();
+  const { startPillarWeek } = useProgress();
   const [loading, setLoading] = useState(true);
   const [initial, setInitial] = useState<EvalRow | null>(null);
   const [final, setFinal] = useState<EvalRow | null>(null);
@@ -109,7 +111,9 @@ export default function PillarFinalRecapScreen() {
   const initialNorm = Number(initial.normalized_score);
   const finalNorm = Number(final.normalized_score);
   const delta = Math.round((finalNorm - initialNorm) * 10) / 10;
-  const diag = S1_DIAGNOSTICS[final.diagnostic_level as DiagnosticLevel];
+  const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
+  const diag = meta.diagnostics[final.diagnostic_level as DiagnosticLevel];
+  const nextPillarId = getNextPillarId(pillarId);
 
   // Toile : on construit un état "level1 par défaut" et on remplace la branche
   // du pilier avec finalScore = finalNorm + initialScore = initialNorm pour
@@ -148,10 +152,35 @@ export default function PillarFinalRecapScreen() {
           : "Stable cette semaine. La régularité est déjà une forme de progrès. [copy à valider]";
 
   const handleContinue = () => {
+    if (!nextPillarId) {
+      // Dernier pilier (S8). Sprint 13+ : enchaîner sur IA-22 sortie de S8.
+      Alert.alert(
+        'Phase 1 terminée',
+        'Bravo — tu as bouclé les 8 piliers. L\'écran de sortie S8 (IA-22) sera codé en Sprint 13+.',
+        [{ text: 'OK', onPress: () => navigation.popToTop() }],
+      );
+      return;
+    }
+    const nextMeta = getPillarMeta(nextPillarId);
     Alert.alert(
-      'Semaine S1 terminée',
-      'Bravo — première semaine de Phase 1 bouclée. Le pilier suivant (S2 Activité physique) sera codé en Sprint 11+.',
-      [{ text: 'OK', onPress: () => navigation.popToTop() }],
+      `Pilier ${pillarId} terminé`,
+      `Tu enchaînes sur le pilier ${nextPillarId} — ${nextMeta?.name ?? '…'}. Tu vas refaire une évaluation 12 questions pour calibrer cette nouvelle semaine.`,
+      [
+        { text: 'Plus tard', style: 'cancel', onPress: () => navigation.popToTop() },
+        {
+          text: 'Démarrer',
+          onPress: async () => {
+            // Démarre la nouvelle semaine pilier (réinitialise pillarStartedAt).
+            await startPillarWeek(nextPillarId);
+            // Pop puis ouvre IA-40 pour le nouveau pilier.
+            navigation.popToTop();
+            navigation.navigate('PillarEvaluation', {
+              pillarId: nextPillarId,
+              evaluationType: 'initial',
+            });
+          },
+        },
+      ],
     );
   };
 

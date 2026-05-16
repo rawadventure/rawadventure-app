@@ -47,11 +47,10 @@ import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
 import {
   RESPI_CYCLE,
-  S1_DURATIONS_MIN,
   SESSION_INDEX_LABEL,
-  getS1Day,
   type SessionIndex,
 } from '../../data/s1-program';
+import { getPillarMeta } from '../../data/pillar-registry';
 import { todayLocalDate } from '../../lib/calendar';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -72,7 +71,12 @@ export default function SessionScreen() {
   const { user } = useAuth();
   const { currentPillarId, dayInPillarWeek, savePillarSession } = useProgress();
   const pillarId = currentPillarId ?? 'S1';
-  const day = getS1Day(dayInPillarWeek > 0 ? dayInPillarWeek : 1);
+  const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
+  const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
+  const day = meta.program.find((d) => d.id === dayId);
+  const pillarKey = pillarId.toLowerCase() as 's1' | 's2';
+  const palette = pillarColors[pillarKey] ?? pillarColors.s1;
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
 
   const [engagement, setEngagement] = useState<EngagementLevel>('essentiel');
   const [loading, setLoading] = useState(true);
@@ -80,7 +84,7 @@ export default function SessionScreen() {
   const [secondsLeft, setSecondsLeft] = useState(0);
   const [saving, setSaving] = useState(false);
 
-  const durationMin = S1_DURATIONS_MIN[engagement];
+  const durationMin = meta.durationsMin[engagement];
   const totalSeconds = durationMin * 60;
 
   // Charge le niveau d'engagement choisi depuis pillar_evaluations.
@@ -188,7 +192,7 @@ export default function SessionScreen() {
     try {
       await savePillarSession({
         pillarId,
-        dayInWeek: dayInPillarWeek > 0 ? dayInPillarWeek : 1,
+        dayInWeek: dayId,
         sessionIndex,
         localDate: todayLocalDate(),
         durationSeconds: durationSec,
@@ -234,7 +238,7 @@ export default function SessionScreen() {
     ? `${min}:${sec.toString().padStart(2, '0')}`
     : `${durationMin}:00`;
 
-  const dayTitle = day?.title ?? `Jour ${dayInPillarWeek > 0 ? dayInPillarWeek : 1}`;
+  const dayTitle = day?.title ?? `Jour ${dayId}`;
   const dayObjective = day?.objective ?? '';
   const dayPedagogy = day?.pedagogy ?? '';
   const sessionLabel = SESSION_INDEX_LABEL[sessionIndex];
@@ -257,7 +261,7 @@ export default function SessionScreen() {
           accessibilityLabel="Retour"
           style={({ pressed }) => [styles.backBtn, pressed && { opacity: 0.7 }]}
         >
-          <ChevronLeft size={24} color={pillarColors.s1.text} />
+          <ChevronLeft size={24} color={palette.text} />
         </Pressable>
         <Text style={styles.sessionLabel}>{sessionLabel}</Text>
         <View style={styles.backBtn} />
@@ -265,7 +269,7 @@ export default function SessionScreen() {
 
       <View style={styles.body}>
         <View style={styles.head}>
-          <Text style={styles.marker}>{`PILIER S1 · JOUR ${dayInPillarWeek > 0 ? dayInPillarWeek : 1} SUR 7`}</Text>
+          <Text style={styles.marker}>{`PILIER ${pillarId} · JOUR ${dayId} SUR 7`}</Text>
           <Text style={styles.title}>{dayTitle}</Text>
           <Text style={styles.objective}>{dayObjective}</Text>
         </View>
@@ -290,7 +294,7 @@ export default function SessionScreen() {
                 onPress={handleStart}
                 fullWidth
                 size="large"
-                context="s1"
+                context={pillarKey}
               />
               <Button
                 label="Marquer comme faite"
@@ -298,7 +302,7 @@ export default function SessionScreen() {
                 onPress={() => handleComplete(false)}
                 loading={saving}
                 fullWidth
-                context="s1"
+                context={pillarKey}
               />
             </>
           ) : (
@@ -308,7 +312,7 @@ export default function SessionScreen() {
               onPress={() => handleComplete(false)}
               loading={saving}
               fullWidth
-              context="s1"
+              context={pillarKey}
             />
           )}
         </View>
@@ -319,96 +323,100 @@ export default function SessionScreen() {
 
 const CIRCLE_SIZE = 200;
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: pillarColors.s1.bg },
-  loadingText: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
-    textAlign: 'center',
-    marginTop: space[8],
-  },
-  headerBar: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: space[3],
-    paddingVertical: space[2],
-  },
-  backBtn: {
-    width: 44,
-    height: 44,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sessionLabel: {
-    ...interTextStyle('caption'),
-    color: pillarColors.s1.text,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    opacity: 0.85,
-  },
-  body: {
-    flex: 1,
-    paddingHorizontal: layout.screen.marginHorizontal,
-    paddingBottom: space[5],
-    justifyContent: 'space-between',
-  },
-  head: { gap: space[2] },
-  marker: {
-    ...interTextStyle('caption'),
-    color: pillarColors.s1.text,
-    textTransform: 'uppercase',
-    letterSpacing: 0.6,
-    opacity: 0.7,
-  },
-  title: {
-    ...interTextStyle('h1'),
-    color: pillarColors.s1.text,
-  },
-  objective: {
-    ...interTextStyle('bodyLarge'),
-    color: pillarColors.s1.text,
-    opacity: 0.85,
-  },
-  breathArea: {
-    alignItems: 'center',
-    gap: space[3],
-  },
-  breathCircle: {
-    width: CIRCLE_SIZE,
-    height: CIRCLE_SIZE,
-    borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: pillarColors.s1.headerBg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    shadowColor: pillarColors.s1.headerBg,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    elevation: 6,
-  },
-  phaseLabel: {
-    fontFamily: getInterFamily('700'),
-    fontSize: 28,
-    color: '#FFFFFF',
-    letterSpacing: 0.4,
-  },
-  timer: {
-    fontFamily: getInterFamily('800'),
-    fontSize: 36,
-    color: pillarColors.s1.text,
-    fontVariant: ['tabular-nums'],
-  },
-  rythmHint: {
-    ...interTextStyle('caption'),
-    color: pillarColors.s1.text,
-    opacity: 0.65,
-  },
-  pedagogy: {
-    ...interTextStyle('body'),
-    color: pillarColors.s1.text,
-    opacity: 0.85,
-  },
-  actions: { gap: space[3] },
-});
+type Palette = { bg: string; text: string; headerBg: string };
+
+/** Styles paramétrés par palette pilier (Sprint 11 — multi-pilier). */
+const makeStyles = (palette: Palette) =>
+  StyleSheet.create({
+    safe: { flex: 1, backgroundColor: palette.bg },
+    loadingText: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+      textAlign: 'center',
+      marginTop: space[8],
+    },
+    headerBar: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      alignItems: 'center',
+      paddingHorizontal: space[3],
+      paddingVertical: space[2],
+    },
+    backBtn: {
+      width: 44,
+      height: 44,
+      alignItems: 'center',
+      justifyContent: 'center',
+    },
+    sessionLabel: {
+      ...interTextStyle('caption'),
+      color: palette.text,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      opacity: 0.85,
+    },
+    body: {
+      flex: 1,
+      paddingHorizontal: layout.screen.marginHorizontal,
+      paddingBottom: space[5],
+      justifyContent: 'space-between',
+    },
+    head: { gap: space[2] },
+    marker: {
+      ...interTextStyle('caption'),
+      color: palette.text,
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      opacity: 0.7,
+    },
+    title: {
+      ...interTextStyle('h1'),
+      color: palette.text,
+    },
+    objective: {
+      ...interTextStyle('bodyLarge'),
+      color: palette.text,
+      opacity: 0.85,
+    },
+    breathArea: {
+      alignItems: 'center',
+      gap: space[3],
+    },
+    breathCircle: {
+      width: CIRCLE_SIZE,
+      height: CIRCLE_SIZE,
+      borderRadius: CIRCLE_SIZE / 2,
+      backgroundColor: palette.headerBg,
+      alignItems: 'center',
+      justifyContent: 'center',
+      shadowColor: palette.headerBg,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.35,
+      shadowRadius: 16,
+      elevation: 6,
+    },
+    phaseLabel: {
+      fontFamily: getInterFamily('700'),
+      fontSize: 28,
+      color: '#FFFFFF',
+      letterSpacing: 0.4,
+    },
+    timer: {
+      fontFamily: getInterFamily('800'),
+      fontSize: 36,
+      color: palette.text,
+      fontVariant: ['tabular-nums'],
+    },
+    rythmHint: {
+      ...interTextStyle('caption'),
+      color: palette.text,
+      opacity: 0.65,
+    },
+    pedagogy: {
+      ...interTextStyle('body'),
+      color: palette.text,
+      opacity: 0.85,
+    },
+    actions: { gap: space[3] },
+  });
 
