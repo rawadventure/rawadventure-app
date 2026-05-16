@@ -79,6 +79,17 @@ interface ProgressContextType {
   currentDay: number; // jour 1-based depuis accountCreatedAt
   currentPhase: Phase;
 
+  // ── Phase 1 — pilier en cours
+  /** Identifiant du pilier Phase 1 actif ('S1' à 'S8'). `null` tant que la
+   *  semaine pilier n'a pas démarré (sortie IA-41). */
+  currentPillarId: string | null;
+  /** Timestamp ISO de démarrage de la semaine pilier (sortie IA-41
+   *  "Démarrer cette semaine"). `null` tant que pas démarré. */
+  pillarStartedAt: string | null;
+  /** Jour 1-7 dans la semaine du pilier en cours, calculé depuis pillarStartedAt.
+   *  `0` si pilier pas démarré. */
+  dayInPillarWeek: number;
+
   // ── streak / joker
   streak: number;
   jokerAvailable: boolean;
@@ -109,6 +120,12 @@ interface ProgressContextType {
   /** Enregistre une évaluation 12 questions (IA-40 initiale ou IA-46 finale).
    *  Réf Feature Spec S1 §2.5 + Schéma de données V1.1 §2.4. */
   savePillarEvaluation: (args: SavePillarEvaluationArgs) => Promise<void>;
+  /** Démarre la semaine d'un pilier de Phase 1 (sortie IA-41 "Démarrer cette
+   *  semaine"). Pose `currentPillarId` et `pillarStartedAt = now()`. */
+  startPillarWeek: (pillarId: string) => Promise<void>;
+  /** Enregistre une session pratiquée en Phase 1 (sortie IA-43).
+   *  Réf Feature Spec S1 §4.4 + Schéma de données V1.1 §2.5. */
+  savePillarSession: (args: SavePillarSessionArgs) => Promise<void>;
   /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
@@ -132,6 +149,18 @@ export type ValidateDayArgs = {
   actionsCount: number;
   /** Soft-rappel D26 dépassé ? `true` si l'utilisateur a tapé "Valider quand même". */
   userValidatedManually?: boolean;
+};
+
+export type SavePillarSessionArgs = {
+  pillarId: string;
+  /** Jour dans la semaine du pilier (1-7). */
+  dayInWeek: number;
+  /** Index de la session du jour (1 matin / 2 midi / 3 soir). */
+  sessionIndex: 1 | 2 | 3;
+  /** Date locale `YYYY-MM-DD` de la session. */
+  localDate: string;
+  /** Durée effective de la session en secondes (utile si change de niveau en cours de semaine). */
+  durationSeconds?: number;
 };
 
 export type SavePillarEvaluationArgs = {
@@ -171,6 +200,8 @@ const LOCAL_KEYS = {
   jokerConsumptions: 'joker_consumptions',
   tierReaches: 'tier_reaches',
   narrativeFlags: 'narrative_flags',
+  currentPillarId: 'current_pillar_id',
+  pillarStartedAt: 'pillar_started_at',
 };
 
 /**
@@ -218,6 +249,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [narrativeFlags, setNarrativeFlags] = useState<
     Partial<Record<NarrativeEventId, string>>
   >({});
+
+  // Phase 1 — pilier en cours (local-only V1)
+  const [currentPillarId, setCurrentPillarId] = useState<string | null>(null);
+  const [pillarStartedAt, setPillarStartedAt] = useState<string | null>(null);
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -301,6 +336,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     // distante dédiée pour l'instant — Sprint 7+).
     const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
     if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
+
+    // Pilier en cours : local-only V1 (Sprint 10+ : migration vers une
+    // colonne `current_pillar_id` + `pillar_started_at` sur `profiles`).
+    const [rawPid, rawPstart] = await Promise.all([
+      AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
+      AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
+    ]);
+    if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
+    if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
   };
 
   const loadFromAsyncStorage = async () => {
@@ -336,6 +380,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (tiers) setTierReaches(JSON.parse(tiers));
     const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
     if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
+    const [rawPid, rawPstart] = await Promise.all([
+      AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
+      AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
+    ]);
+    if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
+    if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
   };
 
   const markNarrativeSeen = useCallback(
@@ -474,6 +524,53 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (!accountCreatedAt) return 0;
     return currentDayInParcours(accountCreatedAt);
   }, [accountCreatedAt]);
+
+  const dayInPillarWeek = useMemo(() => {
+    if (!pillarStartedAt) return 0;
+    const d = currentDayInParcours(pillarStartedAt);
+    return Math.min(d, 7); // borne à 7 jours par pilier
+  }, [pillarStartedAt]);
+
+  const startPillarWeek = useCallback(
+    async (pillarId: string) => {
+      const nowIso = new Date().toISOString();
+      setCurrentPillarId(pillarId);
+      setPillarStartedAt(nowIso);
+      await AsyncStorage.multiSet([
+        [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
+        [LOCAL_KEYS.pillarStartedAt, JSON.stringify(nowIso)],
+      ]);
+    },
+    [],
+  );
+
+  const savePillarSession = useCallback(
+    async (args: SavePillarSessionArgs) => {
+      if (!user) {
+        console.warn('[savePillarSession] user non connecté — session non persistée');
+        return;
+      }
+      const row = {
+        user_id: user.id,
+        pillar_id: args.pillarId,
+        day_in_week: args.dayInWeek,
+        session_index: args.sessionIndex,
+        local_date: args.localDate,
+        completed_at: new Date().toISOString(),
+        duration_seconds: args.durationSeconds ?? null,
+      };
+      const { error } = await supabase
+        .from('pillar_sessions')
+        .upsert(row, {
+          onConflict: 'user_id,pillar_id,day_in_week,session_index',
+        });
+      if (error) {
+        console.warn('[savePillarSession] supabase upsert failed', error);
+        throw error;
+      }
+    },
+    [user],
+  );
 
   const currentPhase: Phase = useMemo(() => {
     // Phase 0 = J1 à J14, plus l'état initial (currentDay = 0, accountCreatedAt
@@ -866,8 +963,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setJokerConsumptions([]);
     setTierReaches([]);
     setNarrativeFlags({});
+    setCurrentPillarId(null);
+    setPillarStartedAt(null);
     if (user) {
-      await AsyncStorage.removeItem(LOCAL_KEYS.narrativeFlags);
+      await AsyncStorage.multiRemove([
+        LOCAL_KEYS.narrativeFlags,
+        LOCAL_KEYS.currentPillarId,
+        LOCAL_KEYS.pillarStartedAt,
+      ]);
     }
 
     if (user) {
@@ -917,6 +1020,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         markNarrativeSeen,
         seedDevStreak,
         savePillarEvaluation,
+        startPillarWeek,
+        savePillarSession,
+        currentPillarId,
+        pillarStartedAt,
+        dayInPillarWeek,
         completeOnboarding,
         resetAll,
       }}

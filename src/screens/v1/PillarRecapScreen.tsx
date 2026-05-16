@@ -23,7 +23,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -72,7 +72,7 @@ export default function PillarRecapScreen() {
   const evaluationType = route.params.evaluationType ?? 'initial';
 
   const { user } = useAuth();
-  const { savePillarEvaluation, markNarrativeSeen } = useProgress();
+  const { savePillarEvaluation, markNarrativeSeen, startPillarWeek } = useProgress();
 
   const [loading, setLoading] = useState(true);
   const [diagnostic, setDiagnostic] = useState<DiagnosticLevel | null>(null);
@@ -150,14 +150,10 @@ export default function PillarRecapScreen() {
   };
 
   const handleStart = async () => {
-    // Sprint 8 : marque s0_2 vu (au cas où) + retour Accueil avec un Alert.
-    // Sprint 9+ : passe en phase_1 + currentPilar = 1 + démarre IA-11 mode S1.
+    // Sprint 9 : démarre la semaine du pilier — pose currentPillarId et
+    // pillarStartedAt → HomeScreenV1 bascule sur Phase1HomeScreen automatiquement.
     await markNarrativeSeen('s0_2_screen');
-    Alert.alert(
-      'Semaine S1 démarrée',
-      `Niveau ${ENGAGEMENT_LABEL[chosen]} (${S1_DURATIONS_MIN[chosen]} min × 3 sessions/jour). L'écran Phase 1 IA-11 + IA-42/43 sera codé en Sprint 9+.`,
-    );
-    // Pop back to root (Home).
+    await startPillarWeek(pillarId);
     navigation.popToTop();
   };
 

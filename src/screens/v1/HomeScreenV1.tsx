@@ -42,6 +42,7 @@ import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
 import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
 import S01Screen from './S01Screen';
 import S02Screen from './S02Screen';
+import Phase1HomeScreen from './Phase1HomeScreen';
 import type { TierId } from '../../lib/streak';
 import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
@@ -86,7 +87,14 @@ export default function HomeScreenV1() {
     validateDay,
     narrativeFlags,
     markNarrativeSeen,
+    currentPillarId,
   } = useProgress();
+
+  // Branche Phase 1 (pilier démarré). Sprint 9 : S1 uniquement.
+  // À Sprint 10+ : router selon currentPillarId vers Phase1HomeScreen<S1..S8>.
+  if (currentPhase === 'phase_1' && currentPillarId) {
+    return <Phase1HomeScreen />;
+  }
 
   const today = todayLocalDate();
   const [checks, setChecks] = useState<DailyChecksMap>(EMPTY_CHECKS);
