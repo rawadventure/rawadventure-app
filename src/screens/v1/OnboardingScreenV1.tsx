@@ -246,9 +246,9 @@ function SlideWelcome() {
   return (
     <View style={styles.welcomeWrap}>
       <View style={styles.logoHero}>
-        <LogoRawAdventure variant="hero" size={220} color={brandColors.deep} />
+        <LogoRawAdventure variant="hero" size={300} color={brandColors.deep} />
       </View>
-      <Text style={styles.heroTitle}>Raw Adventure</Text>
+      <Text style={styles.heroTitle}>RAW ADVENTURE</Text>
       <Text style={styles.heroSubtitle}>
         Le diagnostic n'est pas un sujet de motivation. C'est un sujet de
         physiologie. [copy à valider]
@@ -259,9 +259,9 @@ function SlideWelcome() {
 
 function SlideText({ title, body }: { title: string; body: string }) {
   return (
-    <View style={styles.slideWrap}>
-      <Text style={styles.slideTitle}>{title}</Text>
-      <Text style={styles.slideBody}>{body}</Text>
+    <View style={styles.slideWrapCenter}>
+      <Text style={[styles.slideTitle, styles.center]}>{title}</Text>
+      <Text style={[styles.slideBody, styles.center]}>{body}</Text>
     </View>
   );
 }
@@ -274,10 +274,9 @@ function SlideQuestionnaireP1({
   onChange: (next: Partial<Answers>) => void;
 }) {
   return (
-    <View style={styles.slideWrap}>
-      <Text style={styles.slideTitle}>Questionnaire (1/2)</Text>
-      <Text style={styles.slideBody}>Énergie au quotidien — note de 1 à 5.</Text>
-      <View style={{ marginTop: space[4] }}>
+    <View style={styles.slideWrapCenter}>
+      <Text style={[styles.slideTitle, styles.center]}>Ton énergie au quotidien</Text>
+      <View style={{ marginTop: space[5] }}>
         <Scale15
           value={(answers.energy as Scale15Value | undefined) ?? null}
           onChange={(v) => onChange({ energy: v as number })}
@@ -287,10 +286,10 @@ function SlideQuestionnaireP1({
         />
       </View>
 
-      <Text style={[styles.questionLabel, { marginTop: space[6] }]}>
-        Comment se sent ton corps en ce moment ?
+      <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
+        Comment ressens-tu ton corps en ce moment ?
       </Text>
-      <View style={styles.chipRow}>
+      <View style={[styles.chipRow, styles.centerWrap]}>
         {BODY_OPTIONS.map((opt) => (
           <ChoiceChip
             key={opt}
@@ -312,10 +311,9 @@ function SlideQuestionnaireP2({
   onChange: (next: Partial<Answers>) => void;
 }) {
   return (
-    <View style={styles.slideWrap}>
-      <Text style={styles.slideTitle}>Questionnaire (2/2)</Text>
-      <Text style={styles.questionLabel}>Comment se sent ton mental ?</Text>
-      <View style={styles.chipRow}>
+    <View style={styles.slideWrapCenter}>
+      <Text style={[styles.questionLabel, styles.center]}>Ton mental est plutôt :</Text>
+      <View style={[styles.chipRow, styles.centerWrap]}>
         {MENTAL_OPTIONS.map((opt) => (
           <ChoiceChip
             key={opt}
@@ -326,10 +324,10 @@ function SlideQuestionnaireP2({
         ))}
       </View>
 
-      <Text style={[styles.questionLabel, { marginTop: space[5] }]}>
-        Quelle est ton intention pour ces 14 jours ?
+      <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
+        Tu es prêt à t'engager :
       </Text>
-      <View style={styles.chipRow}>
+      <View style={[styles.chipRow, styles.centerWrap]}>
         {MOTIVATION_OPTIONS.map((opt) => (
           <ChoiceChip
             key={opt}
@@ -455,9 +453,9 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontFamily: getInterFamily('800'),
-    fontSize: 32,
-    lineHeight: 36,
-    letterSpacing: -0.64,
+    fontSize: 44,
+    lineHeight: 48,
+    letterSpacing: 2,
     color: pillarColors.phase0.text,
     textAlign: 'center',
   },
@@ -472,6 +470,14 @@ const styles = StyleSheet.create({
     paddingTop: space[3],
     gap: space[3],
   },
+  slideWrapCenter: {
+    flex: 1,
+    paddingTop: space[3],
+    gap: space[3],
+    justifyContent: 'center',
+  },
+  center: { textAlign: 'center' },
+  centerWrap: { justifyContent: 'center' },
   slideTitle: {
     ...interTextStyle('display'),
     color: pillarColors.phase0.text,
