@@ -18,16 +18,13 @@ import { ProgressProvider } from './src/hooks/ProgressContext';
 import RootNavigator from './src/navigation/RootNavigator';
 
 /**
- * Types de routes du stack interne « Accueil » (utilisé par HomeStack).
- * Maintenu ici pour rétro-compatibilité avec les imports V0 qui référencent
- * `../../App` (HomeScreen, DayScreen, SettingsScreen, ConversionScreen).
+ * RootStackParamList — type legacy V0 conservé pour réutilisation éventuelle.
+ * En V1 c'est Phase0StackParamList (src/navigation/HomeStack.tsx) qui est
+ * la source de vérité des routes Accueil.
  */
 export type RootStackParamList = {
   Onboarding: undefined;
   Home: undefined;
-  Day: { dayId: number };
-  Conversion: undefined;
-  Settings: undefined;
 };
 
 // Empêche Expo d'auto-masquer le splash : on contrôle le moment précis où

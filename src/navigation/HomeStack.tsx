@@ -1,14 +1,14 @@
 /**
  * HomeStack — stack interne de l'onglet Accueil.
  *
- * V1 (Sprint 5) : HomeScreenV1 (IA-11 Pattern B refondu) en écran racine,
- * avec Phase0ActionDetail (IA-13) comme écran enfant pour le détail d'une
- * action de Phase 0.
+ * V1 (Sprint 14 hygiène) : routes V1 uniquement. Les écrans V0 (HomeScreen,
+ * DayScreen, SettingsScreen, ConversionScreen, ChecklistScreen, AuthScreen,
+ * OnboardingScreen, ProtocolScreen) ont été supprimés du repo car non
+ * référencés depuis la refonte M7+A3 + IA-11 V1.
  *
- * Les écrans V0 (HomeScreen V0, DayScreen, SettingsScreen, ConversionScreen)
- * sont conservés sous des routes secondaires pour rester accessibles
- * pendant la transition Sprint 5 → Sprint 7 (refonte conversion + paramètres).
- * À retirer une fois les routes V1 équivalentes codées.
+ * La refonte IA-30 conversion (M5) viendra Sprint 15+ comme nouvel écran
+ * V1. Les paramètres (IA-72) viendront via le tab Profil (déjà placeholder
+ * dans ProfilTabScreen).
  */
 
 import React from 'react';
@@ -19,9 +19,6 @@ import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
 import PillarFinalRecapScreen from '../screens/v1/PillarFinalRecapScreen';
 import SessionScreen from '../screens/v1/SessionScreen';
-import DayScreen from '../screens/DayScreen';
-import SettingsScreen from '../screens/SettingsScreen';
-import ConversionScreen from '../screens/ConversionScreen';
 import type { Phase0ActionId } from '../data/phase0-actions';
 
 export type Phase0StackParamList = {
@@ -31,10 +28,6 @@ export type Phase0StackParamList = {
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarFinalRecap: { pillarId: string };
   Session: { sessionIndex: 1 | 2 | 3 };
-  // Routes legacy V0 (Sprint 5 conserve, à retirer Sprint 7+)
-  Day: { dayId: number };
-  Settings: undefined;
-  Conversion: undefined;
 };
 
 const Stack = createNativeStackNavigator<Phase0StackParamList>();
@@ -48,9 +41,6 @@ export default function HomeStack() {
       <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />
       <Stack.Screen name="PillarFinalRecap" component={PillarFinalRecapScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
-      <Stack.Screen name="Day" component={DayScreen} />
-      <Stack.Screen name="Settings" component={SettingsScreen} />
-      <Stack.Screen name="Conversion" component={ConversionScreen} />
     </Stack.Navigator>
   );
 }
