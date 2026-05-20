@@ -157,6 +157,12 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
+                  label="(DEV) S8 — Jour 7 (fin Phase 1)"
+                  variant="ghost"
+                  onPress={() => seedDevPillarDay('S8', 7)}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Reset complet"
                   variant="destructive"
                   onPress={resetAll}
