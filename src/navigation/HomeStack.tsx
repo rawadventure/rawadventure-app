@@ -18,6 +18,7 @@ import Phase0ActionDetailScreen from '../screens/v1/Phase0ActionDetailScreen';
 import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
 import PillarFinalRecapScreen from '../screens/v1/PillarFinalRecapScreen';
+import PillarOverviewScreen from '../screens/v1/PillarOverviewScreen';
 import SessionScreen from '../screens/v1/SessionScreen';
 import type { Phase0ActionId } from '../data/phase0-actions';
 
@@ -27,6 +28,7 @@ export type Phase0StackParamList = {
   PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarFinalRecap: { pillarId: string };
+  PillarOverview: undefined;
   Session: { sessionIndex: 1 | 2 | 3 };
 };
 
@@ -40,6 +42,7 @@ export default function HomeStack() {
       <Stack.Screen name="PillarEvaluation" component={PillarEvaluationScreen} />
       <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />
       <Stack.Screen name="PillarFinalRecap" component={PillarFinalRecapScreen} />
+      <Stack.Screen name="PillarOverview" component={PillarOverviewScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
     </Stack.Navigator>
   );

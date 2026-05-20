@@ -127,6 +127,10 @@ export default function Phase1HomeScreen() {
     navigation.navigate('PillarFinalRecap', { pillarId });
   };
 
+  const openOverview = () => {
+    navigation.navigate('PillarOverview');
+  };
+
   return (
     <View style={styles.container}>
       <SafeAreaView style={styles.safeTop} edges={['top']}>
@@ -197,6 +201,9 @@ export default function Phase1HomeScreen() {
                 })}
               </View>
             </Card>
+
+            {/* Card "Vue d'ensemble du pilier" — accès IA-42 */}
+            <Card variant="action" title={`Pilier ${meta.name}`} subtitle="Voir le programme 7 jours, le niveau, l'intro vidéo" onPress={openOverview} context={pillarKey} />
 
             {!allDone && (
               <Text style={styles.pedagogy}>{day?.pedagogy}</Text>
