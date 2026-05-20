@@ -27,6 +27,7 @@ import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-n
 import { Sparkle, TrendingUp, Minus, TrendingDown } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import { Toile, makeMockScores, type PillarScore } from '../../components/toile';
+import S8ExitScreen from './S8ExitScreen';
 import {
   brandColors,
   interTextStyle,
@@ -58,7 +59,8 @@ export default function PillarFinalRecapScreen() {
   const pillarId = route.params.pillarId;
 
   const { user } = useAuth();
-  const { startPillarWeek } = useProgress();
+  const { startPillarWeek, streak, markNarrativeSeen, narrativeFlags } = useProgress();
+  const [showS8Exit, setShowS8Exit] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initial, setInitial] = useState<EvalRow | null>(null);
   const [final, setFinal] = useState<EvalRow | null>(null);
@@ -153,12 +155,11 @@ export default function PillarFinalRecapScreen() {
 
   const handleContinue = () => {
     if (!nextPillarId) {
-      // Dernier pilier (S8). Sprint 13+ : enchaîner sur IA-22 sortie de S8.
-      Alert.alert(
-        'Phase 1 terminée',
-        'Bravo — tu as bouclé les 8 piliers. L\'écran de sortie S8 (IA-22) sera codé en Sprint 13+.',
-        [{ text: 'OK', onPress: () => navigation.popToTop() }],
-      );
+      // Dernier pilier (S8) → IA-22 sortie de Phase 1.
+      if (!narrativeFlags.s8_exit_screen) {
+        void markNarrativeSeen('s8_exit_screen');
+      }
+      setShowS8Exit(true);
       return;
     }
     const nextMeta = getPillarMeta(nextPillarId);
@@ -238,6 +239,15 @@ export default function PillarFinalRecapScreen() {
           context={slotPillar}
         />
       </View>
+
+      <S8ExitScreen
+        visible={showS8Exit}
+        streak={streak}
+        onContinue={() => {
+          setShowS8Exit(false);
+          navigation.popToTop();
+        }}
+      />
     </SafeAreaView>
   );
 }

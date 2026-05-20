@@ -34,18 +34,32 @@ import { S8_PROGRAM } from './s8-program';
 
 export type PillarId = 'S1' | 'S2' | 'S3' | 'S4' | 'S5' | 'S6' | 'S7' | 'S8';
 
+/** Type de session pratique (Sprint 15 D — polymorphisme IA-43).
+ *  - `coherence_cardiaque` : cercle respi animé 6 cycles/min + timer durée
+ *    (S1). C'est l'archétype timer + rythme respiratoire.
+ *  - `chrono_libre` : timer durée simple sans rythme respiratoire (S2 marche,
+ *    S4 exposition dehors, mouvement libre).
+ *  - `acte_libre` : pas de timer, l'utilisateur valide manuellement quand
+ *    l'acte est fait (S3 manger consciemment, S5 routine du soir, S6 journal,
+ *    S7 méditation libre, S8 hydratation/brossage).
+ */
+export type SessionType = 'coherence_cardiaque' | 'chrono_libre' | 'acte_libre';
+
 export type PillarMeta = {
   id: PillarId;
   weekIndex: number; // 1 à 8
   name: string;
   shortName: string;
   /** Type A = mappage diagnostic→engagement actif. Type B (S5/S7) = pas de
-   *  paramètre principal modulé (Métriques V1.5 D41). Sprint 11 : tout est A. */
+   *  paramètre principal modulé (Métriques V1.5 D41). */
   type: 'A' | 'B';
+  /** Type de session pour IA-43 — détermine quel sous-composant rendre. */
+  sessionType: SessionType;
   questions: readonly S1Question[];
   diagnostics: Record<1 | 2 | 3 | 4 | 5, S1Diagnostic>;
   program: readonly S1Day[];
-  /** Durées du paramètre principal par niveau (placeholder S2 = clone S1). */
+  /** Durées du paramètre principal par niveau. Utilisé uniquement par
+   *  les sessionType timés (coherence_cardiaque, chrono_libre). */
   durationsMin: Record<'essentiel' | 'progression' | 'immersion', number>;
   /** Libellé du paramètre principal pour copy IA-41 / IA-43. */
   parameterLabel: string;
@@ -62,6 +76,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Respiration',
     shortName: 'Respiration',
     type: 'A',
+    sessionType: 'coherence_cardiaque',
     questions: S1_EVALUATION_QUESTIONS,
     diagnostics: S1_DIAGNOSTICS,
     program: S1_PROGRAM,
@@ -74,6 +89,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Activité physique',
     shortName: 'Activité physique',
     type: 'A',
+    sessionType: 'chrono_libre',
     questions: S2_EVALUATION_QUESTIONS,
     diagnostics: S2_DIAGNOSTICS,
     program: S2_PROGRAM,
@@ -86,6 +102,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Alimentation',
     shortName: 'Alimentation',
     type: 'A',
+    sessionType: 'acte_libre',
     questions: S3_EVALUATION_QUESTIONS,
     diagnostics: S3_DIAGNOSTICS,
     program: S3_PROGRAM,
@@ -98,6 +115,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Connexion au vivant',
     shortName: 'Connexion vivant',
     type: 'A',
+    sessionType: 'chrono_libre',
     questions: S4_EVALUATION_QUESTIONS,
     diagnostics: S4_DIAGNOSTICS,
     program: S4_PROGRAM,
@@ -110,6 +128,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Repos et régénération',
     shortName: 'Repos & régé.',
     type: 'B', // D41 — pas de mapping diagnostic → engagement
+    sessionType: 'acte_libre',
     questions: S5_EVALUATION_QUESTIONS,
     diagnostics: S5_DIAGNOSTICS,
     program: S5_PROGRAM,
@@ -122,6 +141,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Passion et chemin de vie',
     shortName: 'Passion',
     type: 'A',
+    sessionType: 'acte_libre',
     questions: S6_EVALUATION_QUESTIONS,
     diagnostics: S6_DIAGNOSTICS,
     program: S6_PROGRAM,
@@ -134,6 +154,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Mindset',
     shortName: 'Mindset',
     type: 'B', // D41 — pas de mapping diagnostic → engagement
+    sessionType: 'acte_libre',
     questions: S7_EVALUATION_QUESTIONS,
     diagnostics: S7_DIAGNOSTICS,
     program: S7_PROGRAM,
@@ -146,6 +167,7 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Élimination et détox',
     shortName: 'Élim. & détox',
     type: 'A',
+    sessionType: 'acte_libre',
     questions: S8_EVALUATION_QUESTIONS,
     diagnostics: S8_DIAGNOSTICS,
     program: S8_PROGRAM,

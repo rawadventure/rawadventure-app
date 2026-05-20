@@ -1,32 +1,27 @@
 /**
  * SessionScreen — IA-43 écran de session de pratique Phase 1.
  *
- * Réf IA V3 §IA-43 + Feature Spec S1 V1.0 §4.1 et §3.3.
+ * Réf IA V3 §IA-43 + Feature Spec S1 V1.0 §4.1 et §3.3 (S1 archétype).
  *
- * Affiche :
- *  - titre du jour S1 (Feature Spec §4.3) + objectif + courte pédagogie
- *  - timer de session paramétré par engagement_level_chosen (5/10/20 min)
- *  - rythme respiratoire visualisé : cercle qui grossit pendant l'inspiration
- *    et rétrécit pendant l'expiration, 6 cycles/min (5s/5s, RESPI_CYCLE)
- *  - bouton "Marquer comme faite" (mode manuel hors timer)
- *  - bouton "Quitter la session" en mode actif (haut gauche)
+ * **Polymorphe par `meta.sessionType` (Sprint 15 D)** :
+ *  - `coherence_cardiaque` (S1) : cercle respiratoire animé 6 cycles/min
+ *    (5s/5s) + timer décompte 5/10/20 min. Archétype historique.
+ *  - `chrono_libre` (S2 marche, S4 dehors) : timer décompte simple sans
+ *    rythme respiratoire. L'utilisateur pratique librement, l'app compte.
+ *  - `acte_libre` (S3 manger, S5 routine, S6 journal, S7 méditation,
+ *    S8 hydratation/brossage) : pas de timer, l'utilisateur valide
+ *    manuellement quand l'acte est fait. Objective + bouton "C'est fait".
  *
- * À la fin du timer ou tap "Marquer comme faite" : appel `savePillarSession`
- * + alerte de fin de session + retour à l'accueil Phase 1.
+ * Sub-composants inline pour éviter prolifération de fichiers. Sprint 16+
+ * éventuel : extraire en fichiers séparés si chacun grossit.
  *
- * **Cohérence cardiaque invariante** : le rythme respiratoire ne change PAS
- * d'un jour à l'autre — seule la durée totale module avec le niveau
- * d'engagement. La consigne du jour (titre / pédagogie) est une focale
- * d'attention sur la pratique, pas une technique alternative
- * (Feature Spec S1 §4.3 note).
- *
- * Référence IA : IA-43 (S1). Pattern : C adapté Phase 1.
+ * Référence IA : IA-43. Pattern : C adapté Phase 1.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ChevronLeft } from 'lucide-react-native';
+import { ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import Animated, {
   Easing,
   cancelAnimation,
@@ -62,6 +57,7 @@ type Route = NativeStackScreenProps<Phase0StackParamList, 'Session'>['route'];
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
 
 type EngagementLevel = 'essentiel' | 'progression' | 'immersion';
+type Palette = { bg: string; text: string; headerBg: string };
 
 export default function SessionScreen() {
   const navigation = useNavigation<Nav>();
@@ -80,14 +76,11 @@ export default function SessionScreen() {
 
   const [engagement, setEngagement] = useState<EngagementLevel>('essentiel');
   const [loading, setLoading] = useState(true);
-  const [active, setActive] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(0);
   const [saving, setSaving] = useState(false);
 
   const durationMin = meta.durationsMin[engagement];
-  const totalSeconds = durationMin * 60;
 
-  // Charge le niveau d'engagement choisi depuis pillar_evaluations.
+  // Charge engagement_level_chosen depuis pillar_evaluations au mount.
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -113,82 +106,9 @@ export default function SessionScreen() {
     };
   }, [user, pillarId]);
 
-  // ── Timer de session ──────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          // Timer terminé → validation auto.
-          void handleComplete(true);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
-
-  // ── Animation cercle respiratoire (cohérence cardiaque 6 cycles/min) ─────
-  const scale = useSharedValue(1);
-
-  useEffect(() => {
-    if (active) {
-      // Cycle : 5s inspire (scale 0.6 → 1.0) puis 5s expire (scale 1.0 → 0.6)
-      scale.value = 0.6;
-      scale.value = withRepeat(
-        withSequence(
-          withTiming(1.0, {
-            duration: RESPI_CYCLE.inhaleSeconds * 1000,
-            easing: Easing.inOut(Easing.sin),
-          }),
-          withTiming(0.6, {
-            duration: RESPI_CYCLE.exhaleSeconds * 1000,
-            easing: Easing.inOut(Easing.sin),
-          }),
-        ),
-        -1, // infini
-        false,
-      );
-    } else {
-      cancelAnimation(scale);
-      scale.value = withTiming(0.6, { duration: 300 });
-    }
-    return () => {
-      cancelAnimation(scale);
-    };
-  }, [active, scale]);
-
-  const breathStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }));
-
-  // ── Phase texte (Inspire / Expire) synchro avec scale ─────────────────────
-  const [phaseLabel, setPhaseLabel] = useState<'Inspire' | 'Expire' | 'Prêt'>('Prêt');
-  useEffect(() => {
-    if (!active) {
-      setPhaseLabel('Prêt');
-      return;
-    }
-    setPhaseLabel('Inspire');
-    const id = setInterval(() => {
-      setPhaseLabel((prev) => (prev === 'Inspire' ? 'Expire' : 'Inspire'));
-    }, RESPI_CYCLE.inhaleSeconds * 1000);
-    return () => clearInterval(id);
-  }, [active]);
-
-  const handleStart = () => {
-    setSecondsLeft(totalSeconds);
-    setActive(true);
-  };
-
-  const handleComplete = async (auto: boolean) => {
-    setActive(false);
+  const handleComplete = async (durationSec: number) => {
     if (saving) return;
     setSaving(true);
-    const durationSec = auto ? totalSeconds : totalSeconds - secondsLeft;
     try {
       await savePillarSession({
         pillarId,
@@ -199,7 +119,7 @@ export default function SessionScreen() {
       });
       Alert.alert(
         'Session validée',
-        'Ton système vient de recevoir un signal de calme. [copy à valider]',
+        'Bien joué. Ton corps a reçu un signal de plus. [copy à valider]',
         [{ text: 'OK', onPress: () => navigation.popToTop() }],
       );
     } catch (e: any) {
@@ -209,39 +129,7 @@ export default function SessionScreen() {
     }
   };
 
-  const handleQuit = () => {
-    if (active) {
-      Alert.alert(
-        'Quitter la session ?',
-        'Si tu quittes maintenant, la session ne sera pas comptée.',
-        [
-          { text: 'Continuer', style: 'cancel' },
-          {
-            text: 'Quitter',
-            style: 'destructive',
-            onPress: () => {
-              setActive(false);
-              navigation.goBack();
-            },
-          },
-        ],
-      );
-    } else {
-      navigation.goBack();
-    }
-  };
-
-  // Minutes:secondes
-  const min = Math.floor(secondsLeft / 60);
-  const sec = secondsLeft % 60;
-  const timerLabel = active
-    ? `${min}:${sec.toString().padStart(2, '0')}`
-    : `${durationMin}:00`;
-
-  const dayTitle = day?.title ?? `Jour ${dayId}`;
-  const dayObjective = day?.objective ?? '';
-  const dayPedagogy = day?.pedagogy ?? '';
-  const sessionLabel = SESSION_INDEX_LABEL[sessionIndex];
+  const handleBack = () => navigation.goBack();
 
   if (loading) {
     return (
@@ -255,7 +143,7 @@ export default function SessionScreen() {
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.headerBar}>
         <Pressable
-          onPress={handleQuit}
+          onPress={handleBack}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Retour"
@@ -263,69 +151,284 @@ export default function SessionScreen() {
         >
           <ChevronLeft size={24} color={palette.text} />
         </Pressable>
-        <Text style={styles.sessionLabel}>{sessionLabel}</Text>
+        <Text style={styles.sessionLabel}>{SESSION_INDEX_LABEL[sessionIndex]}</Text>
         <View style={styles.backBtn} />
       </View>
 
       <View style={styles.body}>
         <View style={styles.head}>
           <Text style={styles.marker}>{`PILIER ${pillarId} · JOUR ${dayId} SUR 7`}</Text>
-          <Text style={styles.title}>{dayTitle}</Text>
-          <Text style={styles.objective}>{dayObjective}</Text>
+          <Text style={styles.title}>{day?.title ?? `Jour ${dayId}`}</Text>
+          <Text style={styles.objective}>{day?.objective ?? ''}</Text>
         </View>
 
-        <View style={styles.breathArea}>
-          <Animated.View style={[styles.breathCircle, breathStyle]}>
-            <Text style={styles.phaseLabel}>{phaseLabel}</Text>
-          </Animated.View>
-          <Text style={styles.timer}>{timerLabel}</Text>
-          <Text style={styles.rythmHint}>Rythme 6 cycles/min — 5s / 5s</Text>
-        </View>
-
-        {!active && (
-          <Text style={styles.pedagogy}>{dayPedagogy}</Text>
+        {/* Branche par sessionType — Sprint 15 D polymorphisme */}
+        {meta.sessionType === 'coherence_cardiaque' && (
+          <CoherenceCardiaqueSession
+            durationMin={durationMin}
+            pillarKey={pillarKey}
+            palette={palette}
+            pedagogy={day?.pedagogy ?? ''}
+            saving={saving}
+            onComplete={handleComplete}
+          />
         )}
-
-        <View style={styles.actions}>
-          {!active ? (
-            <>
-              <Button
-                label={`Lancer (${durationMin} min)`}
-                onPress={handleStart}
-                fullWidth
-                size="large"
-                context={pillarKey}
-              />
-              <Button
-                label="Marquer comme faite"
-                variant="secondary"
-                onPress={() => handleComplete(false)}
-                loading={saving}
-                fullWidth
-                context={pillarKey}
-              />
-            </>
-          ) : (
-            <Button
-              label="Terminer maintenant"
-              variant="secondary"
-              onPress={() => handleComplete(false)}
-              loading={saving}
-              fullWidth
-              context={pillarKey}
-            />
-          )}
-        </View>
+        {meta.sessionType === 'chrono_libre' && (
+          <ChronoLibreSession
+            durationMin={durationMin}
+            pillarKey={pillarKey}
+            palette={palette}
+            pedagogy={day?.pedagogy ?? ''}
+            saving={saving}
+            onComplete={handleComplete}
+          />
+        )}
+        {meta.sessionType === 'acte_libre' && (
+          <ActeLibreSession
+            pillarKey={pillarKey}
+            palette={palette}
+            pedagogy={day?.pedagogy ?? ''}
+            saving={saving}
+            onComplete={() => handleComplete(0)}
+          />
+        )}
       </View>
     </SafeAreaView>
   );
 }
 
+// ─── Sub-component 1 : Cohérence cardiaque (S1) ───────────────────────────────
+
+type CoherenceProps = {
+  durationMin: number;
+  pillarKey: 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
+  palette: Palette;
+  pedagogy: string;
+  saving: boolean;
+  onComplete: (durationSec: number) => void;
+};
+
+function CoherenceCardiaqueSession({
+  durationMin,
+  pillarKey,
+  palette,
+  pedagogy,
+  saving,
+  onComplete,
+}: CoherenceProps) {
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
+  const totalSeconds = durationMin * 60;
+  const [active, setActive] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const [phaseLabel, setPhaseLabel] = useState<'Inspire' | 'Expire' | 'Prêt'>('Prêt');
+  const scale = useSharedValue(1);
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(id);
+          onComplete(totalSeconds);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  useEffect(() => {
+    if (active) {
+      scale.value = 0.6;
+      scale.value = withRepeat(
+        withSequence(
+          withTiming(1.0, {
+            duration: RESPI_CYCLE.inhaleSeconds * 1000,
+            easing: Easing.inOut(Easing.sin),
+          }),
+          withTiming(0.6, {
+            duration: RESPI_CYCLE.exhaleSeconds * 1000,
+            easing: Easing.inOut(Easing.sin),
+          }),
+        ),
+        -1,
+        false,
+      );
+    } else {
+      cancelAnimation(scale);
+      scale.value = withTiming(0.6, { duration: 300 });
+    }
+    return () => {
+      cancelAnimation(scale);
+    };
+  }, [active, scale]);
+
+  useEffect(() => {
+    if (!active) {
+      setPhaseLabel('Prêt');
+      return;
+    }
+    setPhaseLabel('Inspire');
+    const id = setInterval(() => {
+      setPhaseLabel((prev) => (prev === 'Inspire' ? 'Expire' : 'Inspire'));
+    }, RESPI_CYCLE.inhaleSeconds * 1000);
+    return () => clearInterval(id);
+  }, [active]);
+
+  const breathStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handleStart = () => {
+    setSecondsLeft(totalSeconds);
+    setActive(true);
+  };
+  const handleTerminate = () => {
+    setActive(false);
+    onComplete(totalSeconds - secondsLeft);
+  };
+
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timerLabel = active
+    ? `${min}:${sec.toString().padStart(2, '0')}`
+    : `${durationMin}:00`;
+
+  return (
+    <>
+      <View style={styles.breathArea}>
+        <Animated.View style={[styles.breathCircle, breathStyle]}>
+          <Text style={styles.phaseLabel}>{phaseLabel}</Text>
+        </Animated.View>
+        <Text style={styles.timer}>{timerLabel}</Text>
+        <Text style={styles.rythmHint}>Rythme 6 cycles/min — 5s / 5s</Text>
+      </View>
+
+      {!active && <Text style={styles.pedagogy}>{pedagogy}</Text>}
+
+      <View style={styles.actions}>
+        {!active ? (
+          <>
+            <Button label={`Lancer (${durationMin} min)`} onPress={handleStart} fullWidth size="large" context={pillarKey} />
+            <Button label="Marquer comme faite" variant="secondary" onPress={() => onComplete(0)} loading={saving} fullWidth context={pillarKey} />
+          </>
+        ) : (
+          <Button label="Terminer maintenant" variant="secondary" onPress={handleTerminate} loading={saving} fullWidth context={pillarKey} />
+        )}
+      </View>
+    </>
+  );
+}
+
+// ─── Sub-component 2 : Chrono libre (S2 marche, S4 dehors) ────────────────────
+
+function ChronoLibreSession({
+  durationMin,
+  pillarKey,
+  palette,
+  pedagogy,
+  saving,
+  onComplete,
+}: CoherenceProps) {
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
+  const totalSeconds = durationMin * 60;
+  const [active, setActive] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(() => {
+      setSecondsLeft((s) => {
+        if (s <= 1) {
+          clearInterval(id);
+          onComplete(totalSeconds);
+          return 0;
+        }
+        return s - 1;
+      });
+    }, 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
+
+  const handleStart = () => {
+    setSecondsLeft(totalSeconds);
+    setActive(true);
+  };
+  const handleTerminate = () => {
+    setActive(false);
+    onComplete(totalSeconds - secondsLeft);
+  };
+
+  const min = Math.floor(secondsLeft / 60);
+  const sec = secondsLeft % 60;
+  const timerLabel = active
+    ? `${min}:${sec.toString().padStart(2, '0')}`
+    : `${durationMin}:00`;
+
+  return (
+    <>
+      <View style={styles.chronoArea}>
+        <Text style={styles.timerBig}>{timerLabel}</Text>
+        <Text style={styles.rythmHint}>{active ? 'En cours' : 'Prêt à démarrer'}</Text>
+      </View>
+
+      {!active && <Text style={styles.pedagogy}>{pedagogy}</Text>}
+
+      <View style={styles.actions}>
+        {!active ? (
+          <>
+            <Button label={`Lancer le chrono (${durationMin} min)`} onPress={handleStart} fullWidth size="large" context={pillarKey} />
+            <Button label="Marquer comme faite" variant="secondary" onPress={() => onComplete(0)} loading={saving} fullWidth context={pillarKey} />
+          </>
+        ) : (
+          <Button label="Terminer maintenant" variant="secondary" onPress={handleTerminate} loading={saving} fullWidth context={pillarKey} />
+        )}
+      </View>
+    </>
+  );
+}
+
+// ─── Sub-component 3 : Acte libre (S3 / S5 / S6 / S7 / S8) ────────────────────
+
+type ActeProps = {
+  pillarKey: 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
+  palette: Palette;
+  pedagogy: string;
+  saving: boolean;
+  onComplete: () => void;
+};
+
+function ActeLibreSession({ pillarKey, palette, pedagogy, saving, onComplete }: ActeProps) {
+  const styles = React.useMemo(() => makeStyles(palette), [palette]);
+  return (
+    <>
+      <View style={styles.acteArea}>
+        <CheckCircle2 size={96} color={palette.text} strokeWidth={1.5} />
+      </View>
+
+      <Text style={styles.pedagogy}>{pedagogy}</Text>
+
+      <View style={styles.actions}>
+        <Button
+          label="C'est fait"
+          onPress={onComplete}
+          loading={saving}
+          fullWidth
+          size="large"
+          context={pillarKey}
+        />
+      </View>
+    </>
+  );
+}
+
+// ─── Styles ───────────────────────────────────────────────────────────────────
+
 const CIRCLE_SIZE = 200;
 
-type Palette = { bg: string; text: string; headerBg: string };
-
-/** Styles paramétrés par palette pilier (Sprint 11 — multi-pilier). */
 const makeStyles = (palette: Palette) =>
   StyleSheet.create({
     safe: { flex: 1, backgroundColor: palette.bg },
@@ -407,10 +510,26 @@ const makeStyles = (palette: Palette) =>
       color: palette.text,
       fontVariant: ['tabular-nums'],
     },
+    timerBig: {
+      fontFamily: getInterFamily('800'),
+      fontSize: 96,
+      lineHeight: 100,
+      color: palette.text,
+      fontVariant: ['tabular-nums'],
+    },
     rythmHint: {
       ...interTextStyle('caption'),
       color: palette.text,
       opacity: 0.65,
+    },
+    chronoArea: {
+      alignItems: 'center',
+      gap: space[3],
+      paddingVertical: space[6],
+    },
+    acteArea: {
+      alignItems: 'center',
+      paddingVertical: space[7],
     },
     pedagogy: {
       ...interTextStyle('body'),
@@ -419,4 +538,3 @@ const makeStyles = (palette: Palette) =>
     },
     actions: { gap: space[3] },
   });
-
