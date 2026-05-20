@@ -584,12 +584,42 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         [LOCAL_KEYS.narrativeFlags, JSON.stringify(flags)],
       ]);
 
-      // Sync accountCreatedAt distant si connecté.
+      // Sync accountCreatedAt distant si connecté + génère une éval initiale
+      // placeholder pour le pilier seedé (sinon IA-47 final échoue car aucun
+      // pillar_evaluations 'initial' n'existe pour ce pilier).
       if (user) {
         await supabase
           .from('profiles')
           .update({ account_created_at: accountIso })
           .eq('id', user.id);
+
+        // Upsert éval initiale neutre (diagnostic 3 = milieu, engagement
+        // recommandé Essentiel). Idempotent via onConflict, ne réécrit pas
+        // si l'utilisateur a déjà fait l'éval initiale réelle pour ce pilier.
+        const { data: existing } = await supabase
+          .from('pillar_evaluations')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('pillar_id', pillarId)
+          .eq('evaluation_type', 'initial')
+          .maybeSingle();
+        if (!existing) {
+          await supabase.from('pillar_evaluations').insert({
+            user_id: user.id,
+            pillar_id: pillarId,
+            evaluation_type: 'initial',
+            responses: Array.from({ length: 12 }, (_, i) => ({
+              question_id: i + 1,
+              value: 3,
+            })),
+            raw_score: 36,
+            normalized_score: 50,
+            diagnostic_level: 3,
+            engagement_level_recommended: 'essentiel',
+            engagement_level_chosen: 'essentiel',
+            completed_at: new Date().toISOString(),
+          });
+        }
       }
     },
     [user, narrativeFlags],
