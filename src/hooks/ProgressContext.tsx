@@ -130,6 +130,10 @@ interface ProgressContextType {
   /** Enregistre une session pratiquée en Phase 1 (sortie IA-43).
    *  Réf Feature Spec S1 §4.4 + Schéma de données V1.1 §2.5. */
   savePillarSession: (args: SavePillarSessionArgs) => Promise<void>;
+  /** Enregistre un choix de niveau adaptatif (IA-44 modale Moins/Pareil/Plus).
+   *  Réf Feature Spec S1 §5.1 + Schéma de données V1.1 §2.6. Le choix
+   *  module la session ponctuelle sans modifier le niveau d'entrée. */
+  saveAdaptiveChoice: (args: SaveAdaptiveChoiceArgs) => Promise<void>;
   /** Sprint 4 (M7+A3) : pousse les données AsyncStorage anonymes vers Supabase
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
@@ -153,6 +157,13 @@ export type ValidateDayArgs = {
   actionsCount: number;
   /** Soft-rappel D26 dépassé ? `true` si l'utilisateur a tapé "Valider quand même". */
   userValidatedManually?: boolean;
+};
+
+export type SaveAdaptiveChoiceArgs = {
+  pillarId: string;
+  /** ID de la session liée (optionnel — peut être null si choix Phase 0 ou pré-session). */
+  sessionId?: string | null;
+  choice: 'less' | 'same' | 'more';
 };
 
 export type SavePillarSessionArgs = {
@@ -653,6 +664,27 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [user],
   );
 
+  const saveAdaptiveChoice = useCallback(
+    async (args: SaveAdaptiveChoiceArgs) => {
+      if (!user) {
+        console.warn('[saveAdaptiveChoice] user non connecté — choix non persisté');
+        return;
+      }
+      const { error } = await supabase.from('level_adaptive_choices').insert({
+        user_id: user.id,
+        pillar_id: args.pillarId,
+        session_id: args.sessionId ?? null,
+        choice: args.choice,
+        chosen_at: new Date().toISOString(),
+      });
+      if (error) {
+        console.warn('[saveAdaptiveChoice] supabase insert failed', error);
+        throw error;
+      }
+    },
+    [user],
+  );
+
   const currentPhase: Phase = useMemo(() => {
     // Phase 0 = J1 à J14, plus l'état initial (currentDay = 0, accountCreatedAt
     // null ou futur). Au-delà de J14 on bascule en S0 puis Phase 1 — pour
@@ -1103,6 +1135,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         savePillarEvaluation,
         startPillarWeek,
         savePillarSession,
+        saveAdaptiveChoice,
         seedDevPillarDay,
         currentPillarId,
         pillarStartedAt,

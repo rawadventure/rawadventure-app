@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import Animated, {
@@ -31,7 +31,7 @@ import Animated, {
   withSequence,
   withTiming,
 } from 'react-native-reanimated';
-import { Button } from '../../components/primitives';
+import { Button, Modal, LevelSelector } from '../../components/primitives';
 import {
   interTextStyle,
   layout,
@@ -65,7 +65,7 @@ export default function SessionScreen() {
   const sessionIndex = route.params.sessionIndex as SessionIndex;
 
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, savePillarSession } = useProgress();
+  const { currentPillarId, dayInPillarWeek, savePillarSession, saveAdaptiveChoice } = useProgress();
   const pillarId = currentPillarId ?? 'S1';
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
   const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
@@ -77,8 +77,24 @@ export default function SessionScreen() {
   const [engagement, setEngagement] = useState<EngagementLevel>('essentiel');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  // Niveau adaptatif IA-44 — module la session courante sans changer le niveau
+  // d'entrée. Réinitialisé au mount de la session (un nouveau choix par session).
+  const [adaptiveChoice, setAdaptiveChoice] = useState<'less' | 'same' | 'more'>('same');
+  const [adaptiveModalVisible, setAdaptiveModalVisible] = useState(false);
 
-  const durationMin = meta.durationsMin[engagement];
+  /** Applique la modulation adaptive sur le niveau d'entrée. Moins/Plus
+   *  glisse d'un cran (plafonné aux bornes Essentiel/Immersion). */
+  const applyAdaptive = (base: EngagementLevel, adj: 'less' | 'same' | 'more'): EngagementLevel => {
+    const order: EngagementLevel[] = ['essentiel', 'progression', 'immersion'];
+    const idx = order.indexOf(base);
+    if (adj === 'less') return order[Math.max(0, idx - 1)];
+    if (adj === 'more') return order[Math.min(2, idx + 1)];
+    return base;
+  };
+
+  const effectiveEngagement = applyAdaptive(engagement, adaptiveChoice);
+  const durationMin = meta.durationsMin[effectiveEngagement];
+  const showAdaptiveBtn = meta.sessionType !== 'acte_libre';
 
   // Charge engagement_level_chosen depuis pillar_evaluations au mount.
   useEffect(() => {
@@ -162,6 +178,25 @@ export default function SessionScreen() {
           <Text style={styles.objective}>{day?.objective ?? ''}</Text>
         </View>
 
+        {/* Bouton niveau adaptatif IA-44 — pré-session uniquement, masqué pour acte_libre */}
+        {showAdaptiveBtn && (
+          <TouchableOpacity
+            onPress={() => setAdaptiveModalVisible(true)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel="Modifier le niveau adaptatif de cette session"
+            style={styles.adaptiveBtn}
+          >
+            <Text style={styles.adaptiveBtnText}>
+              {`Niveau session · ${labelOf(effectiveEngagement)} ${
+                adaptiveChoice !== 'same'
+                  ? `(${adaptiveChoice === 'less' ? 'allégé' : 'intensifié'})`
+                  : ''
+              }`}
+            </Text>
+          </TouchableOpacity>
+        )}
+
         {/* Branche par sessionType — Sprint 15 D polymorphisme */}
         {meta.sessionType === 'coherence_cardiaque' && (
           <CoherenceCardiaqueSession
@@ -193,8 +228,48 @@ export default function SessionScreen() {
           />
         )}
       </View>
+
+      {/* IA-44 — modale niveau adaptatif Moins/Pareil/Plus */}
+      <Modal
+        visible={adaptiveModalVisible}
+        onClose={() => setAdaptiveModalVisible(false)}
+        variant="standard"
+      >
+        <Text style={styles.modalTitle}>Niveau pour cette session</Text>
+        <Text style={styles.modalBody}>
+          Tu peux moduler cette session sans changer ton niveau d'entrée.
+          Le changement vaut pour cette session uniquement. [copy à valider]
+        </Text>
+        <View style={{ marginVertical: space[4] }}>
+          <LevelSelector
+            value={adaptiveChoice}
+            onChange={async (next) => {
+              setAdaptiveChoice(next);
+              try {
+                await saveAdaptiveChoice({ pillarId, choice: next });
+              } catch {
+                /* erreur loggée côté context */
+              }
+            }}
+            context={pillarKey}
+          />
+        </View>
+        <Button
+          label="Valider"
+          onPress={() => setAdaptiveModalVisible(false)}
+          fullWidth
+          context={pillarKey}
+        />
+      </Modal>
     </SafeAreaView>
   );
+}
+
+/** Libellé court d'un niveau d'engagement pour affichage compact. */
+function labelOf(level: EngagementLevel): string {
+  if (level === 'essentiel') return 'Essentiel';
+  if (level === 'progression') return 'Progression';
+  return 'Immersion';
 }
 
 // ─── Sub-component 1 : Cohérence cardiaque (S1) ───────────────────────────────
@@ -537,4 +612,32 @@ const makeStyles = (palette: Palette) =>
       opacity: 0.85,
     },
     actions: { gap: space[3] },
+    adaptiveBtn: {
+      alignSelf: 'center',
+      paddingHorizontal: space[4],
+      paddingVertical: space[2],
+      borderRadius: 9999,
+      borderWidth: 1.5,
+      borderColor: palette.text,
+      backgroundColor: 'transparent',
+    },
+    adaptiveBtnText: {
+      fontFamily: getInterFamily('600'),
+      fontSize: 13,
+      color: palette.text,
+    },
+    modalTitle: {
+      fontFamily: getInterFamily('700'),
+      fontSize: 22,
+      lineHeight: 28,
+      color: '#1F1147',
+      marginBottom: space[2],
+    },
+    modalBody: {
+      fontFamily: getInterFamily('400'),
+      fontSize: 15,
+      lineHeight: 22,
+      color: '#1F1147',
+      opacity: 0.85,
+    },
   });
