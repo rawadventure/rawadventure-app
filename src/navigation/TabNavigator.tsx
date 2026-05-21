@@ -18,7 +18,7 @@ import React, { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { TabBar, type TabId } from '../components/compositions';
 import HomeStack from './HomeStack';
-import ToileTabScreen from '../screens/v1/ToileTabScreen';
+import ToileStack from './ToileStack';
 import ProfilTabScreen from '../screens/v1/ProfilTabScreen';
 import { useProgress } from '../hooks/ProgressContext';
 
@@ -39,7 +39,7 @@ export default function TabNavigator() {
     <View style={styles.container}>
       <View style={styles.content}>
         {active === 'home' && <HomeStack />}
-        {active === 'toile' && showToileTab && <ToileTabScreen />}
+        {active === 'toile' && showToileTab && <ToileStack />}
         {active === 'profil' && <ProfilTabScreen />}
       </View>
       <TabBar active={active} onChange={setActive} showToileTab={showToileTab} />
