@@ -43,6 +43,7 @@ import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
 import S01Screen from './S01Screen';
 import S02Screen from './S02Screen';
 import Phase1HomeScreen from './Phase1HomeScreen';
+import ConsolidationHomeScreen from './ConsolidationHomeScreen';
 import type { TierId } from '../../lib/streak';
 import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
@@ -89,6 +90,11 @@ export default function HomeScreenV1() {
     markNarrativeSeen,
     currentPillarId,
   } = useProgress();
+
+  // Branche post-S8 (mode consolidation libre, IA-23 + D13). Prime sur Phase 1.
+  if (currentPhase === 'post_s8') {
+    return <ConsolidationHomeScreen />;
+  }
 
   // Branche Phase 1 (pilier démarré). Sprint 9 : S1 uniquement.
   // À Sprint 10+ : router selon currentPillarId vers Phase1HomeScreen<S1..S8>.

@@ -236,7 +236,9 @@ export type NarrativeEventId =
   | 's0_1_screen'      // IA-20 S0.1
   | 's0_2_screen'      // IA-21 S0.2
   | 'phase0_to_s1_transition' // IA-45
-  | 's8_exit_screen';  // IA-22
+  | 's8_exit_screen'           // IA-22
+  | 'consolidation_intro_seen' // IA-23
+  | 'mentorat_proposal_seen';  // IA-60
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -269,6 +271,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [currentPillarId, setCurrentPillarId] = useState<string | null>(null);
   const [pillarStartedAt, setPillarStartedAt] = useState<string | null>(null);
 
+  // Post-S8 — déclenche bascule `currentPhase = 'post_s8'` (IA-23 consolidation).
+  // Vrai dès qu'une éval finale S8 existe dans pillar_evaluations.
+  const [s8FinalCompleted, setS8FinalCompleted] = useState(false);
+
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
     void loadData();
@@ -297,6 +303,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       streakRes,
       jokerRes,
       tierRes,
+      s8FinalRes,
     ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
       supabase.from('progress').select('*').eq('user_id', userId),
@@ -310,6 +317,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         .select('week_key, consumed_for_local_date')
         .eq('user_id', userId),
       supabase.from('tier_reaches').select('*').eq('user_id', userId),
+      supabase
+        .from('pillar_evaluations')
+        .select('pillar_id')
+        .eq('user_id', userId)
+        .eq('pillar_id', 'S8')
+        .eq('evaluation_type', 'final')
+        .limit(1),
     ]);
 
     if (profileRes.data) {
@@ -346,6 +360,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (streakRes.data) setStreakHistory(streakRes.data as StreakEntry[]);
     if (jokerRes.data) setJokerConsumptions(jokerRes.data as JokerConsumption[]);
     if (tierRes.data) setTierReaches(tierRes.data as TierReach[]);
+    setS8FinalCompleted(!!s8FinalRes.data && s8FinalRes.data.length > 0);
 
     // Narrative flags : local-only V1 même en mode connecté (pas de table
     // distante dédiée pour l'instant — Sprint 7+).
@@ -438,6 +453,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         if (error) {
           console.warn('[savePillarEvaluation] supabase upsert failed', error);
           throw error;
+        }
+        // Bascule post_s8 dès enregistrement éval finale S8 (IA-23).
+        if (args.pillarId === 'S8' && args.evaluationType === 'final') {
+          setS8FinalCompleted(true);
         }
       } else {
         // Mode anonyme : pas de support V1 pour les éval en local-only — l'utilisateur
@@ -686,12 +705,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   );
 
   const currentPhase: Phase = useMemo(() => {
+    // Post-S8 prime dès qu'une éval finale S8 a été enregistrée — bascule
+    // permanente vers mode consolidation libre (IA-23 + D13).
+    if (s8FinalCompleted) return 'post_s8';
     // Phase 0 = J1 à J14, plus l'état initial (currentDay = 0, accountCreatedAt
     // null ou futur). Au-delà de J14 on bascule en S0 puis Phase 1 — pour
     // l'instant tout > 14 est traité comme Phase 1 côté streak. La nuance S0
     // (jours 15-16) sera distinguée quand IA-20 / IA-21 seront codés.
     return currentDay <= 14 ? 'phase_0' : 'phase_1';
-  }, [currentDay]);
+  }, [currentDay, s8FinalCompleted]);
 
   const streak = useMemo(
     () => currentStreakFromHistory(streakHistory),
@@ -1078,6 +1100,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setNarrativeFlags({});
     setCurrentPillarId(null);
     setPillarStartedAt(null);
+    setS8FinalCompleted(false);
     if (user) {
       await AsyncStorage.multiRemove([
         LOCAL_KEYS.narrativeFlags,

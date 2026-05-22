@@ -28,6 +28,8 @@ import { Sparkle, TrendingUp, Minus, TrendingDown } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import { Toile, makeMockScores, type PillarScore } from '../../components/toile';
 import S8ExitScreen from './S8ExitScreen';
+import ConsolidationIntroScreen from './ConsolidationIntroScreen';
+import MentoratProposalModal from './MentoratProposalModal';
 import {
   brandColors,
   interTextStyle,
@@ -61,6 +63,8 @@ export default function PillarFinalRecapScreen() {
   const { user } = useAuth();
   const { startPillarWeek, streak, markNarrativeSeen, narrativeFlags } = useProgress();
   const [showS8Exit, setShowS8Exit] = useState(false);
+  const [showConsolidationIntro, setShowConsolidationIntro] = useState(false);
+  const [showMentoratProposal, setShowMentoratProposal] = useState(false);
   const [loading, setLoading] = useState(true);
   const [initial, setInitial] = useState<EvalRow | null>(null);
   const [final, setFinal] = useState<EvalRow | null>(null);
@@ -245,6 +249,38 @@ export default function PillarFinalRecapScreen() {
         streak={streak}
         onContinue={() => {
           setShowS8Exit(false);
+          if (!narrativeFlags.consolidation_intro_seen) {
+            void markNarrativeSeen('consolidation_intro_seen');
+          }
+          setShowConsolidationIntro(true);
+        }}
+      />
+
+      <ConsolidationIntroScreen
+        visible={showConsolidationIntro}
+        onContinue={() => {
+          setShowConsolidationIntro(false);
+          if (!narrativeFlags.mentorat_proposal_seen) {
+            void markNarrativeSeen('mentorat_proposal_seen');
+            setShowMentoratProposal(true);
+          } else {
+            navigation.popToTop();
+          }
+        }}
+      />
+
+      <MentoratProposalModal
+        visible={showMentoratProposal}
+        onDiscover={() => {
+          setShowMentoratProposal(false);
+          Alert.alert(
+            'Mentorat',
+            "L'espace mentorat sera ouvert dans une prochaine version. En attendant, contacte Mimi & Jacky par les canaux habituels. [copy à valider]",
+            [{ text: 'OK', onPress: () => navigation.popToTop() }],
+          );
+        }}
+        onLater={() => {
+          setShowMentoratProposal(false);
           navigation.popToTop();
         }}
       />
