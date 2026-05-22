@@ -1124,6 +1124,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         supabase.from('streak_history').delete().eq('user_id', user.id),
         supabase.from('joker_consumptions').delete().eq('user_id', user.id),
         supabase.from('tier_reaches').delete().eq('user_id', user.id),
+        supabase.from('pillar_evaluations').delete().eq('user_id', user.id),
+        supabase.from('pillar_sessions').delete().eq('user_id', user.id),
+        supabase.from('level_adaptive_choices').delete().eq('user_id', user.id),
       ]);
     } else {
       await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
