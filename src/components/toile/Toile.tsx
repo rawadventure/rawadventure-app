@@ -23,9 +23,18 @@
  *  - 'comparison' : pour IA-22 sortie de S8 (deux instances côte à côte)
  */
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Pressable, StyleSheet, Text, View, ViewStyle, StyleProp } from 'react-native';
-import Svg, { Path, Text as SvgText } from 'react-native-svg';
+import Svg, { G, Path, Text as SvgText } from 'react-native-svg';
+import Animated, {
+  Easing,
+  useAnimatedProps,
+  useSharedValue,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated';
+
+const AnimatedG = Animated.createAnimatedComponent(G);
 import { brandColors } from '../../theme';
 import { getInterFamily } from '../../theme';
 import {
@@ -59,9 +68,10 @@ export type ToileProps = {
   /** Callback de tap sur une part. Si fourni, chaque part est rendue cliquable. */
   onPillarPress?: (id: PillarSlot) => void;
   /**
-   * Réservé V2 : animation de déploiement au mount (séquence centre → 8 branches
-   * → labels → anneaux, total 2-2.5s, §6.4). En V1.1 : no-op, rendu statique.
-   * L'API est exposée pour permettre l'animation sans refactor des consommateurs.
+   * Sprint 23 : animation de déploiement au mount (séquence centre → branches
+   * → anneaux → points → labels, total ~1.8s, §6.4). Implémentée via
+   * Reanimated 4 + AnimatedG opacity. Sans cette prop, rendu statique full
+   * opacity (préservation comportement existant pour IA-25 / IA-26 / IA-47).
    */
   animateOnMount?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -99,10 +109,40 @@ export function Toile({
   focusedPillar,
   showLabels,
   onPillarPress,
+  animateOnMount,
   style,
   testID,
 }: ToileProps) {
   const resolvedSize = size ?? VARIANT_DEFAULT_SIZE[variant];
+
+  // Animation séquencée centre → branches → anneaux → points → labels (§6.4).
+  // Valeurs initiales : 0 si animation, 1 sinon (rendu statique).
+  const initial = animateOnMount ? 0 : 1;
+  const opBranches = useSharedValue(initial);
+  const opRings = useSharedValue(initial);
+  const opCentre = useSharedValue(initial);
+  const opPoints = useSharedValue(initial);
+  const opLabels = useSharedValue(initial);
+
+  useEffect(() => {
+    if (!animateOnMount) return;
+    const EASE = Easing.bezier(0.2, 0.7, 0.3, 1.0);
+    const TIMING = { duration: 900, easing: EASE } as const;
+    // Séquence : branches d'abord (camembert pose le décor), puis anneaux
+    // référence, puis polygone centre, puis points, enfin labels. Total
+    // ≈ 3.2s pour permettre à l'œil de suivre le déploiement.
+    opBranches.value = withDelay(0, withTiming(1, TIMING));
+    opRings.value = withDelay(500, withTiming(1, TIMING));
+    opCentre.value = withDelay(1100, withTiming(1, TIMING));
+    opPoints.value = withDelay(1700, withTiming(1, TIMING));
+    opLabels.value = withDelay(2300, withTiming(1, TIMING));
+  }, [animateOnMount, opCentre, opBranches, opRings, opPoints, opLabels]);
+
+  const branchesProps = useAnimatedProps(() => ({ opacity: opBranches.value }));
+  const ringsProps = useAnimatedProps(() => ({ opacity: opRings.value }));
+  const centreProps = useAnimatedProps(() => ({ opacity: opCentre.value }));
+  const pointsProps = useAnimatedProps(() => ({ opacity: opPoints.value }));
+  const labelsProps = useAnimatedProps(() => ({ opacity: opLabels.value }));
 
   // Labels affichés autour : on étend le viewBox pour leur faire de la place.
   const shouldShowLabels = showLabels ?? (variant === 'full' || variant === 'detail');
@@ -143,43 +183,54 @@ export function Toile({
             Variant 'mini' (96px) : camembert + zones saturées uniquement. Les anneaux,
             polygone radar et points de données sont supprimés car illisibles à cette
             taille — la vue compacte sert juste à signaler "où tu en es" globalement. */}
-        <CamembertLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
-        <SaturatedZonesLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
+        <AnimatedG animatedProps={branchesProps}>
+          <CamembertLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
+          <SaturatedZonesLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
+        </AnimatedG>
         {variant !== 'mini' && (
           <>
-            <ReferenceRingsLayer cx={cx} cy={cy} radius={radius} />
-            <RadarPolygonLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
-            <DataPointsLayer
-              cx={cx}
-              cy={cy}
-              radius={radius}
-              scores={orderedScores}
-              focusedPillar={focusedPillar}
-            />
+            <AnimatedG animatedProps={ringsProps}>
+              <ReferenceRingsLayer cx={cx} cy={cy} radius={radius} />
+            </AnimatedG>
+            <AnimatedG animatedProps={centreProps}>
+              <RadarPolygonLayer cx={cx} cy={cy} radius={radius} scores={orderedScores} />
+            </AnimatedG>
+            <AnimatedG animatedProps={pointsProps}>
+              <DataPointsLayer
+                cx={cx}
+                cy={cy}
+                radius={radius}
+                scores={orderedScores}
+                focusedPillar={focusedPillar}
+              />
+            </AnimatedG>
           </>
         )}
 
         {/* Labels textuels autour (variant full / detail uniquement).
             Intitulés courts §6.5 — 1 ligne, rendu via <SvgText>. */}
-        {shouldShowLabels &&
-          PILLAR_ORDER.map((pid) => {
-            const angle = PILLAR_CENTER_ANGLE[pid];
-            const p = polarToCartesian(cx, cy, labelRadius, angle);
-            return (
-              <SvgText
-                key={`label-${pid}`}
-                x={p.x}
-                y={p.y}
-                fontSize={10}
-                fontFamily={getInterFamily('600')}
-                fill={brandColors.deep}
-                textAnchor="middle"
-                alignmentBaseline="middle"
-              >
-                {PILLAR_LABEL[pid]}
-              </SvgText>
-            );
-          })}
+        {shouldShowLabels && (
+          <AnimatedG animatedProps={labelsProps}>
+            {PILLAR_ORDER.map((pid) => {
+              const angle = PILLAR_CENTER_ANGLE[pid];
+              const p = polarToCartesian(cx, cy, labelRadius, angle);
+              return (
+                <SvgText
+                  key={`label-${pid}`}
+                  x={p.x}
+                  y={p.y}
+                  fontSize={10}
+                  fontFamily={getInterFamily('600')}
+                  fill={brandColors.deep}
+                  textAnchor="middle"
+                  alignmentBaseline="middle"
+                >
+                  {PILLAR_LABEL[pid]}
+                </SvgText>
+              );
+            })}
+          </AnimatedG>
+        )}
       </Svg>
 
       {/* Overlay tactile : zones invisibles par-dessus chaque part */}
