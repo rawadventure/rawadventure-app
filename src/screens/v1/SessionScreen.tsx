@@ -74,6 +74,8 @@ export default function SessionScreen() {
     saveAdaptiveChoice,
     validateDay,
     streakHistory,
+    pendingTierReach,
+    clearPendingTier,
   } = useProgress();
   const pillarId = currentPillarId ?? 'S1';
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
@@ -165,9 +167,17 @@ export default function SessionScreen() {
         newStreak = res.newStreak;
       }
 
-      // Cascade post-validation : palier prioritaire, sinon Alert simple.
+      // Cascade post-validation : palier prioritaire, sinon palier différé
+      // en attente (D30), sinon Alert simple.
       if (tierReached && newStreak != null) {
         setTierModal({ tierId: tierReached, isFirstReach: tierIsFirstReach, streakValue: newStreak });
+      } else if (pendingTierReach) {
+        setTierModal({
+          tierId: pendingTierReach.tierId,
+          isFirstReach: pendingTierReach.isFirstReach,
+          streakValue: pendingTierReach.streakValue,
+        });
+        await clearPendingTier();
       } else {
         Alert.alert(
           'Session validée',

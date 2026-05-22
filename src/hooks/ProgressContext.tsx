@@ -145,7 +145,22 @@ interface ProgressContextType {
     profileDynamicId?: string,
   ) => Promise<void>;
   resetAll: () => Promise<void>;
+  /** D30 — palier différé en attente d'affichage (collision narrative S0.1 etc.).
+   *  `null` si aucun palier en attente. Sera ouvert à la prochaine validation
+   *  sans collision narrative. */
+  pendingTierReach: PendingTierReach | null;
+  /** D30 — pose un palier différé (caller détecte collision narrative). */
+  setPendingTier: (pending: PendingTierReach) => Promise<void>;
+  /** D30 — vide le palier différé après affichage. */
+  clearPendingTier: () => Promise<void>;
 }
+
+export type PendingTierReach = {
+  tierId: TierId;
+  isFirstReach: boolean;
+  streakValue: number;
+  deferredAt: string; // ISO timestamp
+};
 
 export type ValidateDayArgs = {
   /** Jour du parcours 1-based (correspondant à `progress.day_id` en Phase 0). */
@@ -217,6 +232,7 @@ const LOCAL_KEYS = {
   narrativeFlags: 'narrative_flags',
   currentPillarId: 'current_pillar_id',
   pillarStartedAt: 'pillar_started_at',
+  pendingTierReach: 'pending_tier_reach',
 };
 
 /**
@@ -274,6 +290,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Post-S8 — déclenche bascule `currentPhase = 'post_s8'` (IA-23 consolidation).
   // Vrai dès qu'une éval finale S8 existe dans pillar_evaluations.
   const [s8FinalCompleted, setS8FinalCompleted] = useState(false);
+
+  // D30 — palier différé suite à collision narrative (typique : palier 15j
+  // tombe le même jour que S0.1 → S0.1 prime, palier différé d'un cran).
+  const [pendingTierReach, setPendingTierReachState] = useState<PendingTierReach | null>(null);
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -375,6 +395,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     ]);
     if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
     if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
+
+    const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
+    if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
   };
 
   const loadFromAsyncStorage = async () => {
@@ -416,7 +439,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     ]);
     if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
     if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
+
+    const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
+    if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
   };
+
+  const setPendingTier = useCallback(async (pending: PendingTierReach) => {
+    setPendingTierReachState(pending);
+    await AsyncStorage.setItem(LOCAL_KEYS.pendingTierReach, JSON.stringify(pending));
+  }, []);
+
+  const clearPendingTier = useCallback(async () => {
+    setPendingTierReachState(null);
+    await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
+  }, []);
 
   const markNarrativeSeen = useCallback(
     async (id: NarrativeEventId) => {
@@ -1101,6 +1137,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setCurrentPillarId(null);
     setPillarStartedAt(null);
     setS8FinalCompleted(false);
+    setPendingTierReachState(null);
+    await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
     if (user) {
       await AsyncStorage.multiRemove([
         LOCAL_KEYS.narrativeFlags,
@@ -1168,6 +1206,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         dayInPillarWeek,
         completeOnboarding,
         resetAll,
+        pendingTierReach,
+        setPendingTier,
+        clearPendingTier,
       }}
     >
       {children}

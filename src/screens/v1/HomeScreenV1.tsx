@@ -89,6 +89,9 @@ export default function HomeScreenV1() {
     narrativeFlags,
     markNarrativeSeen,
     currentPillarId,
+    pendingTierReach,
+    setPendingTier,
+    clearPendingTier,
   } = useProgress();
 
   // Branche post-S8 (mode consolidation libre, IA-23 + D13). Prime sur Phase 1.
@@ -203,11 +206,31 @@ export default function HomeScreenV1() {
       setChecks(EMPTY_CHECKS);
 
       // Cascade narrative post-validation. Priorité tier > IA-14 charnière >
-      // joker alert. Un seul écran/modal à la fois ; les autres sont juste
-      // skip (le tier 7/15j coïncide avec IA-14 J7/J14 — le tier l'emporte
-      // car c'est l'événement le plus structurant).
+      // joker alert. Un seul écran/modal à la fois.
+      //
+      // D30 — coordination palier 15j vs S0.1 : si le palier 15j tombe le même
+      // jour que le déclenchement S0.1 (currentDay 15), S0.1 prime, palier
+      // différé via setPendingTier → ouvert à la prochaine validation sans
+      // collision. Logique généralisable aux autres collisions narratives
+      // structurantes (S0.2 currentDay 16).
       const charniere = CHARNIERE_BY_STREAK[result.newStreak];
-      if (result.tierReached) {
+      // Détection collision : si on est sur J15 ou J16 (jours S0.1/S0.2),
+      // tout palier détecté à cette validation est différé. Le flag narratif
+      // est posé AU TRIGGER du S0.x (avant validation), donc on ne peut pas
+      // s'en servir pour détecter la collision — on se base sur currentDay seul.
+      const narrativeCollision =
+        result.tierReached != null && (currentDay === 15 || currentDay === 16);
+
+      if (result.tierReached && narrativeCollision) {
+        // Différer le palier — narratif structurant prime.
+        await setPendingTier({
+          tierId: result.tierReached,
+          isFirstReach: result.tierIsFirstReach,
+          streakValue: result.newStreak,
+          deferredAt: new Date().toISOString(),
+        });
+        // Ne pas ouvrir TierReachedModal — S0.1/S0.2 va se déclencher via useEffect.
+      } else if (result.tierReached) {
         setTierModal({
           tierId: result.tierReached,
           isFirstReach: result.tierIsFirstReach,
@@ -216,6 +239,15 @@ export default function HomeScreenV1() {
       } else if (charniere && !narrativeFlags[charniere.flag]) {
         setCharniereDay(charniere.day);
         await markNarrativeSeen(charniere.flag);
+      } else if (pendingTierReach) {
+        // Pas de palier neuf, pas de collision en cours, palier différé en
+        // attente → l'ouvrir maintenant (D30 — différé d'un cran).
+        setTierModal({
+          tierId: pendingTierReach.tierId,
+          isFirstReach: pendingTierReach.isFirstReach,
+          streakValue: pendingTierReach.streakValue,
+        });
+        await clearPendingTier();
       } else if (result.jokerUsed) {
         Alert.alert(
           'Joker consommé',
@@ -231,7 +263,18 @@ export default function HomeScreenV1() {
 
   // Marqueur dynamique pour le header — placeholder Sprint 5, à enrichir
   // copy V1 quand le brief contenu sera produit.
-  const dayLabel = currentDay > 0 ? `Jour ${currentDay} sur 14` : 'Jour 0';
+  // Label adapté selon phase : Phase 0 (J1-J14), S0.1 (J15), S0.2 (J16),
+  // au-delà = libellé générique (cas atypique : pas de pilier démarré).
+  const dayLabel =
+    currentDay <= 0
+      ? 'Jour 0'
+      : currentDay <= 14
+        ? `Jour ${currentDay} sur 14`
+        : currentDay === 15
+          ? 'S0.1 · Transition'
+          : currentDay === 16
+            ? 'S0.2 · Roadmap'
+            : 'En attente de pilier';
   const messageDuJour = alreadyValidatedToday
     ? 'Journée validée. Tu peux te reposer ou explorer les détails des actions.'
     : 'Coche les actions que tu as pratiquées aujourd\'hui. Cinq sur sept suffisent pour valider ta journée. [copy à valider]';
