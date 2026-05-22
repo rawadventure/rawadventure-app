@@ -28,7 +28,7 @@ import { daysBetween, weekKeyOf } from './calendar';
 
 // ─── Types métier ─────────────────────────────────────────────────────────────
 
-export type Phase = 'phase_0' | 'phase_1';
+export type Phase = 'phase_0' | 'phase_1' | 'post_s8';
 
 export type ValidationStatus =
   | 'valid_above_threshold'  // Phase 0 ≥ 5/7 ou Phase 1 ≥ 1/3
