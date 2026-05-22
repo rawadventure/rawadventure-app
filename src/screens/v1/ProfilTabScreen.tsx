@@ -14,13 +14,19 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PillarHeader, StreakBubble } from '../../components/compositions';
 import { Button, Card } from '../../components/primitives';
 import { brandColors, interTextStyle, neutralColors, space } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
+import type { ProfilStackParamList } from '../../navigation/ProfilStack';
+
+type Nav = NativeStackNavigationProp<ProfilStackParamList>;
 
 export default function ProfilTabScreen() {
+  const navigation = useNavigation<Nav>();
   const { user, signOut } = useAuth();
   const {
     currentDay,
@@ -66,6 +72,13 @@ export default function ProfilTabScreen() {
             <View style={{ alignItems: 'flex-start', marginTop: space[2] }}>
               <StreakBubble days={streak} />
             </View>
+            <Button
+              label="Voir mes paliers"
+              variant="secondary"
+              onPress={() => navigation.navigate('PaliersGallery')}
+              fullWidth
+              style={{ marginTop: space[3] }}
+            />
           </Card>
 
           <View style={styles.actions}>

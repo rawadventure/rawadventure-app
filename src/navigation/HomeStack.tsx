@@ -20,6 +20,7 @@ import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
 import PillarFinalRecapScreen from '../screens/v1/PillarFinalRecapScreen';
 import PillarOverviewScreen from '../screens/v1/PillarOverviewScreen';
 import SessionScreen from '../screens/v1/SessionScreen';
+import PaliersGalleryScreen from '../screens/v1/PaliersGalleryScreen';
 import type { Phase0ActionId } from '../data/phase0-actions';
 
 export type Phase0StackParamList = {
@@ -30,6 +31,7 @@ export type Phase0StackParamList = {
   PillarFinalRecap: { pillarId: string };
   PillarOverview: undefined;
   Session: { sessionIndex: 1 | 2 | 3 };
+  PaliersGallery: undefined;
 };
 
 const Stack = createNativeStackNavigator<Phase0StackParamList>();
@@ -44,6 +46,7 @@ export default function HomeStack() {
       <Stack.Screen name="PillarFinalRecap" component={PillarFinalRecapScreen} />
       <Stack.Screen name="PillarOverview" component={PillarOverviewScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
+      <Stack.Screen name="PaliersGallery" component={PaliersGalleryScreen} />
     </Stack.Navigator>
   );
 }

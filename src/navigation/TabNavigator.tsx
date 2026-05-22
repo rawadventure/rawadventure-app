@@ -19,7 +19,7 @@ import { StyleSheet, View } from 'react-native';
 import { TabBar, type TabId } from '../components/compositions';
 import HomeStack from './HomeStack';
 import ToileStack from './ToileStack';
-import ProfilTabScreen from '../screens/v1/ProfilTabScreen';
+import ProfilStack from './ProfilStack';
 import { useProgress } from '../hooks/ProgressContext';
 
 export default function TabNavigator() {
@@ -40,7 +40,7 @@ export default function TabNavigator() {
       <View style={styles.content}>
         {active === 'home' && <HomeStack />}
         {active === 'toile' && showToileTab && <ToileStack />}
-        {active === 'profil' && <ProfilTabScreen />}
+        {active === 'profil' && <ProfilStack />}
       </View>
       <TabBar active={active} onChange={setActive} showToileTab={showToileTab} />
     </View>
