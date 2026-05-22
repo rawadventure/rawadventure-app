@@ -368,6 +368,14 @@ export default function HomeScreenV1() {
         isFirstReach={tierModal?.isFirstReach ?? false}
         streakValue={tierModal?.streakValue ?? 0}
         onClose={() => setTierModal(null)}
+        onViewGallery={
+          tierModal?.isFirstReach
+            ? () => {
+                setTierModal(null);
+                navigation.navigate('PaliersGallery');
+              }
+            : undefined
+        }
       />
 
       <JourCharniereScreen
