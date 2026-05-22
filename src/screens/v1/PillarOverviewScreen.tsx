@@ -27,8 +27,8 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
+import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
 import { ChevronLeft, Circle, CheckCircle2 } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import { LogoRawAdventure } from '../../components/illustrations';
@@ -49,6 +49,7 @@ import { getPillarMeta } from '../../data/pillar-registry';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
+type Route = NativeStackScreenProps<Phase0StackParamList, 'PillarOverview'>['route'];
 type Palette = { bg: string; text: string; headerBg: string };
 type EngagementLevel = 'essentiel' | 'progression' | 'immersion';
 
@@ -60,12 +61,18 @@ const ENGAGEMENT_LABEL: Record<EngagementLevel, string> = {
 
 export default function PillarOverviewScreen() {
   const navigation = useNavigation<Nav>();
+  const route = useRoute<Route>();
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek } = useProgress();
+  const { currentPillarId, dayInPillarWeek, currentPhase } = useProgress();
 
-  const pillarId = currentPillarId ?? 'S1';
+  // Sprint 22 : pillarId optionnel via route.params (mode libre post-S8).
+  // Sinon, fallback sur currentPillarId du context (flow Phase 1 normal).
+  const paramPillarId = route.params?.pillarId;
+  const pillarId = paramPillarId ?? currentPillarId ?? 'S1';
+  const isLibreMode = paramPillarId != null && currentPhase === 'post_s8';
+
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
-  const currentDay = dayInPillarWeek > 0 ? Math.min(dayInPillarWeek, 7) : 1;
+  const currentDay = isLibreMode ? 1 : (dayInPillarWeek > 0 ? Math.min(dayInPillarWeek, 7) : 1);
   const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
   const palette = pillarColors[pillarKey] ?? pillarColors.s1;
   const styles = useMemo(() => makeStyles(palette), [palette]);
@@ -220,6 +227,18 @@ export default function PillarOverviewScreen() {
         </ScrollView>
       </SafeAreaView>
       <View style={styles.footer}>
+        {isLibreMode && (
+          <Button
+            label="Lancer une session"
+            onPress={() =>
+              navigation.navigate('Session', { sessionIndex: 1, pillarId })
+            }
+            fullWidth
+            size="large"
+            context={pillarKey}
+            style={{ marginBottom: space[2] }}
+          />
+        )}
         <Button
           label="Retour à l'accueil"
           variant="secondary"

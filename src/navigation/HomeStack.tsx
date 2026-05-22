@@ -29,8 +29,8 @@ export type Phase0StackParamList = {
   PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarFinalRecap: { pillarId: string };
-  PillarOverview: undefined;
-  Session: { sessionIndex: 1 | 2 | 3 };
+  PillarOverview: { pillarId?: string } | undefined;
+  Session: { sessionIndex: 1 | 2 | 3; pillarId?: string };
   PaliersGallery: undefined;
 };
 
