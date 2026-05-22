@@ -76,10 +76,16 @@ export default function SessionScreen() {
     streakHistory,
     pendingTierReach,
     clearPendingTier,
+    currentPhase,
   } = useProgress();
-  const pillarId = currentPillarId ?? 'S1';
+  // Sprint 22 : pillarId optionnel via route.params (mode libre post-S8).
+  // Sinon, fallback sur currentPillarId du context.
+  const paramPillarId = route.params.pillarId;
+  const pillarId = paramPillarId ?? currentPillarId ?? 'S1';
+  const isLibreMode = paramPillarId != null && currentPhase === 'post_s8';
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
-  const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
+  // Mode libre : pas de notion "jour N" — toujours J1 pour le tracking.
+  const dayId = isLibreMode ? 1 : (dayInPillarWeek > 0 ? dayInPillarWeek : 1);
   const day = meta.program.find((d) => d.id === dayId);
   const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
   const palette = pillarColors[pillarKey] ?? pillarColors.s1;
@@ -158,7 +164,7 @@ export default function SessionScreen() {
       let newStreak: number | null = null;
       if (!alreadyValidatedToday) {
         const res = await validateDay({
-          phase: 'phase_1',
+          phase: isLibreMode ? 'post_s8' : 'phase_1',
           actionsCount: 1,
           userValidatedManually: true,
         });

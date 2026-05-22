@@ -19,11 +19,16 @@
 import React from 'react';
 import { Alert, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Heart } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import { PillarHeader } from '../../components/compositions';
 import { useProgress } from '../../hooks/ProgressContext';
 import { getPillarMeta } from '../../data/pillar-registry';
+import type { Phase0StackParamList } from '../../navigation/HomeStack';
+
+type Nav = NativeStackNavigationProp<Phase0StackParamList>;
 import {
   brandColors,
   interTextStyle,
@@ -35,14 +40,13 @@ import {
 const PILLAR_IDS = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'] as const;
 
 export default function ConsolidationHomeScreen() {
+  const navigation = useNavigation<Nav>();
   const { streak } = useProgress();
 
-  const openPillarHint = (pillarId: string, name: string) => {
-    Alert.alert(
-      `Pilier ${pillarId} — ${name}`,
-      "Accède à la fiche complète et au diagnostic via l'onglet Toile. Une refonte session libre arrive bientôt. [copy à valider]",
-      [{ text: 'OK' }],
-    );
+  const openPillar = (pillarId: string) => {
+    // Sprint 22 : ouvre PillarOverview en mode libre (pillarId paramétré).
+    // Depuis là, l'utilisateur peut lancer une session ou revenir.
+    navigation.navigate('PillarOverview', { pillarId });
   };
 
   const openMentoratHint = () => {
@@ -71,7 +75,7 @@ export default function ConsolidationHomeScreen() {
           <View style={styles.pillarsCard}>
             <Text style={styles.cardTitle}>Tes 8 piliers</Text>
             <Text style={styles.cardHint}>
-              La Toile (onglet dédié) donne accès à chaque fiche détaillée.
+              Tap un pilier pour voir sa fiche et lancer une session libre.
             </Text>
             <View style={styles.grid}>
               {PILLAR_IDS.map((pid) => {
@@ -81,7 +85,7 @@ export default function ConsolidationHomeScreen() {
                 return (
                   <Pressable
                     key={pid}
-                    onPress={() => openPillarHint(pid, meta?.name ?? '—')}
+                    onPress={() => openPillar(pid)}
                     style={({ pressed }) => [
                       styles.tile,
                       { backgroundColor: palette.bg, borderColor: palette.headerBg },
