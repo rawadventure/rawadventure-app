@@ -32,6 +32,8 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Button, Modal, LevelSelector } from '../../components/primitives';
+import { TierReachedModal } from '../../components/compositions';
+import type { TierId } from '../../lib/streak';
 import {
   interTextStyle,
   layout,
@@ -65,7 +67,14 @@ export default function SessionScreen() {
   const sessionIndex = route.params.sessionIndex as SessionIndex;
 
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, savePillarSession, saveAdaptiveChoice } = useProgress();
+  const {
+    currentPillarId,
+    dayInPillarWeek,
+    savePillarSession,
+    saveAdaptiveChoice,
+    validateDay,
+    streakHistory,
+  } = useProgress();
   const pillarId = currentPillarId ?? 'S1';
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
   const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
@@ -81,6 +90,9 @@ export default function SessionScreen() {
   // d'entrée. Réinitialisé au mount de la session (un nouveau choix par session).
   const [adaptiveChoice, setAdaptiveChoice] = useState<'less' | 'same' | 'more'>('same');
   const [adaptiveModalVisible, setAdaptiveModalVisible] = useState(false);
+  const [tierModal, setTierModal] = useState<
+    { tierId: TierId; isFirstReach: boolean; streakValue: number } | null
+  >(null);
 
   /** Applique la modulation adaptive sur le niveau d'entrée. Moins/Plus
    *  glisse d'un cran (plafonné aux bornes Essentiel/Immersion). */
@@ -126,18 +138,43 @@ export default function SessionScreen() {
     if (saving) return;
     setSaving(true);
     try {
+      const today = todayLocalDate();
       await savePillarSession({
         pillarId,
         dayInWeek: dayId,
         sessionIndex,
-        localDate: todayLocalDate(),
+        localDate: today,
         durationSeconds: durationSec,
       });
-      Alert.alert(
-        'Session validée',
-        'Bien joué. Ton corps a reçu un signal de plus. [copy à valider]',
-        [{ text: 'OK', onPress: () => navigation.popToTop() }],
-      );
+
+      // Phase 1 streak validation (D6 : seuil 1 session/3 minimum).
+      // Une seule validation par jour — gate par streakHistory pour éviter
+      // double-incrément (D27 — pas de modif rétro d'un jour validé).
+      const alreadyValidatedToday = streakHistory.some((e) => e.local_date === today);
+      let tierReached: TierId | null = null;
+      let tierIsFirstReach = false;
+      let newStreak: number | null = null;
+      if (!alreadyValidatedToday) {
+        const res = await validateDay({
+          phase: 'phase_1',
+          actionsCount: 1,
+          userValidatedManually: true,
+        });
+        tierReached = res.tierReached;
+        tierIsFirstReach = res.tierIsFirstReach;
+        newStreak = res.newStreak;
+      }
+
+      // Cascade post-validation : palier prioritaire, sinon Alert simple.
+      if (tierReached && newStreak != null) {
+        setTierModal({ tierId: tierReached, isFirstReach: tierIsFirstReach, streakValue: newStreak });
+      } else {
+        Alert.alert(
+          'Session validée',
+          'Bien joué. Ton corps a reçu un signal de plus. [copy à valider]',
+          [{ text: 'OK', onPress: () => navigation.popToTop() }],
+        );
+      }
     } catch (e: any) {
       Alert.alert('Erreur', e?.message ?? "Impossible d'enregistrer la session.");
     } finally {
@@ -261,6 +298,25 @@ export default function SessionScreen() {
           context={pillarKey}
         />
       </Modal>
+
+      <TierReachedModal
+        visible={tierModal != null}
+        tierId={tierModal?.tierId ?? null}
+        isFirstReach={tierModal?.isFirstReach ?? false}
+        streakValue={tierModal?.streakValue ?? 0}
+        onClose={() => {
+          setTierModal(null);
+          navigation.popToTop();
+        }}
+        onViewGallery={
+          tierModal?.isFirstReach
+            ? () => {
+                setTierModal(null);
+                navigation.navigate('PaliersGallery');
+              }
+            : undefined
+        }
+      />
     </SafeAreaView>
   );
 }
@@ -304,7 +360,8 @@ function CoherenceCardiaqueSession({
       setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(id);
-          onComplete(totalSeconds);
+          // Différer onComplete pour éviter setState pendant render parent.
+          setTimeout(() => onComplete(totalSeconds), 0);
           return 0;
         }
         return s - 1;
@@ -418,7 +475,8 @@ function ChronoLibreSession({
       setSecondsLeft((s) => {
         if (s <= 1) {
           clearInterval(id);
-          onComplete(totalSeconds);
+          // Différer onComplete pour éviter setState pendant render parent.
+          setTimeout(() => onComplete(totalSeconds), 0);
           return 0;
         }
         return s - 1;
