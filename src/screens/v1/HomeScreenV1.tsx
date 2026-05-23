@@ -42,6 +42,7 @@ import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
 import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
 import S01Screen from './S01Screen';
 import S02Screen from './S02Screen';
+import WelcomeVideoScreen from './WelcomeVideoScreen';
 import Phase1HomeScreen from './Phase1HomeScreen';
 import ConsolidationHomeScreen from './ConsolidationHomeScreen';
 import type { TierId } from '../../lib/streak';
@@ -116,6 +117,7 @@ export default function HomeScreenV1() {
   const [charniereDay, setCharniereDay] = useState<CharniereDay | null>(null);
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
+  const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
 
   // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
   const alreadyValidatedToday = useMemo(
@@ -138,14 +140,21 @@ export default function HomeScreenV1() {
   // Marquage au déclenchement (§2.3) — si user ferme app pendant, ne se
   // rejoue pas. Reste accessible via IA-25 / IA-21 plus tard (Sprint 8+).
   useEffect(() => {
-    if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
+    // IA-12 vidéo bienvenue — premier lancement Accueil post-onboarding,
+    // peu importe currentDay (IA V3 §IA-12 : "tout premier lancement après
+    // onboarding"). Pas trigger en phase_1/post_s8 (early return en amont
+    // empêche le render de HomeScreenV1).
+    if (!narrativeFlags.welcome_video && !showWelcomeVideo) {
+      setShowWelcomeVideo(true);
+      void markNarrativeSeen('welcome_video');
+    } else if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
       setShowS01(true);
       void markNarrativeSeen('s0_1_screen');
     } else if (currentDay === 16 && !narrativeFlags.s0_2_screen && !showS02) {
       setShowS02(true);
       void markNarrativeSeen('s0_2_screen');
     }
-  }, [currentDay, narrativeFlags, markNarrativeSeen, showS01, showS02]);
+  }, [currentDay, narrativeFlags, markNarrativeSeen, showS01, showS02, showWelcomeVideo]);
 
   // Charge l'état du jour depuis AsyncStorage au mount.
   useEffect(() => {
@@ -426,6 +435,11 @@ export default function HomeScreenV1() {
         day={charniereDay}
         streak={streak}
         onClose={() => setCharniereDay(null)}
+      />
+
+      <WelcomeVideoScreen
+        visible={showWelcomeVideo}
+        onContinue={() => setShowWelcomeVideo(false)}
       />
 
       <S01Screen
