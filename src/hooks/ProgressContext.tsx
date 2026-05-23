@@ -16,12 +16,11 @@
  *   - méthode `validateDay()` qui orchestre `progress` + `streak_history` +
  *     `joker_consumptions` + `tier_reaches` selon §2.5
  *
- * API legacy V0 conservée pour compatibilité avec les écrans HomeScreen /
- * ChecklistScreen / DayScreen / ProtocolScreen / ConversionScreen non encore
- * migrés (refonte écrans = Sprint 4+) : `completeDay`, `isDayCompleted`,
- * `isDayUnlocked`, `completedDays`, `minimumDays`, `streak`, `resetAll`. La
- * sémantique de `streak` reste le compte des jours validés mais passe désormais
- * par le calcul streak_history (et donc gère joker / cassure).
+ * Sprint 24 — Cleanup legacy V0 : retrait de l'API `completeDay`,
+ * `isDayCompleted`, `isDayUnlocked`, `completedDays`, `minimumDays` —
+ * plus aucun consommateur depuis Sprint 14 (écrans V0 supprimés). La
+ * persistance Phase 0 dans la table Supabase `progress` reste assurée
+ * par validateDay() pour traçabilité serveur.
  */
 
 import React, {
@@ -95,13 +94,6 @@ interface ProgressContextType {
   jokerAvailable: boolean;
   streakHistory: StreakEntry[];
   tierReaches: TierReach[];
-
-  // ── API legacy V0 (compat écrans non migrés)
-  completedDays: number[];
-  minimumDays: number[];
-  isDayCompleted: (day: number) => boolean;
-  isDayUnlocked: (day: number) => boolean;
-  completeDay: (day: number, isMinimum?: boolean) => Promise<void>;
 
   // ── API V1 (Sprint 3+)
   validateDay: (args: ValidateDayArgs) => Promise<ValidateDayResult>;
@@ -224,8 +216,6 @@ const LOCAL_KEYS = {
   onboardingData: 'onboarding_data',
   profileDynamicId: 'profile_dynamic_id',
   accountCreatedAt: 'account_created_at',
-  completedDays: 'completed_days',
-  minimumDays: 'minimum_days',
   streakHistory: 'streak_history',
   jokerConsumptions: 'joker_consumptions',
   tierReaches: 'tier_reaches',
@@ -275,8 +265,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [tierReaches, setTierReaches] = useState<TierReach[]>([]);
 
   // API legacy V0
-  const [completedDays, setCompletedDays] = useState<number[]>([]);
-  const [minimumDays, setMinimumDays] = useState<number[]>([]);
 
   // Flags écrans narratifs déjà vus (§2.3) — local-only V1.
   const [narrativeFlags, setNarrativeFlags] = useState<
@@ -319,14 +307,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const loadFromSupabase = async (userId: string) => {
     const [
       profileRes,
-      progressRes,
       streakRes,
       jokerRes,
       tierRes,
       s8FinalRes,
     ] = await Promise.all([
       supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase.from('progress').select('*').eq('user_id', userId),
       supabase
         .from('streak_history')
         .select('local_date, validation_status, phase, streak_value_after, joker_used')
@@ -371,12 +357,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         setAccountCreatedAtState(remoteCreatedAt);
       }
     }
-    if (progressRes.data) {
-      setCompletedDays(progressRes.data.map((r: any) => r.day_id));
-      setMinimumDays(
-        progressRes.data.filter((r: any) => r.is_minimum).map((r: any) => r.day_id),
-      );
-    }
     if (streakRes.data) setStreakHistory(streakRes.data as StreakEntry[]);
     if (jokerRes.data) setJokerConsumptions(jokerRes.data as JokerConsumption[]);
     if (tierRes.data) setTierReaches(tierRes.data as TierReach[]);
@@ -406,8 +386,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       data,
       dynamicId,
       createdAt,
-      days,
-      minDays,
       history,
       consumptions,
       tiers,
@@ -416,8 +394,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       AsyncStorage.getItem(LOCAL_KEYS.onboardingData),
       AsyncStorage.getItem(LOCAL_KEYS.profileDynamicId),
       AsyncStorage.getItem(LOCAL_KEYS.accountCreatedAt),
-      AsyncStorage.getItem(LOCAL_KEYS.completedDays),
-      AsyncStorage.getItem(LOCAL_KEYS.minimumDays),
       AsyncStorage.getItem(LOCAL_KEYS.streakHistory),
       AsyncStorage.getItem(LOCAL_KEYS.jokerConsumptions),
       AsyncStorage.getItem(LOCAL_KEYS.tierReaches),
@@ -426,8 +402,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (data) setOnboardingData(JSON.parse(data));
     if (dynamicId) setProfileDynamicId(JSON.parse(dynamicId));
     if (createdAt) setAccountCreatedAtState(JSON.parse(createdAt));
-    if (days) setCompletedDays(JSON.parse(days));
-    if (minDays) setMinimumDays(JSON.parse(minDays));
     if (history) setStreakHistory(JSON.parse(history));
     if (consumptions) setJokerConsumptions(JSON.parse(consumptions));
     if (tiers) setTierReaches(JSON.parse(tiers));
@@ -542,8 +516,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setJokerConsumptions([]);
       setTierReaches([]);
       setNarrativeFlags({});
-      setCompletedDays(entries.map((_, idx) => idx + 1));
-      setMinimumDays([]);
 
       if (user) {
         // Reset distant
@@ -578,8 +550,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           [LOCAL_KEYS.jokerConsumptions, JSON.stringify([])],
           [LOCAL_KEYS.tierReaches, JSON.stringify([])],
           [LOCAL_KEYS.narrativeFlags, JSON.stringify({})],
-          [LOCAL_KEYS.completedDays, JSON.stringify(entries.map((_, idx) => idx + 1))],
-          [LOCAL_KEYS.minimumDays, JSON.stringify([])],
         ]);
       }
       // Reset les coches en cours du jour courant
@@ -889,29 +859,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             { onConflict: 'user_id,day_id' },
           );
         }
-        setCompletedDays((prev) => (prev.includes(args.day!) ? prev : [...prev, args.day!]));
-        if (isMinimum) {
-          setMinimumDays((prev) => (prev.includes(args.day!) ? prev : [...prev, args.day!]));
-        }
-        // Mode local : sync AsyncStorage des listes legacy
-        if (!user) {
-          const updatedDays = completedDays.includes(args.day)
-            ? completedDays
-            : [...completedDays, args.day];
-          await AsyncStorage.setItem(
-            LOCAL_KEYS.completedDays,
-            JSON.stringify(updatedDays),
-          );
-          if (isMinimum) {
-            const updatedMin = minimumDays.includes(args.day)
-              ? minimumDays
-              : [...minimumDays, args.day];
-            await AsyncStorage.setItem(
-              LOCAL_KEYS.minimumDays,
-              JSON.stringify(updatedMin),
-            );
-          }
-        }
       }
 
       // 4) Enregistre le franchissement de palier
@@ -935,8 +882,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       persistJokerConsumption,
       persistTierReach,
       user,
-      completedDays,
-      minimumDays,
     ],
   );
 
@@ -975,19 +920,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         })
         .eq('id', userId);
 
-      // 2. Progress (Phase 0 jours déjà cochés) — généralement vide à la création
-      //    de compte mais on copie pour être robuste.
-      if (completedDays.length > 0) {
-        const rows = completedDays.map((day) => ({
-          user_id: userId,
-          day_id: day,
-          is_minimum: minimumDays.includes(day),
-          actions_count: minimumDays.includes(day) ? 3 : 7,
-        }));
-        await supabase.from('progress').upsert(rows, { onConflict: 'user_id,day_id' });
-      }
-
-      // 3. streak_history (idem)
+      // 2. streak_history (Sprint 24 : table `progress` plus alimentée
+      //    en mode anonyme — validateDay l'écrit directement quand l'user
+      //    est connecté).
       if (streakHistory.length > 0) {
         const rows = streakHistory.map((e) => ({ user_id: userId, ...e }));
         await supabase
@@ -1021,8 +956,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [
       onboardingData,
       profileDynamicId,
-      completedDays,
-      minimumDays,
       streakHistory,
       jokerConsumptions,
       tierReaches,
@@ -1092,35 +1025,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [user, accountCreatedAt],
   );
 
-  // ── API legacy V0 (compat écrans non migrés) ──────────────────────────────
-
-  const completeDay = useCallback(
-    async (day: number, isMinimum = false) => {
-      // Bridge legacy → V1 validateDay. Le count exact n'est pas connu côté
-      // V0 (juste un flag isMinimum), donc on traduit avec des valeurs proxy
-      // qui produisent le bon `validation_status` en sortie de
-      // `determineValidationStatus`. À supprimer quand les écrans M2+M3 sont
-      // refondus (Sprint 4+) et appellent `validateDay` directement.
-      const actionsCount = isMinimum ? 3 : 7;
-      await validateDay({
-        day,
-        phase: 'phase_0',
-        actionsCount,
-        userValidatedManually: true,
-      });
-    },
-    [validateDay],
-  );
-
-  const isDayCompleted = useCallback(
-    (day: number) => completedDays.includes(day),
-    [completedDays],
-  );
-  const isDayUnlocked = useCallback(
-    (day: number) => day === 1 || completedDays.includes(day - 1),
-    [completedDays],
-  );
-
   // ── Reset complet (DEV / __DEV__ uniquement) ──────────────────────────────
 
   const resetAll = useCallback(async () => {
@@ -1128,8 +1032,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setOnboardingData({});
     setProfileDynamicId(null);
     setAccountCreatedAtState(null);
-    setCompletedDays([]);
-    setMinimumDays([]);
     setStreakHistory([]);
     setJokerConsumptions([]);
     setTierReaches([]);
@@ -1185,11 +1087,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         jokerAvailable,
         streakHistory,
         tierReaches,
-        completedDays,
-        minimumDays,
-        isDayCompleted,
-        isDayUnlocked,
-        completeDay,
         validateDay,
         setAccountCreatedAt,
         migrateLocalToRemote,
