@@ -12,7 +12,12 @@
  */
 
 import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  cancelAllNotifications,
+  requestNotificationPermission,
+  scheduleLocalNotification,
+} from '../../lib/notifications';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -173,6 +178,34 @@ export default function ProfilTabScreen() {
                   label="(DEV) S8 — Jour 7 (fin Phase 1)"
                   variant="ghost"
                   onPress={() => seedDevPillarDay('S8', 7)}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Notif test dans 5s"
+                  variant="ghost"
+                  onPress={async () => {
+                    const perm = await requestNotificationPermission();
+                    if (perm !== 'granted') {
+                      Alert.alert('Notifications', `Permission: ${perm}`);
+                      return;
+                    }
+                    const id = await scheduleLocalNotification({
+                      slot: 'dev.test',
+                      title: 'Raw Adventure',
+                      body: 'Test notification — Sprint 25 cadre technique. [copy à valider]',
+                      triggerAt: new Date(Date.now() + 5000),
+                    });
+                    Alert.alert('Notifications', id ? `Planifiée (${id.slice(0, 8)}…)` : 'Échec planification');
+                  }}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Annuler toutes notifs"
+                  variant="ghost"
+                  onPress={async () => {
+                    await cancelAllNotifications();
+                    Alert.alert('Notifications', 'Toutes annulées');
+                  }}
                   fullWidth
                 />
                 <Button
