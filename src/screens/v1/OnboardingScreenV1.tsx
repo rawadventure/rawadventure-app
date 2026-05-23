@@ -71,52 +71,54 @@ const BODY_OPTIONS = ['Léger', 'Neutre', 'Lourd'];
 const MENTAL_OPTIONS = ['Calme', 'Stable', 'Agité'];
 const MOTIVATION_OPTIONS = ['Un peu', 'Sérieusement', 'À fond'];
 
-/** Libellés narratifs courts des 9 profils dynamiques (IA-07). */
+/** Libellés narratifs courts des 9 profils dynamiques (IA-07).
+ *  Copy issu V0 OnboardingScreen — emojis strippés conformément Brand Core
+ *  (règle non-négociable §4 CLAUDE.md). Validation Mimi & Jacky à venir. */
 const PROFILE_COPY: Record<string, { title: string; message: string }> = {
   P1: {
-    title: 'Reboot complet.',
+    title: 'Le reboot complet.',
     message:
-      "Énergie au sol, corps lourd, tête chargée. Tu es exactement là où ce programme fait la plus grande différence. [copy à valider]",
+      "Énergie au sol, corps lourd, tête chargée. Tu es exactement là où ce programme fait la plus grande différence. Dans 14 jours, tu ne te reconnaîtras plus.",
   },
   P2: {
-    title: 'Remontée énergétique.',
+    title: 'Il est temps de remettre les compteurs à zéro.',
     message:
-      "Ton énergie est en berne — c'est le signal idéal pour commencer. Les premiers jours vont tout changer. [copy à valider]",
+      "Ton énergie est en berne — c'est le signal idéal pour commencer. Les premiers jours vont tout changer. La remontée commence dès demain.",
   },
   P3: {
-    title: 'Décharger corps et mental.',
+    title: 'Corps et mental à décharger.',
     message:
-      "Quand le corps est lourd et la tête pleine, le cercle vicieux s'installe. On va casser ça dès le J1. [copy à valider]",
+      "Quand le corps est lourd et la tête pleine, le cercle vicieux s'installe. On va casser ça dès le Jour 1. 14 jours pour retrouver la légèreté.",
   },
   P4: {
-    title: 'Lancé.',
+    title: 'Tu es déjà lancé.',
     message:
-      "Bonne énergie, motivation au top — maintenant on structure ça et on pousse encore plus loin. [copy à valider]",
+      "Bonne énergie, motivation au top — maintenant on structure ça et on pousse encore plus loin. 14 jours pour passer au niveau supérieur.",
   },
   P5: {
-    title: 'Base solide.',
+    title: 'Bonne base à exploiter.',
     message:
-      "Tu es dans un bon état. L'objectif ici, c'est de consolider et d'aller chercher encore plus. [copy à valider]",
+      "Tu es dans un bon état. L'objectif ici, c'est de consolider et d'aller chercher encore plus. On maintient. On booste.",
   },
   P6: {
     title: 'Ton corps veut se relancer.',
     message:
-      "14 jours de routine bien choisie, et tu vas sentir la différence. Le corps répond vite quand on lui donne les bons signaux. [copy à valider]",
+      "14 jours de routine bien choisie, et tu vas sentir la différence. Le corps répond vite quand on lui donne les bons signaux. C'est ce qu'on va faire ensemble.",
   },
   P7: {
     title: 'Le mental mène tout.',
     message:
-      "Quand la tête est chargée, le corps suit. On commence par remettre du calme là-dedans. [copy à valider]",
+      "Quand la tête est chargée, le corps suit. On commence par remettre du calme là-dedans. 14 jours, une habitude à la fois.",
   },
   P8: {
     title: 'Petit pas, grand changement.',
     message:
-      "Un peu de motivation, c'est tout ce qu'il faut pour démarrer. Le reste vient en faisant. [copy à valider]",
+      "Un peu de motivation, c'est tout ce qu'il faut pour démarrer. Le reste vient en faisant. 14 jours simples. Juste essaie.",
   },
   P0: {
-    title: 'Le terrain est posé.',
+    title: 'Ton corps est prêt.',
     message:
-      "Tu démarres avec une base équilibrée. La régularité va faire le reste. [copy à valider]",
+      "Tu as tout ce qu'il faut pour démarrer. Le programme va te donner la structure pour évoluer. Dans 14 jours, tu mesureras la différence.",
   },
 };
 
@@ -184,8 +186,8 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Animated.View style={slideAnimStyle}>
           {index === 0 && <SlideWelcome />}
-          {index === 1 && <SlideText title="Le constat" body="La fatigue moderne est devenue normale. Mais elle n'est pas inévitable. On va remettre les bons signaux. [copy à valider]" />}
-          {index === 2 && <SlideText title="La promesse" body="Pas de raccourci. Pas de hack. Une expérience corporelle, guidée, en 10 semaines. Pour sentir la différence dans ton terrain. [copy à valider]" />}
+          {index === 1 && <SlideText title="Le constat" body="La fatigue moderne est devenue normale. Mais elle n'est pas inévitable. On va remettre les bons signaux." />}
+          {index === 2 && <SlideText title="La promesse" body={"En 14 jours : plus d'énergie, corps plus léger, esprit plus clair.\n\nTu testes. Tu ressens. Pas de théorie inutile, juste du concret à faire chaque jour."} />}
           {index === 3 && (
             <SlideQuestionnaireP1
               answers={answers}
@@ -201,7 +203,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
           {index === 5 && (
             <SlideText
               title="La projection"
-              body="Dans 14 jours, ton sommeil sera plus dense. Ta digestion plus calme. Ta tête plus claire. Pas magique — physiologique. [copy à valider]"
+              body="Dans 14 jours, ton sommeil sera plus dense. Ta digestion plus calme. Ta tête plus claire. Pas magique — physiologique."
             />
           )}
           {index === 6 && profileCopy && (
@@ -210,7 +212,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
           {index === 7 && (
             <SlideText
               title="Comment ça marche"
-              body="14 jours gratuits d'amorçage en parallèle. Puis 8 semaines, un pilier de santé par semaine. La toile de vitalité prend forme au fil du parcours. [copy à valider]"
+              body="14 jours gratuits d'amorçage en parallèle. Puis 8 semaines, un pilier de santé par semaine. La toile de vitalité prend forme au fil du parcours."
             />
           )}
           {index === 8 && (
@@ -299,8 +301,7 @@ function SlideWelcome() {
       </Animated.View>
       <Animated.Text style={[styles.heroTitle, textStyle]}>RAW ADVENTURE</Animated.Text>
       <Animated.Text style={[styles.heroSubtitle, textStyle]}>
-        Le diagnostic n'est pas un sujet de motivation. C'est un sujet de
-        physiologie. [copy à valider]
+        14 jours pour relancer ton énergie.{'\n'}Simple. Concret. Efficace.
       </Animated.Text>
     </View>
   );
@@ -324,7 +325,7 @@ function SlideQuestionnaireP1({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.slideTitle, styles.center]}>Ton énergie au quotidien</Text>
+      <Text style={[styles.slideTitle, styles.center]}>Aujourd'hui, ton niveau d'énergie</Text>
       <View style={{ marginTop: space[5] }}>
         <Scale15
           value={(answers.energy as Scale15Value | undefined) ?? null}
@@ -336,7 +337,7 @@ function SlideQuestionnaireP1({
       </View>
 
       <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
-        Comment ressens-tu ton corps en ce moment ?
+        Ton corps se sent :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {BODY_OPTIONS.map((opt) => (
@@ -399,10 +400,10 @@ function SlideEngagement({
 }) {
   return (
     <View style={styles.slideWrap}>
-      <Text style={styles.slideTitle}>L'engagement</Text>
+      <Text style={styles.slideTitle}>Un seul engagement.</Text>
       <Text style={styles.slideBody}>
         14 jours d'amorçage gratuit. Pas de carte bancaire. Juste un
-        engagement à toi-même : tu joues le jeu pendant 14 jours. [copy à valider]
+        engagement à toi-même.
       </Text>
       <Pressable
         onPress={() => onChange(!checked)}
