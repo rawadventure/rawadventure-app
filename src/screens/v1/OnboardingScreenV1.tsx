@@ -23,7 +23,7 @@
  * Référence IA : IA-01 à IA-09. Pattern : A et D.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   KeyboardAvoidingView,
   Platform,
@@ -34,6 +34,12 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Animated, {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { ArrowRight, Check } from 'lucide-react-native';
 import { Button, Scale15 } from '../../components/primitives';
 import type { Scale15Value } from '../../components/primitives';
@@ -119,6 +125,27 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
   const [answers, setAnswers] = useState<Answers>({});
   const [commitChecked, setCommitChecked] = useState(false);
 
+  // Sprint 26 — transition fade + slide horizontale entre slides.
+  // Direction : next → entrée par la droite, back → entrée par la gauche.
+  const opacity = useSharedValue(1);
+  const translateX = useSharedValue(0);
+  const prevIndex = useRef(0);
+
+  useEffect(() => {
+    const direction = index >= prevIndex.current ? 1 : -1;
+    prevIndex.current = index;
+    const EASE = Easing.bezier(0.2, 0.7, 0.3, 1.0);
+    opacity.value = 0;
+    translateX.value = 24 * direction;
+    opacity.value = withTiming(1, { duration: 3000, easing: EASE });
+    translateX.value = withTiming(0, { duration: 3000, easing: EASE });
+  }, [index, opacity, translateX]);
+
+  const slideAnimStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateX: translateX.value }],
+  }));
+
   const goNext = () => setIndex((i) => Math.min(i + 1, TOTAL_SLIDES - 1));
   const goBack = () => setIndex((i) => Math.max(i - 1, 0));
 
@@ -155,6 +182,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
         <ProgressIndicator current={index + 1} total={TOTAL_SLIDES + 1} />
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
+          <Animated.View style={slideAnimStyle}>
           {index === 0 && <SlideWelcome />}
           {index === 1 && <SlideText title="Le constat" body="La fatigue moderne est devenue normale. Mais elle n'est pas inévitable. On va remettre les bons signaux. [copy à valider]" />}
           {index === 2 && <SlideText title="La promesse" body="Pas de raccourci. Pas de hack. Une expérience corporelle, guidée, en 10 semaines. Pour sentir la différence dans ton terrain. [copy à valider]" />}
@@ -191,6 +219,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
               onChange={setCommitChecked}
             />
           )}
+          </Animated.View>
         </ScrollView>
 
         {/* Footer actions */}
@@ -243,16 +272,36 @@ function ProgressIndicator({ current, total }: { current: number; total: number 
 }
 
 function SlideWelcome() {
+  // Sprint 26 — entry anim logo : scale 0.85 → 1.0 + fade 0 → 1, easeOut 600ms.
+  // Texte title/subtitle entrent légèrement décalés (fade 200ms après le logo).
+  const logoScale = useSharedValue(0.85);
+  const logoOpacity = useSharedValue(0);
+  const textOpacity = useSharedValue(0);
+
+  useEffect(() => {
+    const EASE = Easing.bezier(0.2, 0.7, 0.3, 1.0);
+    logoOpacity.value = withTiming(1, { duration: 3000, easing: EASE });
+    logoScale.value = withTiming(1, { duration: 3000, easing: EASE });
+    textOpacity.value = withTiming(1, { duration: 3000, easing: EASE });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const logoStyle = useAnimatedStyle(() => ({
+    opacity: logoOpacity.value,
+    transform: [{ scale: logoScale.value }],
+  }));
+  const textStyle = useAnimatedStyle(() => ({ opacity: textOpacity.value }));
+
   return (
     <View style={styles.welcomeWrap}>
-      <View style={styles.logoHero}>
+      <Animated.View style={[styles.logoHero, logoStyle]}>
         <LogoRawAdventure variant="hero" size={300} color={brandColors.deep} />
-      </View>
-      <Text style={styles.heroTitle}>RAW ADVENTURE</Text>
-      <Text style={styles.heroSubtitle}>
+      </Animated.View>
+      <Animated.Text style={[styles.heroTitle, textStyle]}>RAW ADVENTURE</Animated.Text>
+      <Animated.Text style={[styles.heroSubtitle, textStyle]}>
         Le diagnostic n'est pas un sujet de motivation. C'est un sujet de
         physiologie. [copy à valider]
-      </Text>
+      </Animated.Text>
     </View>
   );
 }
