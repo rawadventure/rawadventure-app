@@ -16,6 +16,15 @@ import {
 import { AuthProvider } from './src/hooks/AuthContext';
 import { ProgressProvider } from './src/hooks/ProgressContext';
 import RootNavigator from './src/navigation/RootNavigator';
+import {
+  configureAndroidChannel,
+  configureNotificationHandler,
+} from './src/lib/notifications';
+
+// Sprint 25 — cadre technique notifications (D32 plage silence 22h-8h).
+// Configure handler foreground + canal Android au load module (idempotent).
+configureNotificationHandler();
+void configureAndroidChannel();
 
 /**
  * RootStackParamList — type legacy V0 conservé pour réutilisation éventuelle.
