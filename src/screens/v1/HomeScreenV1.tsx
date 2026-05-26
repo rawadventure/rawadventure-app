@@ -115,6 +115,9 @@ export default function HomeScreenV1() {
     { tierId: TierId; isFirstReach: boolean; streakValue: number } | null
   >(null);
   const [charniereDay, setCharniereDay] = useState<CharniereDay | null>(null);
+  // Sprint 30 — option A : si palier ET charnière sur même streak (J7),
+  // afficher la charnière APRÈS fermeture de la modale palier.
+  const [pendingCharniere, setPendingCharniere] = useState<CharniereDay | null>(null);
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
@@ -245,6 +248,12 @@ export default function HomeScreenV1() {
           isFirstReach: result.tierIsFirstReach,
           streakValue: result.newStreak,
         });
+        // Sprint 30 option A : si collision palier × charnière (typique J7),
+        // stocke la charnière pour l'ouvrir après fermeture modale palier.
+        if (charniere && !narrativeFlags[charniere.flag]) {
+          setPendingCharniere(charniere.day);
+          await markNarrativeSeen(charniere.flag);
+        }
       } else if (charniere && !narrativeFlags[charniere.flag]) {
         setCharniereDay(charniere.day);
         await markNarrativeSeen(charniere.flag);
@@ -419,7 +428,14 @@ export default function HomeScreenV1() {
         tierId={tierModal?.tierId ?? null}
         isFirstReach={tierModal?.isFirstReach ?? false}
         streakValue={tierModal?.streakValue ?? 0}
-        onClose={() => setTierModal(null)}
+        onClose={() => {
+          setTierModal(null);
+          // Sprint 30 option A : enchaîne charnière différée si applicable.
+          if (pendingCharniere) {
+            setCharniereDay(pendingCharniere);
+            setPendingCharniere(null);
+          }
+        }}
         onViewGallery={
           tierModal?.isFirstReach
             ? () => {

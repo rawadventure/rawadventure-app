@@ -126,49 +126,41 @@ Chaque action a 4 niveaux de copy à produire :
 
 4 écrans narratifs superposés au premier lancement du jour concerné (D19).
 
-**Statut** : drafts Claude — à valider/réécrire Mimi & Jacky.
+**Statut** : Validé Mimi 2026-05-26 (intégration code Sprint 30).
+
+**Cascade option A** : si palier streak coïncide avec charnière (J7 = palier 7j), la modale palier s'affiche d'abord, puis la charnière s'enchaîne à la fermeture de la modale palier.
 
 ### J3 — Premier seuil
 
-- **Marker** : `Jour 3 · Trois jours derrière toi`
-- **Titre** : `Le corps commence à enregistrer.`
+- **Marker** : `Jour 3 · cap symbolique`
+- **Titre** : `Le corps commence à répondre.`
 - **Body** :
-  > Trois jours, c'est peu — et c'est déjà assez pour que le système nerveux capte un nouveau rythme. Si ton réveil est un peu plus net ce matin, ou si la faim du matin se fait moins pressante, ce n'est pas dans ta tête. C'est le terrain qui répond aux signaux.
-  >
-  > Continue.
-- **CTA fermeture** : `Continuer`
+  > Trois jours, c'est court — mais ton corps a déjà reçu les premiers signaux. Une digestion qui change, un sommeil un peu différent, une énergie légèrement autre. Tu commences à sentir. Continue — c'est exactement là que ça commence.
+- **CTA** : `Je continue`
 
-### J7 — Cap de la semaine
+### J7 — Cap de la semaine (séquence après palier 7j)
 
-- **Marker** : `Jour 7 · Une semaine complète`
-- **Titre** : `Sept jours. La première vague.`
+- **Marker** : `Jour 7 · une semaine`
+- **Titre** : `Sept jours.`
 - **Body** :
-  > Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions.
-  >
-  > Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.
-- **CTA** : `Continuer`
+  > Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.
+- **CTA** : `Je continue`
 
-### J11 — Avant-dernière ligne droite
+### J11 — Ligne droite finale
 
-- **Marker** : `Jour 11 · Bientôt deux semaines`
-- **Titre** : `Onze jours. Les automatismes s'installent.`
+- **Marker** : `Jour 11 · ligne droite finale`
+- **Titre** : `Le plus dur est derrière toi.`
 - **Body** :
-  > À ce stade, certaines actions ne te demandent presque plus d'effort — couper les écrans le soir, attendre avant de manger, prendre quelques minutes de respiration au réveil.
-  >
-  > C'est exactement ce qu'on voulait : que ça devienne un cadre, pas une contrainte. Encore trois jours, et la Phase 0 sera derrière toi.
-- **CTA** : `Continuer`
+  > Onze jours. Tu es dans la dernière ligne droite. Ce que tu ressens maintenant — cette légèreté, cette clarté qui s'installe — c'est ton corps qui a intégré les signaux. Trois jours pour terminer ce que tu as commencé. Tu ne lâches pas maintenant.
+- **CTA** : `Je continue`
 
 ### J14 — Fin Phase 0
 
-- **Marker** : `Jour 14 · Tu as bouclé l'amorçage`
-- **Titre** : `Quatorze jours. Tu es allé jusqu'au bout.`
+- **Marker** : `Jour 14 · fin de Phase 0`
+- **Titre** : `Tu as tenu. 14 jours.`
 - **Body** :
-  > Tu as posé deux semaines de signaux dans ton corps. Ce n'est pas un exploit — c'est un terrain.
-  >
-  > Demain, tu verras pour la première fois la toile de vitalité : huit branches, une par pilier, qui reflètent ce que tu viens de construire. Puis on enchaîne avec les 8 semaines de Phase 1, un pilier après l'autre.
-  >
-  > À demain.
-- **CTA** : `Continuer`
+  > Quatorze jours. Tu as tenu. Ton corps n'est plus le même qu'au Jour 1 — même si tu ne vois pas encore tout. La Phase 0 est complète. La suite commence maintenant.
+- **CTA** : `Voir la suite`
 
 ## 4 — Soft-rappel D26 (sous 5/7)
 
