@@ -78,53 +78,96 @@ Chaque action a 4 niveaux de copy à produire :
 
 1 message court (1-3 phrases) affiché en haut d'HomeScreenV1 chaque jour avant validation. Voix Mimi & Jacky.
 
-| Jour | Message | Note narrative |
-|---|---|---|
-| J1 | [à compléter] | Démarrage — pas trop d'enthousiasme |
-| J2 | [à compléter] | Premier vrai test |
-| J3 | [à compléter] | Avant jour-charnière |
-| J4 | [à compléter] | Effet miroir possible (D37) |
-| J5 | [à compléter] | |
-| J6 | [à compléter] | |
-| J7 | [à compléter] | Avant jour-charnière |
-| J8 | [à compléter] | |
-| J9 | [à compléter] | |
-| J10 | [à compléter] | |
-| J11 | [à compléter] | Avant jour-charnière |
-| J12 | [à compléter] | |
-| J13 | [à compléter] | |
-| J14 | [à compléter] | Dernier jour Phase 0 |
+**Statut** : drafts Claude — à valider/réécrire Mimi & Jacky.
+
+### J1 — Démarrage sans hype
+> Premier jour. Pas de pression — on pose juste le terrain. Tu coches ce que tu fais. Demain on continue.
+
+### J2 — Premier vrai test
+> Deuxième jour. C'est là que le rythme commence à s'installer. Pas hier, pas dans une semaine. Aujourd'hui.
+
+### J3 — Avant jour-charnière
+> Tu approches du premier seuil. Les trois premiers jours, le corps observe. Demain, tu vas sentir ce qui a déjà bougé.
+
+### J4 — Effet miroir possible (D37)
+> Quatre jours. Si ton sommeil a changé, même légèrement, ce n'est pas un hasard. Le corps répond à ce qu'on lui donne.
+
+### J5
+> Mi-parcours de la première semaine. Continue d'écouter ce que ton corps signale — la fatigue qui baisse, la digestion qui s'allège.
+
+### J6
+> Six jours. Le rythme est posé. Pas spectaculaire — physiologique. C'est ce qui dure.
+
+### J7 — Avant jour-charnière
+> Une semaine. Demain, on regarde le chemin parcouru. Aujourd'hui, on coche encore.
+
+### J8
+> Deuxième semaine. Le corps a digéré les premiers signaux. Maintenant il intègre.
+
+### J9
+> Neuf jours. La régularité fait le travail à ta place. Les actions de base demandent moins d'effort qu'au début.
+
+### J10
+> Dix jours. Cap des deux tiers. Ce qui était nouveau il y a une semaine devient automatique.
+
+### J11 — Avant jour-charnière
+> Onze jours. Avant-dernière ligne droite. Trois jours encore avant la fin de cette phase.
+
+### J12
+> Douze jours. La marge est là — tu peux ralentir un peu sans casser le rythme. Continue d'observer.
+
+### J13
+> Treize jours. Demain, dernier jour d'amorçage. Profite de cette journée pour sentir ce qui a changé.
+
+### J14 — Dernier jour Phase 0
+> Quatorze jours. Tu as bouclé l'amorçage. Demain, on entre dans la suite — la toile se révèle.
 
 ## 3 — Jours-charnière (IA-14)
 
 4 écrans narratifs superposés au premier lancement du jour concerné (D19).
 
+**Statut** : drafts Claude — à valider/réécrire Mimi & Jacky.
+
 ### J3 — Premier seuil
 
 - **Marker** : `Jour 3 · Trois jours derrière toi`
-- **Titre** : [à compléter]
-- **Body** : [à compléter — phrase d'effet miroir qualitatif D37 attendue]
+- **Titre** : `Le corps commence à enregistrer.`
+- **Body** :
+  > Trois jours, c'est peu — et c'est déjà assez pour que le système nerveux capte un nouveau rythme. Si ton réveil est un peu plus net ce matin, ou si la faim du matin se fait moins pressante, ce n'est pas dans ta tête. C'est le terrain qui répond aux signaux.
+  >
+  > Continue.
 - **CTA fermeture** : `Continuer`
 
 ### J7 — Cap de la semaine
 
 - **Marker** : `Jour 7 · Une semaine complète`
-- **Titre** : [à compléter]
-- **Body** : [à compléter — effet miroir qualitatif]
+- **Titre** : `Sept jours. La première vague.`
+- **Body** :
+  > Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions.
+  >
+  > Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.
 - **CTA** : `Continuer`
 
 ### J11 — Avant-dernière ligne droite
 
 - **Marker** : `Jour 11 · Bientôt deux semaines`
-- **Titre** : [à compléter]
-- **Body** : [à compléter — effet miroir qualitatif]
+- **Titre** : `Onze jours. Les automatismes s'installent.`
+- **Body** :
+  > À ce stade, certaines actions ne te demandent presque plus d'effort — couper les écrans le soir, attendre avant de manger, prendre quelques minutes de respiration au réveil.
+  >
+  > C'est exactement ce qu'on voulait : que ça devienne un cadre, pas une contrainte. Encore trois jours, et la Phase 0 sera derrière toi.
 - **CTA** : `Continuer`
 
 ### J14 — Fin Phase 0
 
 - **Marker** : `Jour 14 · Tu as bouclé l'amorçage`
-- **Titre** : [à compléter]
-- **Body** : [à compléter — annonce S0.1 le lendemain]
+- **Titre** : `Quatorze jours. Tu es allé jusqu'au bout.`
+- **Body** :
+  > Tu as posé deux semaines de signaux dans ton corps. Ce n'est pas un exploit — c'est un terrain.
+  >
+  > Demain, tu verras pour la première fois la toile de vitalité : huit branches, une par pilier, qui reflètent ce que tu viens de construire. Puis on enchaîne avec les 8 semaines de Phase 1, un pilier après l'autre.
+  >
+  > À demain.
 - **CTA** : `Continuer`
 
 ## 4 — Soft-rappel D26 (sous 5/7)
