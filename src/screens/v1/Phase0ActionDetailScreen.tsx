@@ -91,7 +91,7 @@ export default function Phase0ActionDetailScreen() {
       </ScrollView>
       <View style={styles.footer}>
         <Button
-          label="C'est pris, je rentre"
+          label="C'est fait, on continue"
           onPress={() => navigation.goBack()}
           fullWidth
           size="large"

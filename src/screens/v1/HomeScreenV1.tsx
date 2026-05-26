@@ -286,7 +286,7 @@ export default function HomeScreenV1() {
             : 'En attente de pilier';
   const messageDuJour = alreadyValidatedToday
     ? 'Journée validée. Tu peux te reposer ou explorer les détails des actions.'
-    : 'Coche les actions que tu as pratiquées aujourd\'hui. Cinq sur sept suffisent pour valider ta journée. [copy à valider]';
+    : 'Coche ce que tu as fait aujourd\'hui. 5 sur 7 suffisent pour valider ta journée. Chaque action compte.';
 
   return (
     <View style={styles.container}>

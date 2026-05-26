@@ -29,7 +29,7 @@ export type ProfileDynamicId =
 export type OnboardingAnswers = {
   energy?: number;   // 1..10
   body?: string;     // 'Léger' | 'Neutre' | 'Lourd'
-  mental?: string;   // 'Calme' | 'Stable' | 'Agité'
+  mental?: string;   // V0 : 'Calme' | 'Stable' | 'Agité' — V1 Sprint 28 : 'Tranquille' | 'Entre les deux' | 'Dans tous les sens'
   motivation?: string; // 'Un peu' | 'Sérieusement' | 'À fond'
 };
 
@@ -45,7 +45,9 @@ export function computeProfileDynamicId(answers: OnboardingAnswers): ProfileDyna
   const isLow = energy <= 3;
   const isHigh = energy >= 7;
   const isHeavy = answers.body === 'Lourd';
-  const isAgitated = answers.mental === 'Agité';
+  // Accepte les libellés V0 ('Agité') ET V1 Sprint 28 ('Dans tous les sens').
+  const isAgitated =
+    answers.mental === 'Agité' || answers.mental === 'Dans tous les sens';
   const isFired = answers.motivation === 'À fond';
   const isHesitant = answers.motivation === 'Un peu';
 

@@ -68,7 +68,7 @@ type Answers = OnboardingAnswers;
 const TOTAL_SLIDES = 9;
 
 const BODY_OPTIONS = ['Léger', 'Neutre', 'Lourd'];
-const MENTAL_OPTIONS = ['Calme', 'Stable', 'Agité'];
+const MENTAL_OPTIONS = ['Tranquille', 'Entre les deux', 'Dans tous les sens'];
 const MOTIVATION_OPTIONS = ['Un peu', 'Sérieusement', 'À fond'];
 
 /** Libellés narratifs courts des 9 profils dynamiques (IA-07).
@@ -86,9 +86,9 @@ const PROFILE_COPY: Record<string, { title: string; message: string }> = {
       "Ton énergie est en berne — c'est le signal idéal pour commencer. Les premiers jours vont tout changer. La remontée commence dès demain.",
   },
   P3: {
-    title: 'Corps et mental à décharger.',
+    title: 'Corps et mental à relancer.',
     message:
-      "Quand le corps est lourd et la tête pleine, le cercle vicieux s'installe. On va casser ça dès le Jour 1. 14 jours pour retrouver la légèreté.",
+      "Corps lourd. Tête pleine. L'un nourrit l'autre — et l'épuisement s'installe. On casse ce cycle dès le Jour 1. 14 jours pour retrouver ta légèreté.",
   },
   P4: {
     title: 'Tu es déjà lancé.',
@@ -186,8 +186,8 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Animated.View style={slideAnimStyle}>
           {index === 0 && <SlideWelcome />}
-          {index === 1 && <SlideText title="Le constat" body="La fatigue moderne est devenue normale. Mais elle n'est pas inévitable. On va remettre les bons signaux." />}
-          {index === 2 && <SlideText title="La promesse" body={"En 14 jours : plus d'énergie, corps plus léger, esprit plus clair.\n\nTu testes. Tu ressens. Pas de théorie inutile, juste du concret à faire chaque jour."} />}
+          {index === 1 && <SlideText title="Le constat" body={"Fatigue. Brouillard mental. Corps lourds.\n\nOn a fini par croire que c'était normal.\nÇa ne l'est pas."} />}
+          {index === 2 && <SlideText title="La promesse" body={"En 14 jours, ton corps change de vitesse.\nSommeil plus dense. Digestion qui se calme. Tête qui s'allège.\n\nPas de la magie — de la physiologie.\nTu fais. Tu ressens. Tu vois."} />}
           {index === 3 && (
             <SlideQuestionnaireP1
               answers={answers}
@@ -203,7 +203,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
           {index === 5 && (
             <SlideText
               title="La projection"
-              body="Dans 14 jours, ton sommeil sera plus dense. Ta digestion plus calme. Ta tête plus claire. Pas magique — physiologique."
+              body={"Dans 14 jours :\n\nTon sommeil devient plus dense.\nTa digestion se calme.\nTa tête se libère.\n\nPas magique — physiologique."}
             />
           )}
           {index === 6 && profileCopy && (
@@ -212,7 +212,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
           {index === 7 && (
             <SlideText
               title="Comment ça marche"
-              body="14 jours gratuits d'amorçage en parallèle. Puis 8 semaines, un pilier de santé par semaine. La toile de vitalité prend forme au fil du parcours."
+              body={"La vitalité ne revient pas d'un seul coup.\nElle se reconstruit pilier par pilier.\n\n14 jours offerts pour relancer les bases.\nEnsuite, on va plus loin — ensemble."}
             />
           )}
           {index === 8 && (
@@ -297,11 +297,11 @@ function SlideWelcome() {
   return (
     <View style={styles.welcomeWrap}>
       <Animated.View style={[styles.logoHero, logoStyle]}>
-        <LogoRawAdventure variant="hero" size={300} color={brandColors.deep} />
+        <LogoRawAdventure variant="hero" size={380} color={brandColors.deep} />
       </Animated.View>
       <Animated.Text style={[styles.heroTitle, textStyle]}>RAW ADVENTURE</Animated.Text>
       <Animated.Text style={[styles.heroSubtitle, textStyle]}>
-        14 jours pour relancer ton énergie.{'\n'}Simple. Concret. Efficace.
+        14 jours offerts pour relancer ta machine.{'\n'}Pas de théorie. Du concret. Dès aujourd'hui.
       </Animated.Text>
     </View>
   );
@@ -325,19 +325,19 @@ function SlideQuestionnaireP1({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.slideTitle, styles.center]}>Aujourd'hui, ton niveau d'énergie</Text>
+      <Text style={[styles.slideTitle, styles.center]}>Aujourd'hui, ton énergie elle est où ?</Text>
       <View style={{ marginTop: space[5] }}>
         <Scale15
           value={(answers.energy as Scale15Value | undefined) ?? null}
           onChange={(v) => onChange({ energy: v as number })}
           context="phase0"
-          leftLabel="Très basse"
-          rightLabel="Très haute"
+          leftLabel="À plat"
+          rightLabel="Au top"
         />
       </View>
 
       <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
-        Ton corps se sent :
+        Ton corps, il se sent :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {BODY_OPTIONS.map((opt) => (
@@ -362,7 +362,7 @@ function SlideQuestionnaireP2({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.questionLabel, styles.center]}>Ton mental est plutôt :</Text>
+      <Text style={[styles.questionLabel, styles.center]}>En ce moment, ta tête elle est :</Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {MENTAL_OPTIONS.map((opt) => (
           <ChoiceChip
@@ -402,8 +402,8 @@ function SlideEngagement({
     <View style={styles.slideWrap}>
       <Text style={styles.slideTitle}>Un seul engagement.</Text>
       <Text style={styles.slideBody}>
-        14 jours d'amorçage gratuit. Pas de carte bancaire. Juste un
-        engagement à toi-même.
+        14 jours offerts. Sans carte bancaire. Sans condition.{'\n\n'}
+        Juste toi — et la décision de commencer.
       </Text>
       <Pressable
         onPress={() => onChange(!checked)}
@@ -423,7 +423,7 @@ function SlideEngagement({
           {checked && <Check size={20} color="#FFFFFF" strokeWidth={3} />}
         </View>
         <Text style={styles.commitText}>
-          Je joue le jeu pendant 14 jours.
+          Je joue le jeu. 14 jours. C'est parti.
         </Text>
       </Pressable>
     </View>

@@ -1,6 +1,6 @@
 # Brief contenu — IA-12 Vidéo bienvenue J1 V1
 
-**Statut** : À remplir
+**Statut** : Textes accompagnement validés Mimi & Jacky 2026-05-26 (Sprint 28). Vidéo à tourner.
 **Cible code** : `src/screens/v1/WelcomeVideoScreen.tsx`
 **Cadrage** : IA V3 §IA-12
 
@@ -17,9 +17,12 @@
 ## Textes accompagnement écran
 
 - **Marker** : `JOUR 1 · BIENVENUE`
-- **Titre** : [à compléter — actuel : "On y va."]
-- **Subtitle** : [à compléter — actuel : "Quatorze jours d'amorçage commencent maintenant. Sept actions quotidiennes, à ton rythme."]
-- **Note pédagogique** : [à compléter — actuel : "Coche tes actions chaque jour. Cinq sur sept suffisent à valider la journée. Le joker hebdo te protège d'un jour difficile."]
+- **Titre** : `C'est parti.`
+- **Subtitle** :
+  > 14 jours. 7 actions par jour. Guidées. À ton rythme.
+  >
+  > Tu ouvres. Tu fais. Tu coches.
+- **Note pédagogique** : `5 sur 7 suffisent pour valider ta journée. Et le joker est là pour les jours difficiles.`
 - **CTA skip** : icône X top-right (pas de label)
 - **CTA principal** : `Continuer`
 

@@ -58,10 +58,10 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.head}>
           <Text style={styles.marker}>JOUR 1 · BIENVENUE</Text>
-          <Text style={styles.title}>On y va.</Text>
+          <Text style={styles.title}>C'est parti.</Text>
           <Text style={styles.subtitle}>
-            Quatorze jours d'amorçage commencent maintenant. Sept actions
-            quotidiennes, à ton rythme. [copy à valider]
+            14 jours. 7 actions par jour. Guidées. À ton rythme.{'\n\n'}
+            Tu ouvres. Tu fais. Tu coches.
           </Text>
         </View>
 
@@ -75,8 +75,8 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
 
         <View style={styles.notes}>
           <Text style={styles.note}>
-            Coche tes actions chaque jour. Cinq sur sept suffisent à valider
-            la journée. Le joker hebdo te protège d'un jour difficile. [copy à valider]
+            5 sur 7 suffisent pour valider ta journée. Et le joker est là pour
+            les jours difficiles.
           </Text>
         </View>
       </ScrollView>
