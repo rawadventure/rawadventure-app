@@ -127,7 +127,9 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     padding: space[6],
-    gap: space[5],
+    gap: space[4],
+    // Centre verticalement le contenu — équilibre visuel quand body court.
+    justifyContent: 'center',
   },
   head: { gap: space[3] },
   markerRow: { flexDirection: 'row', alignItems: 'center', gap: space[2] },
@@ -143,11 +145,13 @@ const styles = StyleSheet.create({
   },
   illustrationWrap: {
     alignItems: 'center',
-    marginVertical: space[4],
+    marginVertical: space[2],
   },
   body: {
     ...interTextStyle('bodyLarge'),
     color: pillarColors.phase0.text,
+    fontSize: 19,
+    lineHeight: 28,
   },
   streakBlock: {
     marginTop: space[4],
