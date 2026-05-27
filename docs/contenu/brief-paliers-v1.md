@@ -32,53 +32,69 @@ Pour chaque palier, produire :
 
 ### Palier 15j
 
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
 - **Vidéo** `media.tier.15j.video` :
   - Format 9:16, durée 30s
-  - Script intention : cap deux semaines, sortie Phase 0
-  - Script texte : [à compléter]
-- **Titre** : [à compléter — actuel : "Quinze jours."]
-- **Body** : [à compléter — actuel : "Tu as traversé la Phase 0. Les bases sont posées."]
-- **Tagline galerie** : [à compléter — actuel : "Cap des deux semaines."]
+  - Script intention : cap deux semaines, sortie Phase 0, bascule mode dirigé
+  - Script texte : [à compléter Mimi/Jacky — Brief Session 1]
+- **Titre** : `Quinze jours.`
+- **Body** : `Tu as traversé la Phase 0. Le terrain est posé. À partir de maintenant, on isole chaque pilier pour aller plus loin. Ce qui était observation devient pratique structurée.`
+- **Tagline galerie** : `Phase 0 traversée.`
 
 ### Palier 30j
 
-- **Vidéo** `media.tier.30j.video` (30s)
-- **Titre** : [à compléter — actuel : "Un mois."]
-- **Body** : [à compléter — actuel : "Le cap symbolique du mois. Tu n'es plus dans le démarrage."]
-- **Tagline galerie** : [à compléter — actuel : "Un mois de pratique."]
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
+- **Vidéo** `media.tier.30j.video` (30s, 9:16)
+- **Titre** : `Un mois.`
+- **Body** : `Trente jours de continuité. Tu n'es plus dans le démarrage. Le corps a intégré une routine — il l'attend, il s'y appuie. C'est ce qu'on cherchait depuis le début.`
+- **Tagline galerie** : `Le rythme devient ton normal.`
 
 ### Palier 60j
 
-- **Vidéo** `media.tier.60j.video` (30s)
-- **Titre** : [à compléter — actuel : "Soixante jours."]
-- **Body** : [à compléter — actuel : "Deux mois de continuité. La pratique devient ton normal."]
-- **Tagline galerie** : [à compléter — actuel : "Deux mois de continuité."]
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
+- **Vidéo** `media.tier.60j.video` (30s, 9:16)
+- **Titre** : `Soixante jours.`
+- **Body** : `Deux mois. La pratique est devenue ton normal. Tu ne te demandes plus pourquoi — tu fais. C'est ce moment où le corps précède le mental.`
+- **Tagline galerie** : `La pratique précède le mental.`
 
 ### Palier 100j
 
-- **Vidéo** `media.tier.100j.video` (30s)
-- **Titre** : [à compléter — actuel : "Cent jours."]
-- **Body** : [à compléter — actuel : "Un chiffre rond et lourd. Tu as construit quelque chose de solide."]
-- **Tagline galerie** : [à compléter — actuel : "Cap des trois chiffres."]
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
+- **Vidéo** `media.tier.100j.video` (30s, 9:16)
+- **Titre** : `Cent jours.`
+- **Body** : `Cent jours. Tu as construit quelque chose de solide. Le rythme n'est plus une consigne, c'est une partie de toi. À ce stade, c'est toi qui sais.`
+- **Tagline galerie** : `Quelque chose de solide.`
 
 ### Palier 1 an (365j)
 
-- **Vidéo** `media.tier.365.video` (30s — la plus chargée symboliquement)
-- **Titre** : [à compléter — actuel : "Un an."]
-- **Body** : [à compléter — actuel : "Trois cent soixante-cinq jours. Ce n'est plus un défi, c'est une vie."]
-- **Tagline galerie** : [à compléter — actuel : "Une année complète."]
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
+- **Vidéo** `media.tier.365.video` (30s, 9:16 — la plus chargée symboliquement)
+- **Titre** : `Un an.`
+- **Body** : `Trois cent soixante-cinq jours. Ce n'est plus un défi, c'est une vie. Tu as fait ce que peu de gens font — pas en intensité, en durée. Et c'est exactement ça qui change tout.`
+- **Tagline galerie** : `Plus un défi, une vie.`
+
+### Mise à jour palier 7j — tagline galerie
+
+- **Tagline galerie draft Claude** : `Le rythme est posé.` (remplace placeholder V0 "Première semaine bouclée.")
 
 ## Variante redéclenchement (D29)
 
+**Statut** : Draft Claude — à valider Mimi/Jacky.
+
 1 seul message générique court pour TOUS les paliers re-franchis après cassure (modale allégée, pas de vidéo).
 
-- **Message** : [à compléter — actuel : "Tu as repassé ce palier. La constance se rebâtit."]
+- **Message** : `Tu as repassé ce palier. La constance se rebâtit — un jour après l'autre.`
 
 ## Footnote galerie IA-51
 
-Affichée en bas de la galerie sous les 6 cards :
+**Statut** : Placeholder V1 acceptable — Mimi/Jacky peuvent affiner.
 
-- **Texte** : [à compléter — actuel : "Les paliers déjà atteints restent acquis même si le streak repart à zéro — ce qui est posé est posé."]
+- **Texte actuel** : `Les paliers déjà atteints restent acquis même si le streak repart à zéro — ce qui est posé est posé.`
 
 ## Notes voix
 
