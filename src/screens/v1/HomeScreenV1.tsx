@@ -131,9 +131,12 @@ export default function HomeScreenV1() {
   // Map streak → IA-14 jour-charnière. Le déclenchement se fait à la
   // VALIDATION du jour (après IA-15), pas à l'arrivée sur le jour, pour
   // que le copy rétrospectif "Trois jours derrière toi" soit cohérent.
+  // Sprint 31 — fusion J7 charnière dans palier 7j (cf. brief-paliers-v1.md).
+  // Le palier 7j (TierReachedModal) porte maintenant le texte effet miroir
+  // précédemment dans J7 charnière. La charnière J7 ne se déclenche plus.
+  // J3 / J11 / J14 restent des charnières indépendantes (pas de collision palier).
   const CHARNIERE_BY_STREAK: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
     3: { day: 3, flag: 'j3_charniere' },
-    7: { day: 7, flag: 'j7_charniere' },
     11: { day: 11, flag: 'j11_charniere' },
     14: { day: 14, flag: 'j14_charniere' },
   };

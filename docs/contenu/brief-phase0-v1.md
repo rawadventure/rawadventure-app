@@ -124,11 +124,11 @@ Chaque action a 4 niveaux de copy à produire :
 
 ## 3 — Jours-charnière (IA-14)
 
-4 écrans narratifs superposés au premier lancement du jour concerné (D19).
+3 écrans narratifs superposés au premier lancement du jour concerné (D19) : **J3 / J11 / J14**.
 
-**Statut** : Validé Mimi 2026-05-26 (intégration code Sprint 30).
+**J7 fusionné dans palier 7j** (Sprint 31) — voir `brief-paliers-v1.md` palier 7j. Le palier 7j porte maintenant le texte effet miroir précédemment dans J7 charnière, pour éviter le doublon.
 
-**Cascade option A** : si palier streak coïncide avec charnière (J7 = palier 7j), la modale palier s'affiche d'abord, puis la charnière s'enchaîne à la fermeture de la modale palier.
+**Statut** : Validé Mimi 2026-05-26 (intégration code Sprint 30 + fusion J7 Sprint 31).
 
 ### J3 — Premier seuil
 
@@ -138,13 +138,9 @@ Chaque action a 4 niveaux de copy à produire :
   > Trois jours, c'est court — mais ton corps a déjà reçu les premiers signaux. Une digestion qui change, un sommeil un peu différent, une énergie légèrement autre. Tu commences à sentir. Continue — c'est exactement là que ça commence.
 - **CTA** : `Je continue`
 
-### J7 — Cap de la semaine (séquence après palier 7j)
+### ~~J7~~ — Fusionné dans palier 7j
 
-- **Marker** : `Jour 7 · une semaine`
-- **Titre** : `Sept jours.`
-- **Body** :
-  > Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.
-- **CTA** : `Je continue`
+Voir `brief-paliers-v1.md` palier 7j. Texte effet miroir charnière + vidéo Mimi/Jacky 30s dans une seule modale.
 
 ### J11 — Ligne droite finale
 

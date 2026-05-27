@@ -63,7 +63,7 @@ const TIER_COLOR: Record<TierId, string> = {
 const TIER_FIRST_MESSAGE: Record<TierId, { title: string; body: string }> = {
   7: {
     title: 'Sept jours.',
-    body: "Une semaine de pratique. Le corps commence à enregistrer le rythme. [copy à valider]",
+    body: "Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.",
   },
   15: {
     title: 'Quinze jours.',
