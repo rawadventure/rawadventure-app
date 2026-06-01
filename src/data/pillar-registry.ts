@@ -26,7 +26,7 @@ import { S4_PROGRAM, S4_DURATIONS_MIN } from './s4-program';
 import { S5_EVALUATION_QUESTIONS, S5_DIAGNOSTICS } from './s5-evaluation';
 import { S5_PROGRAM } from './s5-program';
 import { S6_EVALUATION_QUESTIONS, S6_DIAGNOSTICS } from './s6-evaluation';
-import { S6_PROGRAM } from './s6-program';
+import { S6_PROGRAM, S6_DURATIONS_MIN } from './s6-program';
 import { S7_EVALUATION_QUESTIONS, S7_DIAGNOSTICS } from './s7-evaluation';
 import { S7_PROGRAM } from './s7-program';
 import { S8_EVALUATION_QUESTIONS, S8_DIAGNOSTICS } from './s8-evaluation';
@@ -141,12 +141,12 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     name: 'Passion et chemin de vie',
     shortName: 'Passion',
     type: 'A',
-    sessionType: 'acte_libre',
+    sessionType: 'chrono_libre',
     questions: S6_EVALUATION_QUESTIONS,
     diagnostics: S6_DIAGNOSTICS,
     program: S6_PROGRAM,
-    durationsMin: S1_DURATIONS_MIN,
-    parameterLabel: 'temps d\'écoute',
+    durationsMin: S6_DURATIONS_MIN,
+    parameterLabel: 'temps consacré à ta passion',
   },
   S7: {
     id: 'S7',

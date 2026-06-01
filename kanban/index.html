@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kanban — Production contenu Raw Adventure</title>
+  <style>
+    /* --- Base sobre, lisible --- */
+    :root {
+      --bg: #1b1f1b;
+      --panel: #252b25;
+      --card: #2f372f;
+      --ink: #e8eae6;
+      --muted: #9aa39a;
+      --line: #3a443a;
+      --accent: #6e8b5e;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      font-size: 14px;
+    }
+    header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--line);
+      background: var(--panel);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    h1 { font-size: 16px; margin: 0 0 12px; font-weight: 600; }
+
+    /* --- Barres de progression --- */
+    .progress-global { margin-bottom: 10px; }
+    .bar {
+      height: 8px;
+      background: var(--line);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    .bar > span {
+      display: block;
+      height: 100%;
+      background: var(--accent);
+      width: 0%;
+      transition: width .3s;
+    }
+    .progress-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .blocks-progress {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    .block-prog {
+      flex: 1 1 120px;
+      min-width: 120px;
+    }
+    .block-prog .progress-label {
+      display: flex;
+      justify-content: space-between;
+    }
+
+    /* --- Board --- */
+    .board {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      padding: 16px 20px;
+      align-items: start;
+    }
+    .column {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      min-height: 120px;
+      padding: 10px;
+    }
+    .column h2 {
+      font-size: 13px;
+      margin: 0 0 10px;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+      color: var(--muted);
+      display: flex;
+      justify-content: space-between;
+    }
+    .column.dragover { outline: 2px dashed var(--accent); outline-offset: -4px; }
+
+    /* --- Cartes --- */
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-left: 4px solid var(--block-color, var(--accent));
+      border-radius: 6px;
+      padding: 8px 10px;
+      margin-bottom: 8px;
+      cursor: grab;
+    }
+    .card:active { cursor: grabbing; }
+    .card .tag {
+      display: inline-block;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 4px;
+      background: var(--block-color, var(--accent));
+      color: #11140f;
+      margin-bottom: 4px;
+    }
+    .card .label { font-size: 13px; line-height: 1.3; margin-bottom: 6px; }
+    .card .subtasks {
+      font-size: 11px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .card .meta { font-size: 10px; color: var(--muted); margin-bottom: 6px; }
+    .card .actions { display: flex; gap: 6px; }
+    .card button {
+      flex: 1;
+      font-size: 11px;
+      padding: 4px 6px;
+      border: 1px solid var(--line);
+      background: #1f241f;
+      color: var(--ink);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .card button:hover { background: var(--accent); color: #11140f; }
+
+    .toast {
+      position: fixed;
+      bottom: 16px;
+      right: 16px;
+      background: var(--accent);
+      color: #11140f;
+      padding: 10px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      opacity: 0;
+      transition: opacity .2s;
+      pointer-events: none;
+    }
+    .toast.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kanban — Production contenu Raw Adventure</h1>
+    <div class="progress-global">
+      <div class="progress-label"><span>Avancement global</span><span id="global-count">0/0</span></div>
+      <div class="bar"><span id="global-bar"></span></div>
+    </div>
+    <div class="blocks-progress" id="blocks-progress"></div>
+  </header>
+
+  <div class="board" id="board">
+    <div class="column" data-status="todo"><h2><span>À faire</span><span data-count="todo">0</span></h2><div class="cards" data-status="todo"></div></div>
+    <div class="column" data-status="doing"><h2><span>En cours</span><span data-count="doing">0</span></h2><div class="cards" data-status="doing"></div></div>
+    <div class="column" data-status="done"><h2><span>Fait</span><span data-count="done">0</span></h2><div class="cards" data-status="done"></div></div>
+    <div class="column" data-status="blocked"><h2><span>Bloqué</span><span data-count="blocked">0</span></h2><div class="cards" data-status="blocked"></div></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    // Couleur par bloc (cohérence visuelle du regroupement A-H).
+    const BLOCK_COLORS = {
+      A: '#7fae5e', B: '#5e9cae', C: '#ae8b5e', D: '#9c5eae',
+      E: '#ae5e6e', F: '#5eae8b', G: '#ae9c5e', H: '#6e7fae'
+    };
+
+    let roadmap = { blocks: [] };
+
+    // Récupère et redessine l'état.
+    async function refresh() {
+      try {
+        const res = await fetch('/roadmap.json?_=' + Date.now());
+        roadmap = await res.json();
+        render();
+      } catch (e) {
+        console.error('refresh', e);
+      }
+    }
+
+    // Aplati toutes les tâches avec le contexte de leur bloc.
+    function allTasks() {
+      const out = [];
+      for (const block of roadmap.blocks) {
+        for (const task of block.tasks) {
+          out.push({ task, block });
+        }
+      }
+      return out;
+    }
+
+    function render() {
+      const statuses = ['todo', 'doing', 'done', 'blocked'];
+      // Vide les colonnes.
+      document.querySelectorAll('.cards').forEach((c) => (c.innerHTML = ''));
+      const counts = { todo: 0, doing: 0, done: 0, blocked: 0 };
+
+      for (const { task, block } of allTasks()) {
+        const st = statuses.includes(task.status) ? task.status : 'todo';
+        counts[st]++;
+        const container = document.querySelector(`.cards[data-status="${st}"]`);
+        container.appendChild(buildCard(task, block));
+      }
+
+      // Compteurs colonnes.
+      for (const st of statuses) {
+        document.querySelector(`[data-count="${st}"]`).textContent = counts[st];
+      }
+
+      renderProgress();
+    }
+
+    function buildCard(task, block) {
+      const el = document.createElement('div');
+      el.className = 'card';
+      el.draggable = true;
+      el.dataset.taskId = task.id;
+      el.style.setProperty('--block-color', BLOCK_COLORS[block.id] || '#6e8b5e');
+
+      const subtasks = task.subtasks
+        ? `<div class="subtasks">${task.subtasks.length} sous-tâches : ${task.subtasks.join(', ')}</div>`
+        : '';
+      const meta = task.sessionId
+        ? `<div class="meta">session ${task.sessionId.slice(0, 8)}… · ${fmtDate(task.updatedAt)}</div>`
+        : '';
+
+      el.innerHTML = `
+        <span class="tag">${block.id}</span>
+        <div class="label">${escapeHtml(task.label)}</div>
+        ${subtasks}
+        ${meta}
+        <div class="actions">
+          <button data-act="launch">${task.sessionId ? 'Reprendre' : 'Lancer chat'}</button>
+          <button data-act="brief">Voir brief</button>
+        </div>`;
+
+      // Drag.
+      el.addEventListener('dragstart', (e) => {
+        e.dataTransfer.setData('text/plain', task.id);
+      });
+
+      // Boutons.
+      el.querySelector('[data-act="launch"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        launch(task.id);
+      });
+      el.querySelector('[data-act="brief"]').addEventListener('click', (e) => {
+        e.stopPropagation();
+        openBrief(task.brief || block.brief);
+      });
+
+      return el;
+    }
+
+    function renderProgress() {
+      const tasks = allTasks();
+      const doneTotal = tasks.filter((t) => t.task.status === 'done').length;
+      document.getElementById('global-count').textContent = `${doneTotal}/${tasks.length}`;
+      document.getElementById('global-bar').style.width =
+        tasks.length ? (doneTotal / tasks.length) * 100 + '%' : '0%';
+
+      const wrap = document.getElementById('blocks-progress');
+      wrap.innerHTML = '';
+      for (const block of roadmap.blocks) {
+        const done = block.tasks.filter((t) => t.status === 'done').length;
+        const total = block.tasks.length;
+        const div = document.createElement('div');
+        div.className = 'block-prog';
+        div.innerHTML = `
+          <div class="progress-label">
+            <span>${block.id} · ${escapeHtml(block.title)}</span>
+            <span>${done}/${total}</span>
+          </div>
+          <div class="bar"><span style="width:${total ? (done / total) * 100 : 0}%;background:${BLOCK_COLORS[block.id]}"></span></div>`;
+        wrap.appendChild(div);
+      }
+    }
+
+    // --- Actions serveur ---
+    async function launch(taskId) {
+      try {
+        const res = await fetch('/launch', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ taskId })
+        });
+        const data = await res.json();
+        toast(data.resumed ? `Reprise de ${taskId} dans Terminal` : `Nouveau chat ${taskId} lancé`);
+      } catch {
+        toast('Échec du lancement');
+      }
+    }
+
+    async function updateStatus(taskId, status) {
+      await fetch('/update-status', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ taskId, status })
+      });
+      refresh();
+    }
+
+    function openBrief(briefPath) {
+      // Ouvre le .md dans un nouvel onglet via le serveur de fichiers statique du projet.
+      // Le serveur kanban ne sert pas le repo : on passe par file:// relatif au projet.
+      toast('Brief : ' + briefPath);
+      window.open('/brief?path=' + encodeURIComponent(briefPath), '_blank');
+    }
+
+    // --- Drag & drop sur les colonnes ---
+    document.querySelectorAll('.column').forEach((col) => {
+      col.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        col.classList.add('dragover');
+      });
+      col.addEventListener('dragleave', () => col.classList.remove('dragover'));
+      col.addEventListener('drop', (e) => {
+        e.preventDefault();
+        col.classList.remove('dragover');
+        const taskId = e.dataTransfer.getData('text/plain');
+        if (taskId) updateStatus(taskId, col.dataset.status);
+      });
+    });
+
+    // --- Utilitaires ---
+    function fmtDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      return d.toLocaleDateString('fr-FR') + ' ' + d.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, (c) =>
+        ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+    }
+    let toastTimer;
+    function toast(msg) {
+      const t = document.getElementById('toast');
+      t.textContent = msg;
+      t.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
+    }
+
+    // Démarrage + auto-refresh 5s.
+    refresh();
+    setInterval(refresh, 5000);
+  </script>
+</body>
+</html>

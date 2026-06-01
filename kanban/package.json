@@ -1,0 +1,12 @@
+{
+  "name": "raw-adventure-kanban",
+  "version": "1.0.0",
+  "description": "Kanban local de suivi de production copy/contenu Raw Adventure (blocs A-H)",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  }
+}
