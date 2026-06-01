@@ -22,7 +22,7 @@ import { S2_PROGRAM, S2_DURATIONS_MIN } from './s2-program';
 import { S3_EVALUATION_QUESTIONS, S3_DIAGNOSTICS } from './s3-evaluation';
 import { S3_PROGRAM } from './s3-program';
 import { S4_EVALUATION_QUESTIONS, S4_DIAGNOSTICS } from './s4-evaluation';
-import { S4_PROGRAM } from './s4-program';
+import { S4_PROGRAM, S4_DURATIONS_MIN } from './s4-program';
 import { S5_EVALUATION_QUESTIONS, S5_DIAGNOSTICS } from './s5-evaluation';
 import { S5_PROGRAM } from './s5-program';
 import { S6_EVALUATION_QUESTIONS, S6_DIAGNOSTICS } from './s6-evaluation';
@@ -119,8 +119,8 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     questions: S4_EVALUATION_QUESTIONS,
     diagnostics: S4_DIAGNOSTICS,
     program: S4_PROGRAM,
-    durationsMin: S1_DURATIONS_MIN,
-    parameterLabel: 'temps dehors',
+    durationsMin: S4_DURATIONS_MIN,
+    parameterLabel: 'temps de contact dehors',
   },
   S5: {
     id: 'S5',

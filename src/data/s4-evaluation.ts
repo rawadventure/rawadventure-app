@@ -1,29 +1,61 @@
 /**
- * s4-evaluation.ts — placeholder évaluation S4 Connexion au vivant.
- * **STATUS** : placeholder Sprint 12.
+ * s4-evaluation.ts — données de l'évaluation 12 questions S4 Connexion au vivant.
+ *
+ * Réf brief-pilier-s4-connexion-vivant-v1.md + matière Jacky V0
+ * (V0_PILIER 4 — CONNEXION AU VIVANT.docx) — 12 questions et 5 niveaux
+ * livrés explicitement par Jacky.
+ *
+ * Pattern Type A — Q4/Q9 inversés (formulations négatives :
+ * environnements fermés, stimulation mentale).
  */
 
 import type { S1Question, S1Diagnostic } from './s1-evaluation';
 
 export const S4_EVALUATION_QUESTIONS: readonly S1Question[] = [
   { id: 1, text: 'Je passe du temps dehors chaque jour.', reversed: false, copySlot: 'copy.IA-40.s4.q1' },
-  { id: 2, text: 'Je suis exposé à la lumière naturelle le matin.', reversed: false, copySlot: 'copy.IA-40.s4.q2' },
-  { id: 3, text: 'Je marche pieds nus sur la terre régulièrement.', reversed: false, copySlot: 'copy.IA-40.s4.q3' },
-  { id: 4, text: 'Je sens les saisons dans mon corps.', reversed: false, copySlot: 'copy.IA-40.s4.q4' },
-  { id: 5, text: 'Je connais et observe les plantes ou animaux autour de moi.', reversed: false, copySlot: 'copy.IA-40.s4.q5' },
-  { id: 6, text: 'Je passe la majorité de mes journées en intérieur.', reversed: true, copySlot: 'copy.IA-40.s4.q6' },
-  { id: 7, text: 'Je me sens déconnecté de mon environnement extérieur.', reversed: true, copySlot: 'copy.IA-40.s4.q7' },
-  { id: 8, text: 'Je suis en permanence dans un environnement éclairé artificiellement.', reversed: true, copySlot: 'copy.IA-40.s4.q8' },
-  { id: 9, text: 'Je touche du vivant (terre, eau, écorce) dans la semaine.', reversed: false, copySlot: 'copy.IA-40.s4.q9' },
-  { id: 10, text: 'Je perçois le rythme jour/nuit dans mon corps.', reversed: false, copySlot: 'copy.IA-40.s4.q10' },
-  { id: 11, text: 'Le contact avec la nature me détend.', reversed: false, copySlot: 'copy.IA-40.s4.q11' },
-  { id: 12, text: 'Je vis dans un environnement vivant et sain.', reversed: false, copySlot: 'copy.IA-40.s4.q12' },
+  { id: 2, text: 'Je suis exposé à la lumière naturelle.', reversed: false, copySlot: 'copy.IA-40.s4.q2' },
+  { id: 3, text: 'Je ressens le contact avec l\'air.', reversed: false, copySlot: 'copy.IA-40.s4.q3' },
+  { id: 4, text: 'Je suis souvent dans des environnements fermés.', reversed: true, copySlot: 'copy.IA-40.s4.q4' },
+  { id: 5, text: 'Je prends du temps sans écran.', reversed: false, copySlot: 'copy.IA-40.s4.q5' },
+  { id: 6, text: 'Je me sens connecté à mon environnement.', reversed: false, copySlot: 'copy.IA-40.s4.q6' },
+  { id: 7, text: 'Je ressens mon corps facilement.', reversed: false, copySlot: 'copy.IA-40.s4.q7' },
+  { id: 8, text: 'Je me sens calme naturellement.', reversed: false, copySlot: 'copy.IA-40.s4.q8' },
+  { id: 9, text: 'Je suis souvent stimulé mentalement.', reversed: true, copySlot: 'copy.IA-40.s4.q9' },
+  { id: 10, text: 'Je prends du temps pour observer.', reversed: false, copySlot: 'copy.IA-40.s4.q10' },
+  { id: 11, text: 'Je suis en contact avec des éléments naturels (terre, eau, vent…).', reversed: false, copySlot: 'copy.IA-40.s4.q11' },
+  { id: 12, text: 'Je ressens une vraie présence dans mes journées.', reversed: false, copySlot: 'copy.IA-40.s4.q12' },
 ] as const;
 
+/** Diagnostic 5 niveaux S4 (matière Jacky V0). */
 export const S4_DIAGNOSTICS: Record<1 | 2 | 3 | 4 | 5, S1Diagnostic> = {
-  1: { level: 1, label: 'Très déconnecté', message: "Tu vis principalement coupé du vivant extérieur. La semaine va t'aider à rouvrir cette porte. [copy à valider]" },
-  2: { level: 2, label: 'Contact ponctuel', message: 'Tu sors par moments mais sans régularité. La semaine va installer un minimum quotidien. [copy à valider]' },
-  3: { level: 3, label: 'Connexion partielle', message: "Tu as une connexion réelle mais limitée. La semaine va l'épaissir. [copy à valider]" },
-  4: { level: 4, label: 'Bien ancré', message: "Tu sens le vivant autour de toi. La semaine va affiner ta lecture. [copy à valider]" },
-  5: { level: 5, label: 'Tissé au vivant', message: 'Le vivant est intégré à ton quotidien. La semaine consolide cette qualité. [copy à valider]' },
+  1: {
+    level: 1,
+    label: 'Très déconnecté',
+    message:
+      'Ton corps a besoin de contact réel pour se réguler. Sans ça, il reste en stimulation permanente. Cette semaine va te faire ressentir le contraste — même 5 minutes réelles changent l\'état du système nerveux.',
+  },
+  2: {
+    level: 2,
+    label: 'Déconnecté',
+    message:
+      'Tu as quelques moments de contact mais ils sont rares. Cette semaine va t\'aider à structurer 2 moments quotidiens — matin et soir — pour donner à ton corps des repères biologiques stables.',
+  },
+  3: {
+    level: 3,
+    label: 'Variable',
+    message:
+      'Ton niveau de connexion fluctue selon les jours et les contextes. Cette semaine va t\'aider à créer un rythme reproductible pour que ton système nerveux trouve sa marge.',
+  },
+  4: {
+    level: 4,
+    label: 'Connecté',
+    message:
+      'Tu as déjà une bonne base de contact réel. La semaine va t\'aider à affiner la qualité de présence — pas juste la durée.',
+  },
+  5: {
+    level: 5,
+    label: 'Très connecté',
+    message:
+      'Ton rapport au vivant est solide. La semaine consolide en cherchant la finesse : observer ce que la présence change vraiment dans ta journée.',
+  },
 };
