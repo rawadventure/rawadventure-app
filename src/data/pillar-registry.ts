@@ -18,7 +18,7 @@ import type { S1Day } from './s1-program';
 import { S1_EVALUATION_QUESTIONS, S1_DIAGNOSTICS } from './s1-evaluation';
 import { S1_PROGRAM, S1_DURATIONS_MIN } from './s1-program';
 import { S2_EVALUATION_QUESTIONS, S2_DIAGNOSTICS } from './s2-evaluation';
-import { S2_PROGRAM } from './s2-program';
+import { S2_PROGRAM, S2_DURATIONS_MIN } from './s2-program';
 import { S3_EVALUATION_QUESTIONS, S3_DIAGNOSTICS } from './s3-evaluation';
 import { S3_PROGRAM } from './s3-program';
 import { S4_EVALUATION_QUESTIONS, S4_DIAGNOSTICS } from './s4-evaluation';
@@ -93,8 +93,8 @@ const REGISTRY: Partial<Record<PillarId, PillarMeta>> = {
     questions: S2_EVALUATION_QUESTIONS,
     diagnostics: S2_DIAGNOSTICS,
     program: S2_PROGRAM,
-    durationsMin: S1_DURATIONS_MIN,
-    parameterLabel: 'sessions de mouvement',
+    durationsMin: S2_DURATIONS_MIN,
+    parameterLabel: 'séances de mouvement',
   },
   S3: {
     id: 'S3',

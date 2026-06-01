@@ -1,11 +1,17 @@
 /**
- * s2-program.ts — programme placeholder 7 jours S2 Activité physique.
+ * s2-program.ts — programme 7 jours S2 Activité physique.
  *
- * **STATUS** : placeholder Sprint 11. La vraie progression pédagogique S2
- * viendra de la Feature Spec S2 (à produire Sprint 12+) basée sur
- * `matiere-jacky/V0_PILIER 3 — CONDITION PHYSIQUE.docx`. Pour l'instant on
- * propose une progression simple "mobilité → marche → renforcement" pour
- * permettre le test de bascule pilier S1→S2.
+ * Réf brief-pilier-s2-activite-physique-v1.md + matière Jacky V0
+ * (V0_PILIER 2 — ACTIVITÉ PHYSIQUE.docx) — rotation hebdo type :
+ * Endurance / Mobilité / Renforcement / Endurance / Relâchement /
+ * Renforcement / OFF.
+ *
+ * Durées modulées par engagement (chrono_libre) :
+ * - Essentiel  : 30 min
+ * - Progression : 45 min
+ * - Immersion  : 60 min
+ *
+ * Drafts Claude — à valider Jacky.
  */
 
 import type { S1Day } from './s1-program';
@@ -13,58 +19,66 @@ import type { S1Day } from './s1-program';
 export const S2_PROGRAM: readonly S1Day[] = [
   {
     id: 1,
-    title: 'Mobilité articulaire',
-    objective: '5 min de mobilisation douce des articulations.',
+    title: 'Remise en mouvement',
+    objective: 'Réveiller le système cardio-vasculaire à effort modéré.',
     pedagogy:
-      "Avant d'aller plus loin, on lubrifie les articulations. Cou, épaules, hanches, chevilles — chaque rotation libère ce qui s'est figé. [copy à valider]",
+      "Premier jour. Pas besoin de chercher la performance — juste de remettre le corps en mouvement. Marche soutenue ou footing très lent. Respiration nasale dans la mesure du possible.",
     copySlot: 'copy.IA-43.s2.j1-explication',
   },
   {
     id: 2,
-    title: 'Marche consciente',
-    objective: '20 min de marche en respiration nasale.',
+    title: 'Libérer les articulations',
+    objective: 'Lubrifier ce qui s\'est figé. Pas d\'effort, de l\'attention.',
     pedagogy:
-      "La marche est le mouvement le plus naturel. En respirant par le nez, tu maintiens un effort soutenable et tu actives le système parasympathique. [copy à valider]",
+      "Mobilité douce. Cou, épaules, hanches, chevilles — chaque rotation libère ce qui a stagné. C'est l'inverse d'une séance de force : tu observes plus que tu ne pousses.",
     copySlot: 'copy.IA-43.s2.j2-explication',
   },
   {
     id: 3,
-    title: 'Mobilité + force',
-    objective: 'Mobilité + 10 répétitions de squat à poids du corps.',
+    title: 'Construire la structure',
+    objective: 'Circuit léger : squats, pompes, fentes, gainage.',
     pedagogy:
-      "Squat = mouvement fondamental humain. Pas de charge — juste apprendre à descendre et remonter avec le bon alignement. [copy à valider]",
+      "Premier renforcement. Mouvements fondamentaux humains. Pas de charge. Tu peux faire les pompes contre un mur si besoin. L'enjeu : sentir les muscles s'engager, pas pulvériser ton record.",
     copySlot: 'copy.IA-43.s2.j3-explication',
   },
   {
     id: 4,
-    title: 'Marche soutenue',
-    objective: '30 min de marche, rythme plus engagé.',
+    title: 'Tenir le rythme',
+    objective: 'Marche ou footing. Respiration nasale. Pouvoir parler.',
     pedagogy:
-      "Aujourd'hui on augmente l'intensité de la marche. Pas du running — juste un rythme où tu commences à respirer plus profondément. [copy à valider]",
+      "Endurance. La règle de Jacky : pouvoir parler pendant l'effort. Si tu peux parler, tu construis ton énergie de fond. Si tu peux plus, c'est que tu pousses trop.",
     copySlot: 'copy.IA-43.s2.j4-explication',
   },
   {
     id: 5,
-    title: 'Renforcement doux',
-    objective: 'Pompes contre mur + planche 30s.',
+    title: 'Laisser le corps redescendre',
+    objective: 'Jambes contre le mur. Récupération active.',
     pedagogy:
-      "Premiers exercices de force fonctionnelle. Pompes contre mur si tu n'es pas habitué — la version au sol viendra plus tard. [copy à valider]",
+      "Relâchement. Jambes à l'équerre contre le mur, allongé au sol. C'est tout. La récupération n'est pas une absence de travail — c'est un travail différent. Ton système nerveux le réclame.",
     copySlot: 'copy.IA-43.s2.j5-explication',
   },
   {
     id: 6,
-    title: 'Mouvement libre',
-    objective: '20 min de mouvement choisi (danse, vélo, nage, marche…).',
+    title: 'Ancrer la structure',
+    objective: 'Reprise du circuit J3, un peu plus long.',
     pedagogy:
-      "Aujourd'hui c'est toi qui choisis. L'important : que ça te fasse plaisir et que ce soit du mouvement. [copy à valider]",
+      "Renforcement reprise. Mêmes mouvements que J3, un cycle de plus. Tu vas sentir que ton corps a déjà retenu quelque chose des sessions précédentes. C'est ça l'adaptation.",
     copySlot: 'copy.IA-43.s2.j6-explication',
   },
   {
     id: 7,
-    title: 'Intégration',
-    objective: 'Combiner mobilité + force + cardio léger sur 30 min.',
+    title: 'Repos complet',
+    objective: 'Pas de séance. L\'équilibre crée le progrès.',
     pedagogy:
-      "Dernier jour. Tu construis une mini-routine qui combine les éléments de la semaine. Tu peux la garder comme base hebdomadaire. [copy à valider]",
+      "Jour OFF. Pas de mouvement structuré aujourd'hui. C'est dans le repos que le corps consolide ce qu'il a appris. Si tu veux marcher tranquillement, vas-y — mais sans intention de séance.",
     copySlot: 'copy.IA-43.s2.j7-explication',
   },
 ] as const;
+
+/** Durées paramètre principal S2 par niveau d'engagement (matière Jacky).
+ *  Simplification V1 des 9 paliers Jacky (20-30-40 / 40-50-60 / 70-80-90 min). */
+export const S2_DURATIONS_MIN: Record<'essentiel' | 'progression' | 'immersion', number> = {
+  essentiel: 30,
+  progression: 45,
+  immersion: 60,
+};
