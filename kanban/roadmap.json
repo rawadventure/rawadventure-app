@@ -5,20 +5,104 @@
       "title": "Messages du jour Phase 0",
       "brief": "docs/contenu/brief-phase0-v1.md",
       "tasks": [
-        { "id": "A-J1", "label": "J1 — Démarrage sans enthousiasme", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J2", "label": "J2 — Première routine", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J3", "label": "J3 — Premiers ressentis", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J4", "label": "J4 — Installation", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J5", "label": "J5 — Continuité", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J6", "label": "J6 — Mi-parcours premier palier", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J7", "label": "J7 — Première semaine bouclée", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J8", "label": "J8 — Reprise", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J9", "label": "J9 — Régularité", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J10", "label": "J10 — Ancrage", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J11", "label": "J11 — Approche de la fin", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J12", "label": "J12 — Avant-dernier jour", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J13", "label": "J13 — Veille de bilan", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "A-J14", "label": "J14 — Clôture Phase 0", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "A-J1",
+          "label": "J1 — Démarrage sans enthousiasme",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J2",
+          "label": "J2 — Première routine",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J3",
+          "label": "J3 — Premiers ressentis",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J4",
+          "label": "J4 — Installation",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J5",
+          "label": "J5 — Continuité",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J6",
+          "label": "J6 — Mi-parcours premier palier",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J7",
+          "label": "J7 — Première semaine bouclée",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J8",
+          "label": "J8 — Reprise",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J9",
+          "label": "J9 — Régularité",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J10",
+          "label": "J10 — Ancrage",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J11",
+          "label": "J11 — Approche de la fin",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J12",
+          "label": "J12 — Avant-dernier jour",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J13",
+          "label": "J13 — Veille de bilan",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "A-J14",
+          "label": "J14 — Clôture Phase 0",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -26,11 +110,41 @@
       "title": "Écrans de jour-charnière",
       "brief": "docs/contenu/brief-phase0-v1.md",
       "tasks": [
-        { "id": "B-J3", "label": "J3 — Écran charnière", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "B-J7", "label": "J7 — Écran charnière", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "B-J11", "label": "J11 — Écran charnière", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "B-J14", "label": "J14 — Écran charnière", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "B-bonus-D26", "label": "Bonus — Soft-rappel D26 (sous seuil 5/7)", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "B-J3",
+          "label": "J3 — Écran charnière",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "B-J7",
+          "label": "J7 — Écran charnière",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "B-J11",
+          "label": "J11 — Écran charnière",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "B-J14",
+          "label": "J14 — Écran charnière",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "B-bonus-D26",
+          "label": "Bonus — Soft-rappel D26 (sous seuil 5/7)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -38,10 +152,34 @@
       "title": "Transition S0",
       "brief": "docs/contenu/brief-s0-transition-v1.md",
       "tasks": [
-        { "id": "C-S0.1-video", "label": "S0.1 — Script vidéo (célébration + toile)", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "C-S0.1-textes", "label": "S0.1 — Textes écran", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "C-S0.2-video", "label": "S0.2 — Script vidéo (roadmap + éval S1)", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "C-S0.2-textes", "label": "S0.2 — Textes écran", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "C-S0.1-video",
+          "label": "S0.1 — Script vidéo (célébration + toile)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "C-S0.1-textes",
+          "label": "S0.1 — Textes écran",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "C-S0.2-video",
+          "label": "S0.2 — Script vidéo (roadmap + éval S1)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "C-S0.2-textes",
+          "label": "S0.2 — Textes écran",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -49,14 +187,62 @@
       "title": "Paliers de récompense streak",
       "brief": "docs/contenu/brief-paliers-v1.md",
       "tasks": [
-        { "id": "D-palier-7j", "label": "Palier 7 jours — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-palier-15j", "label": "Palier 15 jours — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-palier-30j", "label": "Palier 30 jours — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-palier-60j", "label": "Palier 60 jours — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-palier-100j", "label": "Palier 100 jours — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-palier-365j", "label": "Palier 1 an — script + message", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-redeclenchement-D29", "label": "Redéclenchement allégé D29 — message court", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "D-footnote-IA51", "label": "Footnote galerie paliers IA-51", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "D-palier-7j",
+          "label": "Palier 7 jours — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-palier-15j",
+          "label": "Palier 15 jours — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-palier-30j",
+          "label": "Palier 30 jours — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-palier-60j",
+          "label": "Palier 60 jours — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-palier-100j",
+          "label": "Palier 100 jours — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-palier-365j",
+          "label": "Palier 1 an — script + message",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-redeclenchement-D29",
+          "label": "Redéclenchement allégé D29 — message court",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "D-footnote-IA51",
+          "label": "Footnote galerie paliers IA-51",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -64,11 +250,41 @@
       "title": "Sortie de S8 et mentorat",
       "brief": "docs/contenu/brief-ia22-sortie-s8-v1.md",
       "tasks": [
-        { "id": "E-IA22-video", "label": "IA-22 — Script vidéo sortie S8", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "E-IA22-textes", "label": "IA-22 — Textes écran sortie S8", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "E-IA23-textes", "label": "IA-23 — Textes mode consolidation libre", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "E-IA60-modale", "label": "IA-60 — Modale proposition mentorat", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "E-ConsolidationHome-textes", "label": "ConsolidationHome — Textes accueil consolidation", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "E-IA22-video",
+          "label": "IA-22 — Script vidéo sortie S8",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "E-IA22-textes",
+          "label": "IA-22 — Textes écran sortie S8",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "E-IA23-textes",
+          "label": "IA-23 — Textes mode consolidation libre",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "E-IA60-modale",
+          "label": "IA-60 — Modale proposition mentorat",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "E-ConsolidationHome-textes",
+          "label": "ConsolidationHome — Textes accueil consolidation",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -76,7 +292,13 @@
       "title": "Vidéo de bienvenue J1",
       "brief": "docs/contenu/brief-ia12-bienvenue-v1.md",
       "tasks": [
-        { "id": "F-IA12-video", "label": "IA-12 — Script vidéo bienvenue (textes déjà OK)", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "F-IA12-video",
+          "label": "IA-12 — Script vidéo bienvenue (textes déjà OK)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     },
     {
@@ -84,13 +306,125 @@
       "title": "Feature Specs piliers Phase 1",
       "brief": "docs/contenu/brief-pilier-s2-activite-physique-v1.md",
       "tasks": [
-        { "id": "G-S2", "label": "S2 — Activité physique", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s2-activite-physique-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S3", "label": "S3 — Alimentation", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s3-alimentation-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S4", "label": "S4 — Connexion au vivant", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s4-connexion-vivant-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S5", "label": "S5 — Repos et régénération", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s5-repos-regeneration-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S6", "label": "S6 — Passion et chemin de vie", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s6-passion-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S7", "label": "S7 — Mindset", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s7-mindset-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] },
-        { "id": "G-S8", "label": "S8 — Élimination et détox", "status": "todo", "sessionId": null, "updatedAt": null, "brief": "docs/contenu/brief-pilier-s8-elimination-detox-v1.md", "subtasks": ["type", "12Q", "diag-5niv", "programme-7j", "video-intro", "effet-miroir", "mapping-profils"] }
+        {
+          "id": "G-S2",
+          "label": "S2 — Activité physique",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s2-activite-physique-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S3",
+          "label": "S3 — Alimentation",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s3-alimentation-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S4",
+          "label": "S4 — Connexion au vivant",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s4-connexion-vivant-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S5",
+          "label": "S5 — Repos et régénération",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s5-repos-regeneration-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S6",
+          "label": "S6 — Passion et chemin de vie",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s6-passion-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S7",
+          "label": "S7 — Mindset",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s7-mindset-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        },
+        {
+          "id": "G-S8",
+          "label": "S8 — Élimination et détox",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null,
+          "brief": "docs/contenu/brief-pilier-s8-elimination-detox-v1.md",
+          "subtasks": [
+            "type",
+            "12Q",
+            "diag-5niv",
+            "programme-7j",
+            "video-intro",
+            "effet-miroir",
+            "mapping-profils"
+          ]
+        }
       ]
     },
     {
@@ -98,13 +432,55 @@
       "title": "Notifications et décisions reportées",
       "brief": "docs/contenu/brief-notifications-v1.md",
       "tasks": [
-        { "id": "H-D12-decisions", "label": "D12 — Décisions fréquence/contenu notifications", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-rappel-quotidien-7variantes", "label": "Rappel quotidien — 7 variantes", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-observation-4notifs", "label": "Observation — 4 notifications", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-encouragement-3cas", "label": "Encouragement — 3 cas", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-fond-Phase0-Phase1", "label": "Message de fond — Phase 0 et Phase 1", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-paliers-streak-6", "label": "Notifs paliers streak — 6", "status": "todo", "sessionId": null, "updatedAt": null },
-        { "id": "H-permission-prompt", "label": "Permission prompt notifications", "status": "todo", "sessionId": null, "updatedAt": null }
+        {
+          "id": "H-D12-decisions",
+          "label": "D12 — Décisions fréquence/contenu notifications",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-rappel-quotidien-7variantes",
+          "label": "Rappel quotidien — 7 variantes",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-observation-4notifs",
+          "label": "Observation — 4 notifications",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-encouragement-3cas",
+          "label": "Encouragement — 3 cas",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-fond-Phase0-Phase1",
+          "label": "Message de fond — Phase 0 et Phase 1",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-paliers-streak-6",
+          "label": "Notifs paliers streak — 6",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        },
+        {
+          "id": "H-permission-prompt",
+          "label": "Permission prompt notifications",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": null
+        }
       ]
     }
   ]

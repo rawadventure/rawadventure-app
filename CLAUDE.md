@@ -326,6 +326,10 @@ Le **streak** est affiché en permanence en haut de IA-11 et sur le profil IA-70
 
 Toujours par son identifiant `IA-XX`. Exemples : "je vais coder IA-15 (modale de validation du check quotidien)", "IA-30 demande une refonte intégrale du ConversionScreen actuel". Cet identifiant est stable, partagé entre les docs Project, ce CLAUDE.md, et le code (en commentaire en tête de fichier).
 
+### Suivi de l'avancement de la production contenu
+
+La **source de vérité de l'avancement** de la production copy/contenu (les 8 blocs A-H, briefs dans `docs/contenu/brief-*.md`) est le fichier `kanban/roadmap.json`, piloté via un tableau kanban local. Pour le consulter ou le mettre à jour : `cd kanban && node server.js` puis ouvrir `http://localhost:3737`. Voir `kanban/README.md` pour le mode d'emploi complet (lancement de session par tâche, hook Stop qui sauvegarde le `session_id`, glisser-déposer des statuts). Quand une tâche de contenu avance, c'est `roadmap.json` qui fait foi, pas une note ailleurs.
+
 ### Workflow git
 
 **Option retenue (D21) : commits directs sur `main` avec validation avant chaque commit.**
