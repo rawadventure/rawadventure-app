@@ -149,7 +149,13 @@
 </head>
 <body>
   <header>
-    <h1>Kanban — Production contenu Raw Adventure</h1>
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
+      <h1 style="margin:0">Kanban — Production contenu Raw Adventure</h1>
+      <button id="sync-btn" title="Relit les marqueurs **Statut** des briefs et met à jour les statuts"
+        style="font-size:13px;padding:6px 12px;border:1px solid var(--line);background:var(--accent);color:#11140f;border-radius:6px;cursor:pointer;font-weight:600">
+        Mettre à jour
+      </button>
+    </div>
     <div class="progress-global">
       <div class="progress-label"><span>Avancement global</span><span id="global-count">0/0</span></div>
       <div class="bar"><span id="global-bar"></span></div>
@@ -309,6 +315,29 @@
       refresh();
     }
 
+    // Bouton "Mettre à jour" : déclenche le scan des briefs côté serveur.
+    async function sync() {
+      const btn = document.getElementById('sync-btn');
+      btn.disabled = true;
+      btn.textContent = 'Analyse…';
+      try {
+        const res = await fetch('/sync', { method: 'POST' });
+        const data = await res.json();
+        if (data.changes && data.changes.length) {
+          console.table(data.changes); // détail from/to + marqueur détecté
+          toast(`${data.changed} tâche(s) mise(s) à jour depuis les briefs`);
+        } else {
+          toast('Aucun changement détecté dans les briefs');
+        }
+        await refresh();
+      } catch {
+        toast('Échec de la mise à jour');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Mettre à jour';
+      }
+    }
+
     function openBrief(briefPath) {
       // Ouvre le .md dans un nouvel onglet via le serveur de fichiers statique du projet.
       // Le serveur kanban ne sert pas le repo : on passe par file:// relatif au projet.
@@ -349,6 +378,9 @@
       clearTimeout(toastTimer);
       toastTimer = setTimeout(() => t.classList.remove('show'), 2500);
     }
+
+    // Bouton de mise à jour.
+    document.getElementById('sync-btn').addEventListener('click', sync);
 
     // Démarrage + auto-refresh 5s.
     refresh();

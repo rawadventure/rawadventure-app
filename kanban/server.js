@@ -141,6 +141,129 @@ app.post('/save-session', (req, res) => {
   res.json({ ok: true, task });
 });
 
+// --- Sync : déduit les statuts depuis les marqueurs **Statut** des briefs ----
+
+// Mappe une ligne de marqueur "**Statut** : ..." vers un statut kanban.
+// L'ordre des tests compte : "à valider" (review) doit primer sur "validé" (done).
+function statusFromMarker(line) {
+  const l = line.toLowerCase();
+  // À vérifier : draft Claude, ou contenu explicitement à faire valider/réécrire.
+  if (/draft|à valider|a valider|à réécrire|à compléter|à finaliser|à affiner|proposition|placeholder/.test(l)) {
+    return 'review';
+  }
+  // Fait : contenu validé par Mimi & Jacky.
+  // NB : "à valider" (review) est déjà traité au-dessus, donc ici "valid[ée]" = validé/validées.
+  if (/valid[ée]/.test(l)) return 'done';
+  // À faire : contenu pas encore produit.
+  if (/à remplir|a remplir|à produire|a produire|à créer|a creer/.test(l)) return 'todo';
+  return null; // marqueur non concluant
+}
+
+// Construit des regex d'ancrage à partir des tokens distinctifs de l'id de tâche
+// (ceux qui contiennent un chiffre : J1, 15j, S0.1, IA22, D26...).
+function anchorRegexes(taskId) {
+  const parts = taskId.split('-').slice(1); // retire la lettre de bloc
+  const regs = [];
+  for (const p of parts) {
+    if (!/\d/.test(p)) continue;
+    let pat = p
+      .replace(/\./g, '\\.')        // S0.1 -> S0\.1
+      .replace(/^IA/, 'IA-?')        // IA22 -> IA-?22 (matche IA-22 et IA22)
+      .replace(/j$/i, '\\s*j(our)?'); // 15j -> 15\s*j(our)?
+    try {
+      regs.push(new RegExp('\\b' + pat, 'i'));
+    } catch {
+      /* token non regexable, ignoré */
+    }
+  }
+  return regs;
+}
+
+// Pour une tâche, retrouve la ligne **Statut** la plus pertinente dans son brief.
+// Priorité : (1) ancre explicite task.anchor (titre de section exact, déterministe),
+// (2) ancrage heuristique par token distinctif de l'id, (3) premier **Statut** global.
+function findMarkerForTask(text, task) {
+  const lines = text.split('\n');
+  const statutIdx = [];
+  lines.forEach((l, i) => {
+    if (/\*\*statut/i.test(l)) statutIdx.push(i);
+  });
+  if (!statutIdx.length) return null;
+
+  // Cherche le premier **Statut** dans les 30 lignes suivant un titre donné.
+  const nearStatut = (headingLine) => {
+    const near = statutIdx.find((si) => si >= headingLine && si < headingLine + 30);
+    return near != null ? lines[near] : null;
+  };
+
+  // 1. Ancre explicite : titre de section contenant exactement task.anchor.
+  if (task.anchor) {
+    const a = task.anchor.toLowerCase();
+    for (let i = 0; i < lines.length; i++) {
+      if (/^#{1,6}\s/.test(lines[i]) && lines[i].toLowerCase().includes(a)) {
+        const m = nearStatut(i);
+        if (m) return m;
+        return null; // section trouvée mais sans **Statut** propre : pas de détection
+      }
+    }
+  }
+
+  // 2. Ancrage heuristique par token distinctif (J3, 15j, IA-22…).
+  const regs = anchorRegexes(task.id);
+  if (regs.length) {
+    for (let i = 0; i < lines.length; i++) {
+      if (/^#{1,6}\s/.test(lines[i]) && regs.some((r) => r.test(lines[i]))) {
+        const m = nearStatut(i);
+        if (m) return m;
+      }
+    }
+  }
+
+  // 3. Repli : premier **Statut** global du brief (statut au niveau du bloc).
+  return lines[statutIdx[0]];
+}
+
+// POST /sync — relit tous les briefs et applique les statuts détectés.
+// Règles de préservation : un 'blocked' manuel reste 'blocked' sauf détection 'done'.
+app.post('/sync', (req, res) => {
+  const roadmap = readRoadmap();
+  const changes = [];
+  const now = new Date().toISOString();
+
+  for (const block of roadmap.blocks) {
+    for (const task of block.tasks) {
+      const briefRel = task.brief || block.brief;
+      const abs = path.resolve(PROJECT_PATH, briefRel || '');
+      if (!briefRel || !abs.startsWith(PROJECT_PATH + path.sep) || !fs.existsSync(abs)) {
+        continue; // brief introuvable, on n'y touche pas
+      }
+      const text = fs.readFileSync(abs, 'utf8');
+      const marker = findMarkerForTask(text, task);
+      if (!marker) continue;
+
+      const detected = statusFromMarker(marker);
+      if (!detected) continue;
+
+      // Respecte un blocage manuel sauf si le brief dit explicitement "validé".
+      if (task.status === 'blocked' && detected !== 'done') continue;
+
+      if (detected !== task.status) {
+        changes.push({
+          id: task.id,
+          from: task.status,
+          to: detected,
+          marker: marker.trim().slice(0, 160)
+        });
+        task.status = detected;
+        task.updatedAt = now;
+      }
+    }
+  }
+
+  if (changes.length) writeRoadmap(roadmap);
+  res.json({ ok: true, changed: changes.length, changes });
+});
+
 // --- Démarrage (localhost uniquement) ----------------------------------------
 
 app.listen(PORT, '127.0.0.1', () => {
