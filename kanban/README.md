@@ -55,3 +55,8 @@ vérifier que la commande pointe bien vers ce dossier :
 
 Le serveur écoute uniquement sur `127.0.0.1` (pas d'exposition réseau).
 Seule dépendance : `express`. Aucun framework front (vanilla JS).
+
+## Historique
+
+- **2026-06-01** — Création du système kanban (51 tâches sur les 8 blocs A-H
+  de production copy/contenu). Source de vérité : `roadmap.json`.
