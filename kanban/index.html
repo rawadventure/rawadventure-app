@@ -67,7 +67,7 @@
     /* --- Board --- */
     .board {
       display: grid;
-      grid-template-columns: repeat(4, 1fr);
+      grid-template-columns: repeat(5, 1fr);
       gap: 12px;
       padding: 16px 20px;
       align-items: start;
@@ -160,6 +160,7 @@
   <div class="board" id="board">
     <div class="column" data-status="todo"><h2><span>À faire</span><span data-count="todo">0</span></h2><div class="cards" data-status="todo"></div></div>
     <div class="column" data-status="doing"><h2><span>En cours</span><span data-count="doing">0</span></h2><div class="cards" data-status="doing"></div></div>
+    <div class="column" data-status="review"><h2><span>À vérifier (Mimi &amp; Jacky)</span><span data-count="review">0</span></h2><div class="cards" data-status="review"></div></div>
     <div class="column" data-status="done"><h2><span>Fait</span><span data-count="done">0</span></h2><div class="cards" data-status="done"></div></div>
     <div class="column" data-status="blocked"><h2><span>Bloqué</span><span data-count="blocked">0</span></h2><div class="cards" data-status="blocked"></div></div>
   </div>
@@ -198,10 +199,10 @@
     }
 
     function render() {
-      const statuses = ['todo', 'doing', 'done', 'blocked'];
+      const statuses = ['todo', 'doing', 'review', 'done', 'blocked'];
       // Vide les colonnes.
       document.querySelectorAll('.cards').forEach((c) => (c.innerHTML = ''));
-      const counts = { todo: 0, doing: 0, done: 0, blocked: 0 };
+      const counts = { todo: 0, doing: 0, review: 0, done: 0, blocked: 0 };
 
       for (const { task, block } of allTasks()) {
         const st = statuses.includes(task.status) ? task.status : 'todo';

@@ -48,7 +48,7 @@ app.get('/roadmap.json', (req, res) => {
 // Déplacement de carte entre colonnes
 app.post('/update-status', (req, res) => {
   const { taskId, status } = req.body;
-  const allowed = ['todo', 'doing', 'done', 'blocked'];
+  const allowed = ['todo', 'doing', 'review', 'done', 'blocked'];
   if (!taskId || !allowed.includes(status)) {
     return res.status(400).json({ error: 'taskId ou status invalide' });
   }

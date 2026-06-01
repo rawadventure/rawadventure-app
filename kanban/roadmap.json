@@ -8,100 +8,100 @@
         {
           "id": "A-J1",
           "label": "J1 — Démarrage sans enthousiasme",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J2",
           "label": "J2 — Première routine",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:41:51.488Z"
         },
         {
           "id": "A-J3",
           "label": "J3 — Premiers ressentis",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J4",
           "label": "J4 — Installation",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J5",
           "label": "J5 — Continuité",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J6",
           "label": "J6 — Mi-parcours premier palier",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J7",
           "label": "J7 — Première semaine bouclée",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J8",
           "label": "J8 — Reprise",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J9",
           "label": "J9 — Régularité",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J10",
           "label": "J10 — Ancrage",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J11",
           "label": "J11 — Approche de la fin",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J12",
           "label": "J12 — Avant-dernier jour",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J13",
           "label": "J13 — Veille de bilan",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "A-J14",
           "label": "J14 — Clôture Phase 0",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -113,37 +113,37 @@
         {
           "id": "B-J3",
           "label": "J3 — Écran charnière",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "B-J7",
           "label": "J7 — Écran charnière",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "B-J11",
           "label": "J11 — Écran charnière",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "B-J14",
           "label": "J14 — Écran charnière",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "B-bonus-D26",
           "label": "Bonus — Soft-rappel D26 (sous seuil 5/7)",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -155,30 +155,30 @@
         {
           "id": "C-S0.1-video",
           "label": "S0.1 — Script vidéo (célébration + toile)",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "C-S0.1-textes",
           "label": "S0.1 — Textes écran",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "C-S0.2-video",
           "label": "S0.2 — Script vidéo (roadmap + éval S1)",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "C-S0.2-textes",
           "label": "S0.2 — Textes écran",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -190,58 +190,58 @@
         {
           "id": "D-palier-7j",
           "label": "Palier 7 jours — script + message",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-palier-15j",
           "label": "Palier 15 jours — script + message",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-palier-30j",
           "label": "Palier 30 jours — script + message",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-palier-60j",
           "label": "Palier 60 jours — script + message",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-palier-100j",
           "label": "Palier 100 jours — script + message",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-palier-365j",
           "label": "Palier 1 an — script + message",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-redeclenchement-D29",
           "label": "Redéclenchement allégé D29 — message court",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "D-footnote-IA51",
           "label": "Footnote galerie paliers IA-51",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -253,37 +253,37 @@
         {
           "id": "E-IA22-video",
           "label": "IA-22 — Script vidéo sortie S8",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "E-IA22-textes",
           "label": "IA-22 — Textes écran sortie S8",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "E-IA23-textes",
           "label": "IA-23 — Textes mode consolidation libre",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "E-IA60-modale",
           "label": "IA-60 — Modale proposition mentorat",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "E-ConsolidationHome-textes",
           "label": "ConsolidationHome — Textes accueil consolidation",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -295,9 +295,9 @@
         {
           "id": "F-IA12-video",
           "label": "IA-12 — Script vidéo bienvenue (textes déjà OK)",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     },
@@ -309,9 +309,9 @@
         {
           "id": "G-S2",
           "label": "S2 — Activité physique",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s2-activite-physique-v1.md",
           "subtasks": [
             "type",
@@ -326,9 +326,9 @@
         {
           "id": "G-S3",
           "label": "S3 — Alimentation",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s3-alimentation-v1.md",
           "subtasks": [
             "type",
@@ -343,9 +343,9 @@
         {
           "id": "G-S4",
           "label": "S4 — Connexion au vivant",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s4-connexion-vivant-v1.md",
           "subtasks": [
             "type",
@@ -360,9 +360,9 @@
         {
           "id": "G-S5",
           "label": "S5 — Repos et régénération",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s5-repos-regeneration-v1.md",
           "subtasks": [
             "type",
@@ -377,9 +377,9 @@
         {
           "id": "G-S6",
           "label": "S6 — Passion et chemin de vie",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s6-passion-v1.md",
           "subtasks": [
             "type",
@@ -394,9 +394,9 @@
         {
           "id": "G-S7",
           "label": "S7 — Mindset",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null,
+          "updatedAt": "2026-06-01T05:40:58.484Z",
           "brief": "docs/contenu/brief-pilier-s7-mindset-v1.md",
           "subtasks": [
             "type",
@@ -435,51 +435,51 @@
         {
           "id": "H-D12-decisions",
           "label": "D12 — Décisions fréquence/contenu notifications",
-          "status": "todo",
+          "status": "blocked",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-rappel-quotidien-7variantes",
           "label": "Rappel quotidien — 7 variantes",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-observation-4notifs",
           "label": "Observation — 4 notifications",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-encouragement-3cas",
           "label": "Encouragement — 3 cas",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-fond-Phase0-Phase1",
           "label": "Message de fond — Phase 0 et Phase 1",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-paliers-streak-6",
           "label": "Notifs paliers streak — 6",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         },
         {
           "id": "H-permission-prompt",
           "label": "Permission prompt notifications",
-          "status": "todo",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": null
+          "updatedAt": "2026-06-01T05:40:58.484Z"
         }
       ]
     }
