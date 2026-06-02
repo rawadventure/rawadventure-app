@@ -46,6 +46,12 @@ interface AuthContextType {
   resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>;
   updateUserPassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
   clearPasswordRecoveryMode: () => void;
+  /**
+   * Sprint B email confirm — renvoie l'email de confirmation après signup.
+   * Utile si l'email initial est tombé en spam ou si l'utilisateur tarde
+   * à cliquer le lien.
+   */
+  resendConfirmationEmail: (email: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -89,7 +95,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUpWithPassword = useCallback(
     async (email: string, password: string): Promise<AuthResult> => {
-      const { data, error } = await supabase.auth.signUp({ email, password });
+      // Sprint B email confirm — passe le redirect deep link pour que le clic
+      // sur le lien email ouvre l'app et déclenche `SIGNED_IN`. Si Supabase a
+      // "Confirm email" OFF en dashboard, `data.session` arrive directement.
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: { emailRedirectTo: 'rawadventure://confirm-email' },
+      });
       return { user: data.user ?? null, error };
     },
     [],
@@ -127,6 +140,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPasswordRecoveryMode(false);
   }, []);
 
+  const resendConfirmationEmail = useCallback(
+    async (email: string): Promise<{ error: AuthError | null }> => {
+      const { error } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: { emailRedirectTo: 'rawadventure://confirm-email' },
+      });
+      return { error };
+    },
+    [],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -140,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         resetPasswordForEmail,
         updateUserPassword,
         clearPasswordRecoveryMode,
+        resendConfirmationEmail,
       }}
     >
       {children}

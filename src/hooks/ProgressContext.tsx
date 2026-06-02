@@ -130,6 +130,13 @@ interface ProgressContextType {
    *  après que l'utilisateur ait créé son compte à IA-10. Appelle obligatoirement
    *  avec un `userId` valide (issu de `signUpWithPassword`). */
   migrateLocalToRemote: (userId: string, accountCreatedAtIso: string) => Promise<void>;
+  /** Sprint B email confirm — pose la pendingMigration en AsyncStorage au signup
+   *  (avant confirmation email). Sera consommée par useEffect quand session arrive. */
+  markPendingMigration: (userId: string, accountCreatedAtIso: string) => Promise<void>;
+  /** Sprint B email confirm — true si signup fait + confirmation email en attente. */
+  pendingMigration: PendingMigration | null;
+  /** Sprint B email confirm — efface la pendingMigration (annulation ou reset). */
+  clearPendingMigration: () => Promise<void>;
 
   // ── lifecycle
   completeOnboarding: (
@@ -146,6 +153,12 @@ interface ProgressContextType {
   /** D30 — vide le palier différé après affichage. */
   clearPendingTier: () => Promise<void>;
 }
+
+export type PendingMigration = {
+  userId: string;
+  accountCreatedAt: string;
+  email?: string;
+};
 
 export type PendingTierReach = {
   tierId: TierId;
@@ -223,6 +236,9 @@ const LOCAL_KEYS = {
   currentPillarId: 'current_pillar_id',
   pillarStartedAt: 'pillar_started_at',
   pendingTierReach: 'pending_tier_reach',
+  /** Sprint B email confirm — userId + accountCreatedAt stockés au signup
+   *  pour migration différée quand la session arrive post-confirmation. */
+  pendingMigration: 'pending_migration',
 };
 
 /**
@@ -282,6 +298,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // D30 — palier différé suite à collision narrative (typique : palier 15j
   // tombe le même jour que S0.1 → S0.1 prime, palier différé d'un cran).
   const [pendingTierReach, setPendingTierReachState] = useState<PendingTierReach | null>(null);
+
+  // Sprint B email confirm — userId/accountCreatedAt en attente de migration
+  // (signup fait, email confirmation en attente). Restauré au load.
+  const [pendingMigration, setPendingMigrationState] = useState<PendingMigration | null>(null);
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -378,6 +398,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
     const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
     if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
+
+    // Sprint B email confirm — restaure pendingMigration si signup en attente.
+    const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
+    if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
   };
 
   const loadFromAsyncStorage = async () => {
@@ -416,6 +440,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
     const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
     if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
+
+    const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
+    if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
   };
 
   const setPendingTier = useCallback(async (pending: PendingTierReach) => {
@@ -426,6 +453,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const clearPendingTier = useCallback(async () => {
     setPendingTierReachState(null);
     await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
+  }, []);
+
+  // Sprint B email confirm — pendingMigration getters/setters.
+  const markPendingMigration = useCallback(
+    async (userId: string, accountCreatedAtIso: string) => {
+      const pm: PendingMigration = { userId, accountCreatedAt: accountCreatedAtIso };
+      setPendingMigrationState(pm);
+      await AsyncStorage.setItem(LOCAL_KEYS.pendingMigration, JSON.stringify(pm));
+    },
+    [],
+  );
+
+  const clearPendingMigration = useCallback(async () => {
+    setPendingMigrationState(null);
+    await AsyncStorage.removeItem(LOCAL_KEYS.pendingMigration);
   }, []);
 
   const markNarrativeSeen = useCallback(
@@ -1040,7 +1082,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setPillarStartedAt(null);
     setS8FinalCompleted(false);
     setPendingTierReachState(null);
+    setPendingMigrationState(null);
     await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
+    await AsyncStorage.removeItem(LOCAL_KEYS.pendingMigration);
     if (user) {
       await AsyncStorage.multiRemove([
         LOCAL_KEYS.narrativeFlags,
@@ -1072,6 +1116,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
     }
   }, [user]);
+
+  // Sprint B email confirm — Migration différée. Quand la session arrive
+  // (utilisateur a cliqué le lien de confirmation dans son email) et qu'une
+  // pendingMigration matchant userId est en attente, on déclenche la migration
+  // AsyncStorage → Supabase et on efface le pending.
+  useEffect(() => {
+    if (!user || !pendingMigration) return;
+    if (user.id !== pendingMigration.userId) return;
+    void (async () => {
+      try {
+        await migrateLocalToRemote(pendingMigration.userId, pendingMigration.accountCreatedAt);
+        await clearPendingMigration();
+      } catch (e) {
+        // Migration échouée — on garde pendingMigration pour retry au prochain load.
+        console.warn('Pending migration failed', e);
+      }
+    })();
+  }, [user, pendingMigration, migrateLocalToRemote, clearPendingMigration]);
 
   return (
     <ProgressContext.Provider
@@ -1106,6 +1168,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         pendingTierReach,
         setPendingTier,
         clearPendingTier,
+        markPendingMigration,
+        pendingMigration,
+        clearPendingMigration,
       }}
     >
       {children}

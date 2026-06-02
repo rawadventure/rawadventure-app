@@ -43,6 +43,7 @@ import { getInterFamily } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { hoursUntilNextLocalMidnight } from '../../lib/calendar';
+import { supabase } from '../../lib/supabase';
 
 const D24_THRESHOLD_HOURS = 4;
 
@@ -63,7 +64,7 @@ export type RegisterScreenProps = {
 
 export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
   const { signUpWithPassword, signInWithPassword, resetPasswordForEmail } = useAuth();
-  const { migrateLocalToRemote } = useProgress();
+  const { migrateLocalToRemote, markPendingMigration } = useProgress();
   const [mode, setMode] = useState<Mode>('register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -134,12 +135,40 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
       // D24 : fenêtre démarrage différé ?
       const hoursRemaining = hoursUntilNextLocalMidnight();
       const requiresStartChoice = hoursRemaining > 0 && hoursRemaining <= D24_THRESHOLD_HOURS;
+      const accountCreatedAtIso = new Date().toISOString();
 
-      // Migration AsyncStorage → Supabase (M7+A3). accountCreatedAt provisoire
-      // en cas de D24 ; IA-10b le réécrira.
-      await migrateLocalToRemote(user.id, new Date().toISOString());
+      // Sprint B email confirm — Supabase a "Confirm email" ON. Si on n'a pas
+      // de session immédiate, on stocke pendingMigration et on affiche
+      // EmailPendingScreen via RootNavigator. La migration se déclenche
+      // automatiquement quand la session arrive post-confirmation.
+      //
+      // Note : on stocke aussi l'email pour permettre le renvoi du lien.
+      await markPendingMigration(user.id, accountCreatedAtIso);
+      // Patch direct du pending pour ajouter l'email (markPendingMigration
+      // ne le prend pas en arg pour rester compatible reset). Re-set ici.
+      const { default: AsyncStorage } = await import(
+        '@react-native-async-storage/async-storage'
+      );
+      await AsyncStorage.setItem(
+        'pending_migration',
+        JSON.stringify({
+          userId: user.id,
+          accountCreatedAt: accountCreatedAtIso,
+          email: email.trim(),
+        }),
+      );
 
-      onRegistered({ requiresStartChoice });
+      // Si Supabase a renvoyé une session immédiatement (Confirm email OFF
+      // côté dashboard), on peut migrer tout de suite et passer à la suite.
+      // Sinon, RootNavigator détectera pendingMigration et affichera
+      // EmailPendingScreen.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData.session) {
+        await migrateLocalToRemote(user.id, accountCreatedAtIso);
+        onRegistered({ requiresStartChoice });
+      }
+      // Sinon : on laisse RootNavigator router vers EmailPendingScreen au
+      // prochain render via pendingMigration. Pas de callback onRegistered.
     } catch (e: any) {
       Alert.alert('Erreur', e.message ?? 'Erreur inconnue');
     } finally {

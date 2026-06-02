@@ -28,6 +28,7 @@ import { useProgress } from '../hooks/ProgressContext';
 import OnboardingScreen from '../screens/v1/OnboardingScreenV1';
 import RegisterScreen from '../screens/v1/RegisterScreen';
 import ResetPasswordConfirmScreen from '../screens/v1/ResetPasswordConfirmScreen';
+import EmailPendingScreen from '../screens/v1/EmailPendingScreen';
 import StartChoiceScreen from '../screens/v1/StartChoiceScreen';
 import WaitingScreen from '../screens/v1/WaitingScreen';
 import TabNavigator from './TabNavigator';
@@ -57,6 +58,7 @@ export default function RootNavigator() {
     accountCreatedAt,
     currentDay,
     completeOnboarding,
+    pendingMigration,
   } = useProgress();
 
   // État transitoire post-register : si IA-10 a déterminé qu'on est dans la
@@ -92,6 +94,14 @@ export default function RootNavigator() {
         }}
       />
     );
+  }
+
+  // 2a. Sprint B email confirm — Signup fait, en attente confirmation email.
+  //     Affiché tant que pendingMigration existe et que la session n'est pas
+  //     encore arrivée. La migration se déclenche automatiquement post-confirm
+  //     via useEffect dans ProgressContext.
+  if (!session && pendingMigration) {
+    return <EmailPendingScreen />;
   }
 
   // 2. Onboarding terminé mais pas de compte → IA-10 RegisterScreen
