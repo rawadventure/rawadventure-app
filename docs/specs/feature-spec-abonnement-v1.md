@@ -1,7 +1,7 @@
 # Feature Spec — Abonnement Raw Adventure V1.0
 
-**Date** : 1 juin 2026
-**Statut** : V1.0 draft — décisions Mimi validées via questionnaire (session 1 juin 2026)
+**Date** : 2 juin 2026
+**Statut** : V1.0 draft — décisions Mimi validées via questionnaire (session 1-2 juin 2026)
 **Cadrage** : Feature Spec V1 socle minimum + roadmap contenu 2 ans
 **Dépendances** : Stripe (paiement), Supabase (état abonnement), ProgressContext (gating)
 
@@ -56,13 +56,13 @@ L'app reste **100 % gratuite** sur les stores. Le paiement se fait **hors-app** 
 - ✅ Mention "Gérer mon abonnement" autorisée
 - ❌ Pas de bouton "Acheter" ou "S'abonner" direct dans l'app
 - ❌ Pas de prix affiché dans l'app
-- ✅ Message neutre type "Pour continuer, terminez votre inscription sur rawadventure.app"
+- ✅ Message neutre type "Pour continuer, terminez votre inscription sur rawadventure.world"
 
 ### Implémentation
 
 1. Paywall in-app affiche message + CTA "Continuer mon parcours" (pas "Payer")
-2. CTA ouvre WebBrowser (`expo-web-browser`) sur `https://rawadventure.app/checkout?userId={uid}`
-3. Stripe Checkout hébergé sur site web (Next.js séparé ou Stripe Payment Link)
+2. CTA ouvre WebBrowser (`expo-web-browser`) sur **Stripe Payment Link** dédié (URL fournie par Stripe)
+3. Stripe Payment Link gère checkout (3 produits : mensuel 49 €, 6 mois 239 €, 12 mois 399 €)
 4. Webhook Stripe → Supabase Edge Function → update `profiles.subscription_status`
 5. Retour app via deep link `rawadventure://subscription-success`
 6. App re-fetch `subscription_status`, débloque Phase 1
@@ -125,7 +125,7 @@ type SubscriptionState = {
 - Titre : *"Tu as terminé la Phase 0."*
 - Sous-titre : *"14 jours pour préparer ton corps. La suite commence maintenant."*
 - Récap : streak Phase 0 + branches Toile éveillées
-- CTA principal : "Continuer mon parcours" → ouvre WebBrowser checkout
+- CTA principal : "Continuer mon parcours" → ouvre WebBrowser sur Stripe Payment Link
 - CTA secondaire : "Plus tard" → ferme app, revient à Phase 0 lecture seule
 - Mention légale : conditions, RGPD, lien CGU
 
@@ -208,7 +208,7 @@ Hors-scope V1 abonnement. À chaque fin de phase :
 
 1. **Table Supabase** `subscriptions` + RLS policies
 2. **Webhook Stripe → Edge Function** `stripe-webhook.ts` (events : `customer.subscription.created/updated/deleted`, `invoice.paid`, `invoice.payment_failed`)
-3. **Site web checkout** minimaliste (Next.js ou Stripe Payment Link) — décision Mimi
+3. **Stripe Payment Link** (V1) — 3 produits config dashboard Stripe, pas de site custom
 4. **`SubscriptionContext`** ou extension `ProgressContext` avec état abonnement
 5. **`PaywallScreen.tsx`** modal fin Phase 0
 6. **Deep link handler** `rawadventure://subscription-success`
@@ -263,9 +263,21 @@ Hors-scope V1 abonnement. À chaque fin de phase :
 |---|---|
 | Copy paywall fin Phase 0 | Mimi |
 | Copy bandeaux lapse / past_due | Mimi |
-| Décision site web checkout (Next.js custom vs Stripe Payment Link) | Stéphane + dev |
 | Conformité légale CGU 18+ / mineurs | Avocat / RGPD |
 | Stratégie marketing app store description | Mimi |
+
+---
+
+## 12bis. Décisions infra validées (2 juin 2026)
+
+| Sujet | Décision |
+|---|---|
+| Site checkout | **Stripe Payment Link** (pas de site custom V1) |
+| Compte Apple Developer | **Organization** — société HK |
+| DUNS Number | À demander via https://developer.apple.com/enroll/duns-lookup/ (gratuit, délai 5j-2sem) |
+| Domaine | **rawadventure.world** (déjà possédé) |
+| Email support | **support@rawadventure.world** via Proton Mail Business (custom domain) |
+| Deep link scheme | `rawadventure://` |
 
 ---
 
@@ -285,10 +297,12 @@ Hors-scope V1 abonnement. À chaque fin de phase :
 ## 14. Prochaines étapes
 
 1. **Mimi** : valider copy paywall + copy bandeaux lapse
-2. **Stéphane** : décider infra site web checkout (Next.js minimal vs Stripe Payment Link)
-3. **Stéphane** : créer compte Stripe + produits + prix
-4. **Dev** : implémenter périmètre §9.1 (Sprint dédié)
-5. **Stéphane** : valider conformité App Store via TestFlight beta avant submit
+2. **Stéphane** : créer compte Stripe + 3 produits (49 € / 239 € / 399 €) + Payment Link
+3. **Stéphane** : lancer demande DUNS Apple (parallèle, délai 5j-2sem)
+4. **Stéphane** : ajouter custom domain rawadventure.world à Proton Mail + créer `support@`
+5. **Stéphane** : démarrer inscription Apple Developer Organization (HK) une fois DUNS reçu
+6. **Dev** : implémenter périmètre §9.1 (Sprint dédié)
+7. **Stéphane** : valider conformité App Store via TestFlight beta avant submit
 
 ---
 
