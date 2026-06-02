@@ -20,22 +20,20 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
+import PasswordInput from '../../components/PasswordInput';
+import { isValidPassword } from '../../lib/validation';
 import {
-  brandColors,
   interTextStyle,
   layout,
   neutralColors,
   pillarColors,
-  radiusV1,
   space,
 } from '../../theme';
-import { getInterFamily } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 
 export default function ResetPasswordConfirmScreen() {
@@ -49,7 +47,7 @@ export default function ResetPasswordConfirmScreen() {
       Alert.alert('Champs manquants', 'Saisis le nouveau mot de passe deux fois.');
       return;
     }
-    if (password.length < 6) {
+    if (!isValidPassword(password)) {
       Alert.alert('Mot de passe trop court', '6 caractères minimum.');
       return;
     }
@@ -96,23 +94,17 @@ export default function ResetPasswordConfirmScreen() {
             </Text>
 
             <View style={styles.inputs}>
-              <TextInput
-                style={styles.input}
+              <PasswordInput
                 placeholder="Nouveau mot de passe"
                 placeholderTextColor={neutralColors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
                 autoComplete="password-new"
                 value={password}
                 onChangeText={setPassword}
                 editable={!loading}
               />
-              <TextInput
-                style={styles.input}
+              <PasswordInput
                 placeholder="Confirme le mot de passe"
                 placeholderTextColor={neutralColors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
                 autoComplete="password-new"
                 value={confirm}
                 onChangeText={setConfirm}
@@ -171,16 +163,5 @@ const styles = StyleSheet.create({
     marginTop: space[4],
   },
   inputs: { gap: space[3], marginTop: space[6] },
-  input: {
-    backgroundColor: neutralColors.surfaceElevated,
-    borderRadius: radiusV1.md,
-    borderWidth: 1.5,
-    borderColor: neutralColors.borderVisible,
-    paddingHorizontal: space[4],
-    paddingVertical: space[3],
-    fontFamily: getInterFamily('400'),
-    fontSize: 17,
-    color: brandColors.deep,
-  },
   actions: { gap: space[3], marginBottom: space[5] },
 });

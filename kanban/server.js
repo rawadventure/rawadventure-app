@@ -232,6 +232,10 @@ app.post('/sync', (req, res) => {
 
   for (const block of roadmap.blocks) {
     for (const task of block.tasks) {
+      // Tâches de dev (setup, roadmap) : pas de marqueur **Statut** dans un brief,
+      // statut piloté manuellement par drag & drop. On ne les touche jamais au sync.
+      if (task.noSync) continue;
+
       const briefRel = task.brief || block.brief;
       const abs = path.resolve(PROJECT_PATH, briefRel || '');
       if (!briefRel || !abs.startsWith(PROJECT_PATH + path.sep) || !fs.existsSync(abs)) {

@@ -40,6 +40,16 @@ interface AuthContextType {
    * réussi ou annulation utilisateur.
    */
   passwordRecoveryMode: boolean;
+  /**
+   * Sprint C polish auth — true si la dernière déconnexion a été déclenchée
+   * par Supabase suite à un échec de refresh token (session expirée /
+   * utilisateur supprimé / refresh révoqué). Permet à RegisterScreen d'afficher
+   * un bandeau explicite "Ta session a expiré, reconnecte-toi" au lieu de
+   * laisser l'utilisateur perplexe. Repassé à false dès qu'une nouvelle
+   * connexion réussit.
+   */
+  sessionExpired: boolean;
+  clearSessionExpired: () => void;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
   signUpWithPassword: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
@@ -60,25 +70,44 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
+  const [sessionExpired, setSessionExpired] = useState(false);
 
   useEffect(() => {
+    let hadSession = false;
     // Récupère la session existante au démarrage.
     supabase.auth
       .getSession()
       .then(({ data }) => {
         setSession(data.session ?? null);
+        hadSession = !!data.session;
       })
       .finally(() => setLoading(false));
 
     // Écoute les changements d'état d'authentification (signIn / signOut / refresh).
     // Sprint A auth — capte `PASSWORD_RECOVERY` déclenché quand l'utilisateur
     // arrive depuis le lien email de reset (deep link `rawadventure://...`).
+    // Sprint C polish auth — détecte session expirée (SIGNED_OUT après
+    // refresh raté ou USER_DELETED).
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
       if (event === 'PASSWORD_RECOVERY') {
         setPasswordRecoveryMode(true);
+      }
+      // Heuristique : un SIGNED_OUT alors qu'on avait une session active
+      // sans appel explicite à signOut() côté UI = session expirée. On ne
+      // peut pas distinguer parfaitement, mais ce flag est juste un signal
+      // UX. Le flag est posé ; UI le clear quand utile.
+      if (event === 'SIGNED_OUT' && hadSession) {
+        setSessionExpired(true);
+      }
+      if (event === 'SIGNED_IN') {
+        setSessionExpired(false);
+        hadSession = true;
+      }
+      if (event === 'TOKEN_REFRESHED') {
+        hadSession = true;
       }
     });
 
@@ -140,6 +169,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setPasswordRecoveryMode(false);
   }, []);
 
+  const clearSessionExpired = useCallback(() => {
+    setSessionExpired(false);
+  }, []);
+
   const resendConfirmationEmail = useCallback(
     async (email: string): Promise<{ error: AuthError | null }> => {
       const { error } = await supabase.auth.resend({
@@ -159,6 +192,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user: session?.user ?? null,
         loading,
         passwordRecoveryMode,
+        sessionExpired,
+        clearSessionExpired,
         signInWithPassword,
         signUpWithPassword,
         signOut,

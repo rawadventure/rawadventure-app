@@ -30,6 +30,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
+import PasswordInput from '../../components/PasswordInput';
+import { isValidEmail, isValidPassword } from '../../lib/validation';
 import {
   brandColors,
   interTextStyle,
@@ -63,9 +65,17 @@ export type RegisterScreenProps = {
 };
 
 export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
-  const { signUpWithPassword, signInWithPassword, resetPasswordForEmail } = useAuth();
+  const {
+    signUpWithPassword,
+    signInWithPassword,
+    resetPasswordForEmail,
+    sessionExpired,
+    clearSessionExpired,
+  } = useAuth();
   const { migrateLocalToRemote, markPendingMigration } = useProgress();
-  const [mode, setMode] = useState<Mode>('register');
+  // Si on arrive ici suite à une session expirée (Sprint C polish auth),
+  // on bascule directement sur le mode signin pour réduire la friction.
+  const [mode, setMode] = useState<Mode>(sessionExpired ? 'signin' : 'register');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -75,6 +85,10 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
     if (mode === 'forgot') {
       if (!email) {
         Alert.alert('Email manquant', 'Saisis ton email pour recevoir le lien.');
+        return;
+      }
+      if (!isValidEmail(email)) {
+        Alert.alert('Email invalide', 'Vérifie le format de ton email.');
         return;
       }
       setLoading(true);
@@ -99,7 +113,11 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
       Alert.alert('Champs manquants', 'Email et mot de passe requis.');
       return;
     }
-    if (mode === 'register' && password.length < 6) {
+    if (!isValidEmail(email)) {
+      Alert.alert('Email invalide', 'Vérifie le format de ton email.');
+      return;
+    }
+    if (mode === 'register' && !isValidPassword(password)) {
       Alert.alert('Mot de passe trop court', '6 caractères minimum.');
       return;
     }
@@ -112,6 +130,7 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
           setLoading(false);
           return;
         }
+        clearSessionExpired();
         // Session reçue via onAuthStateChange → ProgressContext recharge.
         // Le routeur bascule vers TabNavigator automatiquement.
         // Pas de callback onRegistered ni de migration ici : l'utilisateur a
@@ -207,8 +226,15 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
       >
         <View style={styles.body}>
           <View>
+            {sessionExpired && mode === 'signin' && (
+              <View style={styles.expiredBanner}>
+                <Text style={styles.expiredBannerText}>
+                  Ta session a expiré. Reconnecte-toi pour reprendre ton parcours.
+                </Text>
+              </View>
+            )}
             <Text style={styles.marker}>
-              {isRegister ? 'ÉTAPE 10 SUR 10' : 'CONNEXION'}
+              {isRegister ? 'ÉTAPE 10 SUR 10' : isForgot ? 'MOT DE PASSE OUBLIÉ' : 'CONNEXION'}
             </Text>
             <Text style={styles.title}>{title}</Text>
             <Text style={styles.subtitle}>{subtitle}</Text>
@@ -226,14 +252,11 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
                 editable={!loading}
               />
               {!isForgot && (
-                <TextInput
-                  style={styles.input}
+                <PasswordInput
                   placeholder={
                     isRegister ? 'Mot de passe (6 caractères min)' : 'Mot de passe'
                   }
                   placeholderTextColor={neutralColors.textMuted}
-                  secureTextEntry
-                  autoCapitalize="none"
                   autoComplete={isRegister ? 'password-new' : 'current-password'}
                   value={password}
                   onChangeText={setPassword}
@@ -331,5 +354,17 @@ const styles = StyleSheet.create({
     color: pillarColors.phase0.text,
     opacity: 0.7,
     textAlign: 'center',
+  },
+  expiredBanner: {
+    backgroundColor: neutralColors.surfaceElevated,
+    borderRadius: radiusV1.md,
+    borderLeftWidth: 3,
+    borderLeftColor: brandColors.deep,
+    padding: space[3],
+    marginBottom: space[5],
+  },
+  expiredBannerText: {
+    ...interTextStyle('body'),
+    color: brandColors.deep,
   },
 });
