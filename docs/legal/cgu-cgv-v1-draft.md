@@ -3,11 +3,17 @@
 **Version V1.0 — Draft Claude du 2 juin 2026**
 **Statut** : Brouillon adapté pour relecture / validation Mimi + adaptation finale Stéphane. **Pas validé juridiquement.** Pour conformité stricte, consulter avocat spécialisé.
 
-**Champs à compléter manuellement avant publication** (marqués `[À COMPLÉTER]`) :
-- Raison sociale exacte société HK
-- Numéro registre commerce HK
-- Adresse siège social
+**Infos société renseignées (2 juin 2026)** :
+- Raison sociale : **Raw Adventure Limited**
+- Forme : Hong Kong Limited Company
+- CR Number : **80310100**
+- Adresse : **Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong**
+
+**Champs restants à compléter avant publication** (marqués `[À COMPLÉTER]`) :
+- Directeur de la publication (nom)
 - Date dernière mise à jour à chaque modification
+- URL hébergement
+- Décision droit applicable (HK vs France)
 
 ---
 
@@ -23,12 +29,12 @@ En créant un compte ou en utilisant l'Application, tu acceptes sans réserve l'
 
 L'Application Raw Adventure est éditée par :
 
-- **Raison sociale** : `[À COMPLÉTER]`
-- **Forme juridique** : `[À COMPLÉTER, ex: Limited Company Hong Kong]`
-- **Numéro d'immatriculation** : `[À COMPLÉTER : Companies Registry HK]`
-- **Siège social** : `[À COMPLÉTER : adresse complète]`
+- **Raison sociale** : Raw Adventure Limited
+- **Forme juridique** : Hong Kong Limited Company
+- **Numéro d'immatriculation (CR Number)** : 80310100
+- **Siège social** : Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
 - **Email de contact** : support@rawadventure.world
-- **Directeur de la publication** : `[À COMPLÉTER]`
+- **Directeur de la publication** : `[À COMPLÉTER : nom]`
 
 L'Application est hébergée sur l'infrastructure de Supabase Inc. (970 Toa Payoh North #07-04, Singapour) pour la base de données utilisateur, et sur les serveurs d'Apple Inc. et Google LLC pour la distribution mobile.
 

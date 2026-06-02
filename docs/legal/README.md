@@ -18,18 +18,19 @@ Drafts générés par Claude à partir :
 - Cadre RGPD européen
 - Société HK + paiements EUR
 
-## Champs à compléter avant publication
+## Infos société renseignées (2 juin 2026)
 
-Tous marqués `[À COMPLÉTER]` dans les drafts. Liste consolidée :
-- Raison sociale exacte société HK
-- Forme juridique
-- Numéro d'immatriculation Companies Registry HK
-- Adresse siège social
-- Directeur de publication
-- URLs hébergées des documents finaux
-- Médiateur consommation FR (si applicable)
-- Juridiction compétente (HK vs France)
-- Droit applicable
+- Raison sociale : **Raw Adventure Limited**
+- Forme : Hong Kong Limited Company
+- CR Number : **80310100**
+- Adresse : Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
+
+## Champs restants à compléter
+
+- Directeur de la publication (nom)
+- URLs hébergées des documents finaux (rawadventure.world/cgu, /privacy)
+- Médiateur consommation FR (si applicable — selon droit applicable choisi)
+- Décision droit applicable (HK vs France)
 
 ## Workflow recommandé
 

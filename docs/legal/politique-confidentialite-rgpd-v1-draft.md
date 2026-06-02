@@ -9,7 +9,7 @@
 
 ## 1. Qui sommes-nous ?
 
-L'Application **Raw Adventure** est éditée par `[À COMPLÉTER : raison sociale]`, société `[forme juridique]` enregistrée à Hong Kong sous le numéro `[immatriculation]`, dont le siège social est `[adresse]`. (« l'Éditeur », « nous »).
+L'Application **Raw Adventure** est éditée par **Raw Adventure Limited**, Hong Kong Limited Company enregistrée sous le numéro **80310100**, dont le siège social est **Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong** (« l'Éditeur », « nous »).
 
 L'Éditeur est responsable de traitement au sens du Règlement (UE) 2016/679 du 27 avril 2016 (« RGPD »).
 
