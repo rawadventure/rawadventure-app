@@ -27,6 +27,7 @@ import { useAuth } from '../hooks/AuthContext';
 import { useProgress } from '../hooks/ProgressContext';
 import OnboardingScreen from '../screens/v1/OnboardingScreenV1';
 import RegisterScreen from '../screens/v1/RegisterScreen';
+import ResetPasswordConfirmScreen from '../screens/v1/ResetPasswordConfirmScreen';
 import StartChoiceScreen from '../screens/v1/StartChoiceScreen';
 import WaitingScreen from '../screens/v1/WaitingScreen';
 import TabNavigator from './TabNavigator';
@@ -49,7 +50,7 @@ function LoadingScreen() {
 }
 
 export default function RootNavigator() {
-  const { session, loading: authLoading } = useAuth();
+  const { session, loading: authLoading, passwordRecoveryMode } = useAuth();
   const {
     loading: progressLoading,
     onboardingDone,
@@ -65,6 +66,13 @@ export default function RootNavigator() {
   // Chargement initial (auth + données)
   if (authLoading || progressLoading) {
     return <LoadingScreen />;
+  }
+
+  // 0. Password recovery (deep link reçu depuis email reset) — prime sur tout.
+  //    Une session de récupération existe mais l'utilisateur doit créer un
+  //    nouveau mot de passe avant de poursuivre. Sprint A auth.
+  if (passwordRecoveryMode) {
+    return <ResetPasswordConfirmScreen />;
   }
 
   // 1. Onboarding pas terminé → 10 slides (mode anonyme si pas de session,

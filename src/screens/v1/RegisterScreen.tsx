@@ -46,7 +46,7 @@ import { hoursUntilNextLocalMidnight } from '../../lib/calendar';
 
 const D24_THRESHOLD_HOURS = 4;
 
-type Mode = 'register' | 'signin';
+type Mode = 'register' | 'signin' | 'forgot';
 
 export type RegisterScreenProps = {
   /**
@@ -62,7 +62,7 @@ export type RegisterScreenProps = {
 };
 
 export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
-  const { signUpWithPassword, signInWithPassword } = useAuth();
+  const { signUpWithPassword, signInWithPassword, resetPasswordForEmail } = useAuth();
   const { migrateLocalToRemote } = useProgress();
   const [mode, setMode] = useState<Mode>('register');
   const [email, setEmail] = useState('');
@@ -70,6 +70,30 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
+    // Mode forgot : email seul, pas de password.
+    if (mode === 'forgot') {
+      if (!email) {
+        Alert.alert('Email manquant', 'Saisis ton email pour recevoir le lien.');
+        return;
+      }
+      setLoading(true);
+      try {
+        const { error } = await resetPasswordForEmail(email.trim());
+        if (error) {
+          Alert.alert('Envoi échoué', error.message);
+          return;
+        }
+        Alert.alert(
+          'Email envoyé',
+          'Vérifie ta boîte mail. Le lien te ramène dans l\'app pour créer un nouveau mot de passe.',
+          [{ text: 'OK', onPress: () => setMode('signin') }],
+        );
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!email || !password) {
       Alert.alert('Champs manquants', 'Email et mot de passe requis.');
       return;
@@ -124,12 +148,27 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
   };
 
   const isRegister = mode === 'register';
-  const title = isRegister ? 'On crée ton compte.' : 'Te revoilà.';
-  const subtitle = isRegister
-    ? 'Tes 14 premiers jours sont gratuits. On a juste besoin de ton email pour sauvegarder ta progression.'
-    : 'Connecte-toi avec ton email pour retrouver ton parcours.';
-  const ctaLabel = isRegister ? 'Créer mon compte' : 'Me connecter';
-  const toggleLabel = isRegister ? "J'ai déjà un compte" : 'Créer un compte';
+  const isForgot = mode === 'forgot';
+  const title = isForgot
+    ? 'Mot de passe oublié.'
+    : isRegister
+      ? 'On crée ton compte.'
+      : 'Te revoilà.';
+  const subtitle = isForgot
+    ? 'Saisis ton email. On t\'envoie un lien pour créer un nouveau mot de passe.'
+    : isRegister
+      ? 'Tes 14 premiers jours sont gratuits. On a juste besoin de ton email pour sauvegarder ta progression.'
+      : 'Connecte-toi avec ton email pour retrouver ton parcours.';
+  const ctaLabel = isForgot
+    ? 'Recevoir le lien'
+    : isRegister
+      ? 'Créer mon compte'
+      : 'Me connecter';
+  const toggleLabel = isForgot
+    ? 'Retour à la connexion'
+    : isRegister
+      ? "J'ai déjà un compte"
+      : 'Créer un compte';
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -157,19 +196,21 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
                 onChangeText={setEmail}
                 editable={!loading}
               />
-              <TextInput
-                style={styles.input}
-                placeholder={
-                  isRegister ? 'Mot de passe (6 caractères min)' : 'Mot de passe'
-                }
-                placeholderTextColor={neutralColors.textMuted}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete={isRegister ? 'password-new' : 'current-password'}
-                value={password}
-                onChangeText={setPassword}
-                editable={!loading}
-              />
+              {!isForgot && (
+                <TextInput
+                  style={styles.input}
+                  placeholder={
+                    isRegister ? 'Mot de passe (6 caractères min)' : 'Mot de passe'
+                  }
+                  placeholderTextColor={neutralColors.textMuted}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  autoComplete={isRegister ? 'password-new' : 'current-password'}
+                  value={password}
+                  onChangeText={setPassword}
+                  editable={!loading}
+                />
+              )}
             </View>
           </View>
 
@@ -185,10 +226,25 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
             <Button
               label={toggleLabel}
               variant="ghost"
-              onPress={() => setMode(isRegister ? 'signin' : 'register')}
+              onPress={() => {
+                if (isForgot) {
+                  setMode('signin');
+                } else {
+                  setMode(isRegister ? 'signin' : 'register');
+                }
+              }}
               disabled={loading}
               fullWidth
             />
+            {mode === 'signin' && (
+              <Button
+                label="Mot de passe oublié ?"
+                variant="ghost"
+                onPress={() => setMode('forgot')}
+                disabled={loading}
+                fullWidth
+              />
+            )}
             {isRegister && (
               <Text style={styles.fine}>
                 En créant ton compte, tu acceptes nos CGU et notre politique de

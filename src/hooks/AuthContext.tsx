@@ -33,9 +33,19 @@ interface AuthContextType {
   session: Session | null;
   user: User | null;
   loading: boolean;
+  /**
+   * Sprint A auth — true quand Supabase a déclenché `PASSWORD_RECOVERY`
+   * (deep link reçu depuis l'email de reset). Le RootNavigator bascule alors
+   * sur `ResetPasswordConfirmScreen`. Repassé à false après `updateUserPassword`
+   * réussi ou annulation utilisateur.
+   */
+  passwordRecoveryMode: boolean;
   signInWithPassword: (email: string, password: string) => Promise<AuthResult>;
   signUpWithPassword: (email: string, password: string) => Promise<AuthResult>;
   signOut: () => Promise<void>;
+  resetPasswordForEmail: (email: string) => Promise<{ error: AuthError | null }>;
+  updateUserPassword: (newPassword: string) => Promise<{ error: AuthError | null }>;
+  clearPasswordRecoveryMode: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -43,6 +53,7 @@ const AuthContext = createContext<AuthContextType | null>(null);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [passwordRecoveryMode, setPasswordRecoveryMode] = useState(false);
 
   useEffect(() => {
     // Récupère la session existante au démarrage.
@@ -54,10 +65,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setLoading(false));
 
     // Écoute les changements d'état d'authentification (signIn / signOut / refresh).
+    // Sprint A auth — capte `PASSWORD_RECOVERY` déclenché quand l'utilisateur
+    // arrive depuis le lien email de reset (deep link `rawadventure://...`).
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, newSession) => {
+    } = supabase.auth.onAuthStateChange((event, newSession) => {
       setSession(newSession);
+      if (event === 'PASSWORD_RECOVERY') {
+        setPasswordRecoveryMode(true);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -83,15 +99,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await supabase.auth.signOut();
   }, []);
 
+  const resetPasswordForEmail = useCallback(
+    async (email: string): Promise<{ error: AuthError | null }> => {
+      // Deep link cible IA-Reset. Le scheme `rawadventure://` est déclaré
+      // dans app.json. Supabase ajoute ses tokens en fragment d'URL et
+      // déclenche `PASSWORD_RECOVERY` côté client à l'ouverture.
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: 'rawadventure://reset-password',
+      });
+      return { error };
+    },
+    [],
+  );
+
+  const updateUserPassword = useCallback(
+    async (newPassword: string): Promise<{ error: AuthError | null }> => {
+      const { error } = await supabase.auth.updateUser({ password: newPassword });
+      if (!error) {
+        setPasswordRecoveryMode(false);
+      }
+      return { error };
+    },
+    [],
+  );
+
+  const clearPasswordRecoveryMode = useCallback(() => {
+    setPasswordRecoveryMode(false);
+  }, []);
+
   return (
     <AuthContext.Provider
       value={{
         session,
         user: session?.user ?? null,
         loading,
+        passwordRecoveryMode,
         signInWithPassword,
         signUpWithPassword,
         signOut,
+        resetPasswordForEmail,
+        updateUserPassword,
+        clearPasswordRecoveryMode,
       }}
     >
       {children}

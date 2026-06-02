@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import * as Linking from 'expo-linking';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import {
@@ -40,6 +41,25 @@ export type RootStackParamList = {
 // l'app est prête à s'afficher (polices Inter chargées).
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
+/**
+ * Linking config — Sprint A auth + futur Sprint abonnement.
+ *
+ * Scheme `rawadventure://` déclaré dans app.json. Permet à Supabase de
+ * rappeler l'app depuis le lien email de reset password
+ * (`rawadventure://reset-password#access_token=...`). Stripe Payment Link
+ * utilisera plus tard `rawadventure://subscription-success`.
+ *
+ * Pas de mapping de routes ici — la gestion se fait via les events
+ * Supabase (`PASSWORD_RECOVERY`) captés dans AuthContext. NavigationContainer
+ * a juste besoin du prefix pour ne pas bloquer l'ouverture du deep link.
+ */
+const linking: LinkingOptions<ReactNavigation.RootParamList> = {
+  prefixes: [Linking.createURL('/'), 'rawadventure://'],
+  config: {
+    screens: {},
+  },
+};
+
 export default function App() {
   // 5 poids Inter du design system V1.1 §3.2
   const [fontsLoaded, fontError] = useFonts({
@@ -71,7 +91,7 @@ export default function App() {
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
         <AuthProvider>
           <ProgressProvider>
-            <NavigationContainer>
+            <NavigationContainer linking={linking}>
               <StatusBar style="dark" />
               <RootNavigator />
             </NavigationContainer>
