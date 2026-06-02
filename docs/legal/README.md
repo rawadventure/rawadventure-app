@@ -31,14 +31,14 @@ Drafts générés par Claude à partir :
 - **Juridiction B2C** : tribunaux français
 - **Juridiction B2B** : tribunaux de Hong Kong (siège Éditeur)
 - **Éditeur déclaré** : Raw Adventure Limited (HK) — société reste HK
-- **Médiation** : médiateur conso FR agréé + plateforme RLL UE
+- **Médiation** : Option B — résolution amiable préalable (60 jours) + référence générique art. L.612-1 + plateforme RLL UE. Pas d'adhésion médiateur nommé V1. Migration vers adhésion FEVAD/CNPM/AME quand seuil ~100 clients actifs ou premier litige.
 - TVA : Stripe Tax à activer post-premiers clients (cf. Feature Spec abonnement §12bis)
 
 ## Champs restants à compléter
 
 - Directeur de la publication (nom)
 - URLs hébergées des documents finaux (rawadventure.world/cgu, /privacy)
-- Médiateur conso FR agréé (choix parmi liste economie.gouv.fr)
+- Médiateur conso FR agréé : différé (Option B) — à activer quand volume ou litige justifie
 
 ## Workflow recommandé
 

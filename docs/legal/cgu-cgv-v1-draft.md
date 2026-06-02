@@ -250,7 +250,9 @@ Pour toute question ou réclamation, l'Utilisateur contacte : **support@rawadven
 
 L'Éditeur s'engage à répondre dans un délai raisonnable, en principe sous 5 jours ouvrés.
 
-En cas de litige non résolu amiablement, l'Utilisateur consommateur résidant en France peut recourir gratuitement à un médiateur de la consommation. L'Éditeur adhère au service de médiation `[À COMPLÉTER : nom du médiateur agréé, ex : CNPM Médiation Consommation, Médiateur du e-commerce de la FEVAD, etc.]`.
+Tout litige fera l'objet d'une **recherche de résolution amiable préalable obligatoire**. L'Utilisateur adresse sa réclamation à support@rawadventure.world. L'Éditeur s'engage à répondre dans un délai raisonnable et à proposer une solution dans les 60 jours.
+
+En cas d'échec de la résolution amiable, l'Utilisateur consommateur peut saisir un médiateur de la consommation agréé conformément à l'article L.612-1 du Code de la consommation. La liste des médiateurs agréés est disponible sur economie.gouv.fr.
 
 L'Utilisateur résidant dans l'Union européenne peut également recourir à la plateforme européenne de règlement en ligne des litiges (RLL) : https://ec.europa.eu/consumers/odr.
 
