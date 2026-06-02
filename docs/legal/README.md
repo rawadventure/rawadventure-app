@@ -8,7 +8,7 @@ Ce dossier contient les **drafts** des documents légaux à publier avant launch
 |---|---|---|
 | `cgu-cgv-v1-draft.md` | Draft Claude V1.0 | Relecture Mimi + adaptation Stéphane + avocat recommandé |
 | `politique-confidentialite-rgpd-v1-draft.md` | Draft Claude V1.0 | Relecture Mimi + adaptation Stéphane + avocat / DPO recommandé |
-| `mentions-legales-v1-draft.md` | À produire | — |
+| `mentions-legales-v1-draft.md` | Draft Claude V1.0 | Relecture Mimi + adaptation Stéphane |
 
 ## Méthode de production
 
@@ -36,8 +36,9 @@ Drafts générés par Claude à partir :
 
 ## Champs restants à compléter
 
-- Directeur de la publication (nom)
-- URLs hébergées des documents finaux (rawadventure.world/cgu, /privacy)
+- Directeur de la publication (nom + qualité)
+- Capital social Raw Adventure Limited (HKD)
+- URLs hébergées des documents finaux (rawadventure.fr/cgu, /politique-confidentialite, /mentions-legales) — Wix pages à créer
 - Médiateur conso FR agréé : différé (Option B) — à activer quand volume ou litige justifie
 
 ## Workflow recommandé
