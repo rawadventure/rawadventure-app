@@ -13,7 +13,12 @@
 - Directeur de la publication (nom)
 - Date dernière mise à jour à chaque modification
 - URL hébergement
-- Décision droit applicable (HK vs France)
+
+**Décisions actées (2 juin 2026)** :
+- Droit applicable : **droit français**
+- Juridiction B2C : **tribunaux français** (selon Code procédure civile)
+- Juridiction B2B : tribunaux de Hong Kong (siège Éditeur)
+- Éditeur : Raw Adventure Limited (HK) reste la société déclarée
 
 ---
 
@@ -245,15 +250,21 @@ Pour toute question ou réclamation, l'Utilisateur contacte : **support@rawadven
 
 L'Éditeur s'engage à répondre dans un délai raisonnable, en principe sous 5 jours ouvrés.
 
-En cas de litige non résolu amiablement, l'Utilisateur peut recourir au médiateur de la consommation compétent dans son pays de résidence. Pour la France : `[À COMPLÉTER : médiateur compétent]`.
+En cas de litige non résolu amiablement, l'Utilisateur consommateur résidant en France peut recourir gratuitement à un médiateur de la consommation. L'Éditeur adhère au service de médiation `[À COMPLÉTER : nom du médiateur agréé, ex : CNPM Médiation Consommation, Médiateur du e-commerce de la FEVAD, etc.]`.
+
+L'Utilisateur résidant dans l'Union européenne peut également recourir à la plateforme européenne de règlement en ligne des litiges (RLL) : https://ec.europa.eu/consumers/odr.
 
 ---
 
 ## Article 14 — Droit applicable et juridiction
 
-Les Conditions sont régies par le droit `[À COMPLÉTER : Hong Kong ou France selon arbitrage]`.
+Les Conditions sont régies par le **droit français**.
 
-En cas de litige, et après tentative de résolution amiable, compétence est attribuée aux tribunaux compétents de `[À COMPLÉTER]`, sous réserve des règles impératives de protection des consommateurs applicables à l'Utilisateur.
+En cas de litige avec un Utilisateur consommateur, et après tentative de résolution amiable, compétence est attribuée aux **tribunaux français compétents** selon les règles du Code de procédure civile (en principe, juridiction du lieu de résidence de l'Utilisateur ou du lieu d'exécution de la prestation).
+
+Pour tout litige n'opposant pas un consommateur (relations B2B avec partenaires éventuels), compétence est attribuée aux **tribunaux de Hong Kong**, lieu du siège social de l'Éditeur.
+
+Les dispositions impératives de protection des consommateurs applicables à l'Utilisateur restent en tout état de cause garanties.
 
 ---
 

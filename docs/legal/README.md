@@ -25,12 +25,20 @@ Drafts générés par Claude à partir :
 - CR Number : **80310100**
 - Adresse : Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
 
+## Décisions actées (2 juin 2026)
+
+- **Droit applicable** : droit français
+- **Juridiction B2C** : tribunaux français
+- **Juridiction B2B** : tribunaux de Hong Kong (siège Éditeur)
+- **Éditeur déclaré** : Raw Adventure Limited (HK) — société reste HK
+- **Médiation** : médiateur conso FR agréé + plateforme RLL UE
+- TVA : Stripe Tax à activer post-premiers clients (cf. Feature Spec abonnement §12bis)
+
 ## Champs restants à compléter
 
 - Directeur de la publication (nom)
 - URLs hébergées des documents finaux (rawadventure.world/cgu, /privacy)
-- Médiateur consommation FR (si applicable — selon droit applicable choisi)
-- Décision droit applicable (HK vs France)
+- Médiateur conso FR agréé (choix parmi liste economie.gouv.fr)
 
 ## Workflow recommandé
 
