@@ -1,0 +1,25 @@
+# Jekyll config — site légal Raw Adventure (rawadventure.world)
+# GitHub Pages déploie automatiquement depuis ce dossier.
+
+title: Raw Adventure — Documents légaux
+description: Conditions générales, politique de confidentialité et mentions légales de Raw Adventure Limited.
+url: "https://rawadventure.world"
+lang: fr
+
+# Pas de plugins externes (compatibilité GitHub Pages strict)
+markdown: kramdown
+highlighter: rouge
+permalink: /:title/
+
+# Exclude raw .md drafts originaux (uniquement les versions formatées du site)
+exclude:
+  - README.md
+  - Gemfile
+  - Gemfile.lock
+
+# Defaults — applique layout `default` à toutes les pages
+defaults:
+  - scope:
+      path: ""
+    values:
+      layout: default
