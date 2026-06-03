@@ -260,7 +260,8 @@ export type NarrativeEventId =
   | 'phase0_to_s1_transition' // IA-45
   | 's8_exit_screen'           // IA-22
   | 'consolidation_intro_seen' // IA-23
-  | 'mentorat_proposal_seen';  // IA-60
+  | 'mentorat_proposal_seen'   // IA-60
+  | 'notif_permission_prompted'; // Sprint notifications — prompt natif déclenché J1
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 

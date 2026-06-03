@@ -37,7 +37,13 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Check, CheckCircle2 } from 'lucide-react-native';
 import { Button, Card } from '../../components/primitives';
+import NotificationPermissionBanner from '../../components/NotificationPermissionBanner';
 import { PillarHeader, TierReachedModal } from '../../components/compositions';
+import {
+  getNotificationPermissionStatus,
+  requestNotificationPermission,
+  type PermissionStatus,
+} from '../../lib/notifications';
 import { DailyCheckModal } from '../../components/compositions/DailyCheckModal';
 import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
 import S01Screen from './S01Screen';
@@ -90,6 +96,7 @@ export default function HomeScreenV1() {
     narrativeFlags,
     markNarrativeSeen,
     currentPillarId,
+    accountCreatedAt,
     pendingTierReach,
     setPendingTier,
     clearPendingTier,
@@ -121,6 +128,9 @@ export default function HomeScreenV1() {
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+
+  // Sprint notif UX — statut natif de permission, met à jour banner dynamique.
+  const [notifPermission, setNotifPermission] = useState<PermissionStatus>('undetermined');
 
   // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
   const alreadyValidatedToday = useMemo(
@@ -161,6 +171,48 @@ export default function HomeScreenV1() {
       void markNarrativeSeen('s0_2_screen');
     }
   }, [currentDay, narrativeFlags, markNarrativeSeen, showS01, showS02, showWelcomeVideo]);
+
+  // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
+  // le flag pour ne pas redemander. Si granted, replanifie les notifs Phase 0
+  // (la migration les a peut-être schedulées sans permission au moment-là).
+  useEffect(() => {
+    if (currentDay !== 1) return;
+    if (narrativeFlags.notif_permission_prompted) {
+      // Déjà demandée — juste lit le statut courant pour banner.
+      void (async () => {
+        const status = await getNotificationPermissionStatus();
+        setNotifPermission(status);
+      })();
+      return;
+    }
+    void (async () => {
+      const status = await requestNotificationPermission();
+      setNotifPermission(status);
+      await markNarrativeSeen('notif_permission_prompted');
+      if (status === 'granted' && accountCreatedAt) {
+        try {
+          const { schedulePhase0Notifications } = await import(
+            '../../lib/phase0-scheduler'
+          );
+          await schedulePhase0Notifications(new Date(accountCreatedAt));
+        } catch (e) {
+          console.warn('Phase 0 notifs scheduling failed', e);
+        }
+      }
+    })();
+  }, [currentDay, narrativeFlags.notif_permission_prompted, markNarrativeSeen, accountCreatedAt]);
+
+  // Re-check statut chaque fois que l'écran reprend le focus (user a pu changer
+  // dans les Réglages système entre temps).
+  useEffect(() => {
+    const unsubscribe = navigation.addListener('focus', () => {
+      void (async () => {
+        const status = await getNotificationPermissionStatus();
+        setNotifPermission(status);
+      })();
+    });
+    return unsubscribe;
+  }, [navigation]);
 
   // Charge l'état du jour depuis AsyncStorage au mount.
   useEffect(() => {
@@ -326,6 +378,8 @@ export default function HomeScreenV1() {
             )}
 
             <Text style={styles.message}>{messageDuJour}</Text>
+
+            {notifPermission === 'denied' && <NotificationPermissionBanner />}
 
             <Card title="Actions du jour" subtitle={`${checkedCount} / ${PHASE_0_TOTAL} cochées`} variant="forte">
               <View style={styles.actionsList}>
