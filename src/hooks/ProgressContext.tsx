@@ -914,6 +914,18 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         ]);
       }
 
+      // 5) Sprint notifications Phase 0 — annule le rappel soir 20h du jour
+      //    courant si on est en Phase 0 (action validée → pas besoin de rappel).
+      //    Non-bloquant.
+      if (phase === 'phase_0' && args.day != null) {
+        try {
+          const { cancelTodayReminder } = await import('../lib/phase0-scheduler');
+          await cancelTodayReminder(args.day);
+        } catch (e) {
+          console.warn('cancelTodayReminder failed', e);
+        }
+      }
+
       return { newStreak, jokerUsed: decision.jokerUsed, tierReached, tierIsFirstReach };
     },
     [

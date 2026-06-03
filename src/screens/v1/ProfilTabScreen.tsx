@@ -277,7 +277,7 @@ export default function ProfilTabScreen() {
                     );
                     Alert.alert(
                       'Notifications Phase 0',
-                      `Planifiées : ${res.scheduled}\nSkip (passées) : ${res.skipped}\nPermission denied : ${res.permissionDenied}`,
+                      `Matin 8h : ${res.morningScheduled}\nRappel soir 20h : ${res.reminderScheduled}\nSkip (passées) : ${res.skipped}\nPermission denied : ${res.permissionDenied}`,
                     );
                   }}
                   fullWidth
