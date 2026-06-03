@@ -520,7 +520,12 @@
           "label": "Installer les briques techniques (polices Inter, écran de démarrage)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["node_modules/@expo-google-fonts/inter", "node_modules/expo-splash-screen"] },
+          "check": {
+            "exists": [
+              "node_modules/@expo-google-fonts/inter",
+              "node_modules/expo-splash-screen"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -529,7 +534,11 @@
           "label": "Fichier de configuration de l'app (réglages centralisés app.config.ts)",
           "status": "todo",
           "noSync": true,
-          "check": { "exists": ["app.config.ts"] },
+          "check": {
+            "exists": [
+              "app.config.ts"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -538,7 +547,11 @@
           "label": "Modèle de fichier des clés privées (.env.example)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": [".env.example"] },
+          "check": {
+            "exists": [
+              ".env.example"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -547,7 +560,14 @@
           "label": "Sortir la clé Supabase du code (la ranger dans un fichier privé)",
           "status": "done",
           "noSync": true,
-          "check": { "contains": [["src/lib/supabase.ts", "EXPO_PUBLIC_SUPABASE_URL"]] },
+          "check": {
+            "contains": [
+              [
+                "src/lib/supabase.ts",
+                "EXPO_PUBLIC_SUPABASE_URL"
+              ]
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -556,7 +576,11 @@
           "label": "Supprimer un ancien fichier en double (useProgress)",
           "status": "done",
           "noSync": true,
-          "check": { "absent": ["src/hooks/useProgress.ts"] },
+          "check": {
+            "absent": [
+              "src/hooks/useProgress.ts"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -565,7 +589,11 @@
           "label": "Mettre de côté l'écran prototype Phase 1 (ProtocolScreen)",
           "status": "done",
           "noSync": true,
-          "check": { "absent": ["src/screens/ProtocolScreen.tsx"] },
+          "check": {
+            "absent": [
+              "src/screens/ProtocolScreen.tsx"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -574,7 +602,12 @@
           "label": "Outils de style : couleurs par pilier + tailles de texte adaptatives",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/theme/usePillarTheme.ts", "src/theme/useScaledFontSize.ts"] },
+          "check": {
+            "exists": [
+              "src/theme/usePillarTheme.ts",
+              "src/theme/useScaledFontSize.ts"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -583,16 +616,27 @@
           "label": "Palette centrale du design (couleurs, typos, espacements)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/theme/index.ts"] },
+          "check": {
+            "exists": [
+              "src/theme/index.ts"
+            ]
+          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T03:59:39.872Z"
         },
         {
           "id": "Z-SETUP-fonts",
           "label": "Charger les polices au lancement + écran d'attente propre",
           "status": "done",
           "noSync": true,
-          "check": { "contains": [["App.tsx", "useFonts"]] },
+          "check": {
+            "contains": [
+              [
+                "App.tsx",
+                "useFonts"
+              ]
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -601,7 +645,11 @@
           "label": "Composant logo Raw Adventure",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/components/illustrations/LogoRawAdventure.tsx"] },
+          "check": {
+            "exists": [
+              "src/components/illustrations/LogoRawAdventure.tsx"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -610,7 +658,14 @@
           "label": "Ranger les composants par dossiers (boutons, blocs, toile, illustrations)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/components/primitives", "src/components/compositions", "src/components/toile", "src/components/illustrations"] },
+          "check": {
+            "exists": [
+              "src/components/primitives",
+              "src/components/compositions",
+              "src/components/toile",
+              "src/components/illustrations"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         }
@@ -626,7 +681,11 @@
           "label": "Étape 1 — Faire le ménage dans le code existant",
           "status": "done",
           "noSync": true,
-          "check": { "absent": ["src/hooks/useProgress.ts"] },
+          "check": {
+            "absent": [
+              "src/hooks/useProgress.ts"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -635,7 +694,11 @@
           "label": "Étape 2 — Créer la base de données (tables Supabase)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["docs/migrations/001-v1-tables.sql"] },
+          "check": {
+            "exists": [
+              "docs/migrations/001-v1-tables.sql"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -644,7 +707,17 @@
           "label": "Étape 3 — Moteur du parcours : calendrier réel, streak, joker (5 actions/7)",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/lib/streak.ts"], "contains": [["src/hooks/ProgressContext.tsx", "currentDay"]] },
+          "check": {
+            "exists": [
+              "src/lib/streak.ts"
+            ],
+            "contains": [
+              [
+                "src/hooks/ProgressContext.tsx",
+                "currentDay"
+              ]
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -653,7 +726,12 @@
           "label": "Étape 4 — Inscription après l'onboarding + sauvegarde des données en ligne",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/screens/v1/OnboardingScreenV1.tsx", "src/screens/v1/RegisterScreen.tsx"] },
+          "check": {
+            "exists": [
+              "src/screens/v1/OnboardingScreenV1.tsx",
+              "src/screens/v1/RegisterScreen.tsx"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -662,7 +740,11 @@
           "label": "Étape 4 (suite) — Mot de passe oublié + lien de réinitialisation",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/screens/v1/ResetPasswordConfirmScreen.tsx"] },
+          "check": {
+            "exists": [
+              "src/screens/v1/ResetPasswordConfirmScreen.tsx"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
@@ -671,7 +753,11 @@
           "label": "Étape 4 (suite) — Confirmation d'email à l'inscription",
           "status": "done",
           "noSync": true,
-          "check": { "exists": ["src/screens/v1/EmailPendingScreen.tsx"] },
+          "check": {
+            "exists": [
+              "src/screens/v1/EmailPendingScreen.tsx"
+            ]
+          },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
