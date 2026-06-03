@@ -31,6 +31,8 @@ import ResetPasswordConfirmScreen from '../screens/v1/ResetPasswordConfirmScreen
 import EmailPendingScreen from '../screens/v1/EmailPendingScreen';
 import StartChoiceScreen from '../screens/v1/StartChoiceScreen';
 import WaitingScreen from '../screens/v1/WaitingScreen';
+import PaywallScreen from '../screens/v1/PaywallScreen';
+import { useSubscription } from '../hooks/SubscriptionContext';
 import TabNavigator from './TabNavigator';
 import { brandColors } from '../theme';
 import { computeProfileDynamicId } from '../lib/onboarding';
@@ -57,16 +59,18 @@ export default function RootNavigator() {
     onboardingDone,
     accountCreatedAt,
     currentDay,
+    currentPhase,
     completeOnboarding,
     pendingMigration,
   } = useProgress();
+  const { isActive: subscriptionActive, loading: subscriptionLoading } = useSubscription();
 
   // État transitoire post-register : si IA-10 a déterminé qu'on est dans la
   // fenêtre D24 (<4h avant minuit local), on affiche IA-10b avant le hub.
   const [awaitingStartChoice, setAwaitingStartChoice] = useState(false);
 
-  // Chargement initial (auth + données)
-  if (authLoading || progressLoading) {
+  // Chargement initial (auth + données + subscription)
+  if (authLoading || progressLoading || subscriptionLoading) {
     return <LoadingScreen />;
   }
 
@@ -133,6 +137,15 @@ export default function RootNavigator() {
   // 4. Session + accountCreatedAt dans le futur → IA-10c WaitingScreen
   if (accountCreatedAt && new Date(accountCreatedAt).getTime() > Date.now()) {
     return <WaitingScreen onStartNow={() => { /* re-render via accountCreatedAt mise à jour */ }} />;
+  }
+
+  // 4.5 Paywall fin Phase 0 — Feature Spec abonnement V1 §5.
+  //     Bloque l'accès à Phase 1+ quand currentDay > 14 et abonnement non
+  //     actif. On laisse passer pendant Phase 0 (J1-J14) — la Phase 0 reste
+  //     accessible à vie en mode `free` (cf. §4.2 mapping état → accès).
+  //     `currentPhase !== 'phase_0'` couvre s0_1, s0_2, phase_1, post_s8.
+  if (currentPhase !== 'phase_0' && !subscriptionActive) {
+    return <PaywallScreen />;
   }
 
   // 5. Parcours actif (currentDay >= 1) → TabNavigator

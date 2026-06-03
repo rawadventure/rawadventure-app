@@ -16,6 +16,7 @@ import {
 
 import { AuthProvider } from './src/hooks/AuthContext';
 import { ProgressProvider } from './src/hooks/ProgressContext';
+import { SubscriptionProvider } from './src/hooks/SubscriptionContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import {
   configureAndroidChannel,
@@ -91,10 +92,12 @@ export default function App() {
       <View style={{ flex: 1 }} onLayout={onLayoutRootView}>
         <AuthProvider>
           <ProgressProvider>
-            <NavigationContainer linking={linking}>
-              <StatusBar style="dark" />
-              <RootNavigator />
-            </NavigationContainer>
+            <SubscriptionProvider>
+              <NavigationContainer linking={linking}>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </NavigationContainer>
+            </SubscriptionProvider>
           </ProgressProvider>
         </AuthProvider>
       </View>

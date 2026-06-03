@@ -26,6 +26,7 @@ import { Button, Card } from '../../components/primitives';
 import { brandColors, interTextStyle, neutralColors, space } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
+import { useSubscription } from '../../hooks/SubscriptionContext';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
 
 type Nav = NativeStackNavigationProp<ProfilStackParamList>;
@@ -33,6 +34,12 @@ type Nav = NativeStackNavigationProp<ProfilStackParamList>;
 export default function ProfilTabScreen() {
   const navigation = useNavigation<Nav>();
   const { user, signOut } = useAuth();
+  const {
+    state: subscriptionState,
+    isActive: subscriptionActive,
+    setMockSubscriptionState,
+    resetSubscription,
+  } = useSubscription();
   const {
     currentDay,
     currentPhase,
@@ -71,6 +78,27 @@ export default function ProfilTabScreen() {
                 {accountCreatedAt ? new Date(accountCreatedAt).toLocaleDateString('fr-FR') : '—'}
               </Text>
             </View>
+          </Card>
+
+          <Card title="Mon abonnement" subtitle={subscriptionState.status}>
+            <View style={styles.row}>
+              <Text style={styles.label}>Statut :</Text>
+              <Text style={styles.value}>{subscriptionState.status}</Text>
+            </View>
+            {subscriptionState.plan && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Plan :</Text>
+                <Text style={styles.value}>{subscriptionState.plan}</Text>
+              </View>
+            )}
+            {subscriptionState.renewsAt && (
+              <View style={styles.row}>
+                <Text style={styles.label}>Renouvellement :</Text>
+                <Text style={styles.value}>
+                  {new Date(subscriptionState.renewsAt).toLocaleDateString('fr-FR')}
+                </Text>
+              </View>
+            )}
           </Card>
 
           <Card title="Streak" subtitle={`Joker hebdo : ${jokerAvailable ? 'disponible' : 'consommé'}`}>
@@ -283,9 +311,65 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
+                  label={`(DEV) Subscription : ${subscriptionState.status}`}
+                  variant="ghost"
+                  onPress={() => {
+                    Alert.alert(
+                      'Subscription state',
+                      `status: ${subscriptionState.status}\nplan: ${subscriptionState.plan ?? '—'}\nrenewsAt: ${subscriptionState.renewsAt ?? '—'}\nisActive: ${subscriptionActive}`,
+                    );
+                  }}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Mock subscription → active monthly"
+                  variant="ghost"
+                  onPress={() => {
+                    const now = new Date();
+                    const renews = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+                    void setMockSubscriptionState({
+                      status: 'active',
+                      plan: 'monthly',
+                      startedAt: now.toISOString(),
+                      renewsAt: renews.toISOString(),
+                      cancelledAt: null,
+                    });
+                  }}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Mock subscription → expired"
+                  variant="ghost"
+                  onPress={() => {
+                    void setMockSubscriptionState({
+                      status: 'expired',
+                      plan: 'monthly',
+                      cancelledAt: new Date().toISOString(),
+                    });
+                  }}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Mock subscription → past_due"
+                  variant="ghost"
+                  onPress={() => {
+                    void setMockSubscriptionState({ status: 'past_due' });
+                  }}
+                  fullWidth
+                />
+                <Button
+                  label="(DEV) Reset subscription → free"
+                  variant="ghost"
+                  onPress={resetSubscription}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Reset complet"
                   variant="destructive"
-                  onPress={resetAll}
+                  onPress={async () => {
+                    await resetAll();
+                    await resetSubscription();
+                  }}
                   fullWidth
                 />
               </>
