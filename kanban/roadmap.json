@@ -972,7 +972,8 @@
           "label": "Configurer la fabrication des apps (EAS Build)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
         },
         {
           "id": "R6-4",

@@ -223,34 +223,6 @@ function findMarkerForTask(text, task) {
   return lines[statutIdx[0]];
 }
 
-// Évalue l'état réel du repo pour une tâche de dev (champ task.check).
-// La tâche est "réalisée" (done) si TOUTES les conditions sont vraies :
-//   check.exists   : [chemins] qui doivent exister (fichiers ou dossiers)
-//   check.absent   : [chemins] qui doivent NE PAS exister (suppressions/nettoyage)
-//   check.contains : [[chemin, sous-chaîne], ...] le fichier doit contenir la chaîne
-// Tout chemin est résolu dans le repo et confiné à celui-ci (sécurité).
-function isDevTaskDone(check) {
-  if (!check) return false;
-  const inRepo = (rel) => {
-    const abs = path.resolve(PROJECT_PATH, rel);
-    return abs.startsWith(PROJECT_PATH + path.sep) ? abs : null;
-  };
-  for (const rel of check.exists || []) {
-    const abs = inRepo(rel);
-    if (!abs || !fs.existsSync(abs)) return false;
-  }
-  for (const rel of check.absent || []) {
-    const abs = inRepo(rel);
-    if (!abs || fs.existsSync(abs)) return false;
-  }
-  for (const [rel, needle] of check.contains || []) {
-    const abs = inRepo(rel);
-    if (!abs || !fs.existsSync(abs)) return false;
-    if (!fs.readFileSync(abs, 'utf8').includes(needle)) return false;
-  }
-  return true;
-}
-
 // --- Bloc « Lancement » : généré depuis l'audit release (source de vérité) ----
 //
 // L'audit docs/release/phase0-release-readiness-audit.md est la photo fraîche et
