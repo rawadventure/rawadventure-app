@@ -257,6 +257,32 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
+                  label="(DEV) Replanifier notifs Phase 0"
+                  variant="ghost"
+                  onPress={async () => {
+                    const perm = await requestNotificationPermission();
+                    if (perm !== 'granted') {
+                      Alert.alert('Notifications', `Permission: ${perm}`);
+                      return;
+                    }
+                    if (!accountCreatedAt) {
+                      Alert.alert('Notifications', 'accountCreatedAt manquant — fais le parcours d\'abord');
+                      return;
+                    }
+                    const { schedulePhase0Notifications } = await import(
+                      '../../lib/phase0-scheduler'
+                    );
+                    const res = await schedulePhase0Notifications(
+                      new Date(accountCreatedAt),
+                    );
+                    Alert.alert(
+                      'Notifications Phase 0',
+                      `Planifiées : ${res.scheduled}\nSkip (passées) : ${res.skipped}\nPermission denied : ${res.permissionDenied}`,
+                    );
+                  }}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Reset complet"
                   variant="destructive"
                   onPress={resetAll}

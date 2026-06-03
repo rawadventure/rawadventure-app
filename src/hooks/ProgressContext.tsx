@@ -994,6 +994,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // 7. Met à jour le state in-memory accountCreatedAt pour que currentDay
       //    se recalcule immédiatement.
       setAccountCreatedAtState(accountCreatedAtIso);
+
+      // 8. Sprint notifications Phase 0 — planifie les 14 notifs J1-J14
+      //    si permission accordée. Idempotent : annule + replanifie.
+      //    Silencieux si permission denied (utilisateur peut activer
+      //    plus tard depuis Profil et déclencher la replanif manuelle).
+      try {
+        const { schedulePhase0Notifications } = await import(
+          '../lib/phase0-scheduler'
+        );
+        await schedulePhase0Notifications(new Date(accountCreatedAtIso));
+      } catch (e) {
+        // Pas bloquant — la migration est faite, les notifs sont un plus.
+        console.warn('Phase 0 notifications scheduling failed', e);
+      }
     },
     [
       onboardingData,
