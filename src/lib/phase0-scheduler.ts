@@ -7,7 +7,7 @@
  *
  * Logique :
  *  - À la migration post-confirmation email, on planifie en bloc :
- *      • 14 notifs matin (8h00 locales J1-J14)
+ *      • 14 notifs matin (7h00 locales J1-J14)
  *      • 14 rappels soir (20h00 locales J1-J14) — IDs stockés AsyncStorage
  *  - Quand l'utilisateur valide une action (premier coche de la journée),
  *    `cancelTodayReminder(currentDay)` annule le rappel soir de ce jour.
@@ -44,8 +44,8 @@ type ReminderIdMap = Record<string, string>; // key = day (string), value = noti
  * Calcule la date cible d'une notification du jour `dayIndex` (1-14) à
  * l'heure `hour` locale, par rapport à `accountCreatedAt`.
  *
- * Exemple : si accountCreatedAt = 2026-06-03T14:00 et dayIndex = 1, hour = 8
- * → trigger 2026-06-04T08:00 locales (le lendemain matin).
+ * Exemple : si accountCreatedAt = 2026-06-03T14:00 et dayIndex = 1, hour = 7
+ * → trigger 2026-06-04T07:00 locales (le lendemain matin).
  *
  * Si l'heure cible du jour J est déjà passée au moment de la planification,
  * la notification est skip (renvoie null).

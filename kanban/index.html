@@ -151,7 +151,7 @@
   <header>
     <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px">
       <h1 style="margin:0">Kanban — Production contenu Raw Adventure</h1>
-      <button id="sync-btn" title="Relit les marqueurs **Statut** des briefs et met à jour les statuts"
+      <button id="sync-btn" title="Relit les briefs (contenu) ET inspecte le code réalisé (tâches dev), puis met à jour les statuts"
         style="font-size:13px;padding:6px 12px;border:1px solid var(--line);background:var(--accent);color:#11140f;border-radius:6px;cursor:pointer;font-weight:600">
         Mettre à jour
       </button>
@@ -316,7 +316,7 @@
       refresh();
     }
 
-    // Bouton "Mettre à jour" : déclenche le scan des briefs côté serveur.
+    // Bouton "Mettre à jour" : scan des briefs (contenu) + inspection du code (dev) côté serveur.
     async function sync() {
       const btn = document.getElementById('sync-btn');
       btn.disabled = true;
@@ -325,10 +325,10 @@
         const res = await fetch('/sync', { method: 'POST' });
         const data = await res.json();
         if (data.changes && data.changes.length) {
-          console.table(data.changes); // détail from/to + marqueur détecté
-          toast(`${data.changed} tâche(s) mise(s) à jour depuis les briefs`);
+          console.table(data.changes); // détail from/to + source détectée
+          toast(`${data.changed} tâche(s) mise(s) à jour (briefs + code réalisé)`);
         } else {
-          toast('Aucun changement détecté dans les briefs');
+          toast('Aucun changement détecté (briefs + code)');
         }
         await refresh();
       } catch {

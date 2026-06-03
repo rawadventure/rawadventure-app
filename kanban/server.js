@@ -223,8 +223,40 @@ function findMarkerForTask(text, task) {
   return lines[statutIdx[0]];
 }
 
-// POST /sync — relit tous les briefs et applique les statuts détectés.
+// Évalue l'état réel du repo pour une tâche de dev (champ task.check).
+// La tâche est "réalisée" (done) si TOUTES les conditions sont vraies :
+//   check.exists   : [chemins] qui doivent exister (fichiers ou dossiers)
+//   check.absent   : [chemins] qui doivent NE PAS exister (suppressions/nettoyage)
+//   check.contains : [[chemin, sous-chaîne], ...] le fichier doit contenir la chaîne
+// Tout chemin est résolu dans le repo et confiné à celui-ci (sécurité).
+function isDevTaskDone(check) {
+  if (!check) return false;
+  const inRepo = (rel) => {
+    const abs = path.resolve(PROJECT_PATH, rel);
+    return abs.startsWith(PROJECT_PATH + path.sep) ? abs : null;
+  };
+  for (const rel of check.exists || []) {
+    const abs = inRepo(rel);
+    if (!abs || !fs.existsSync(abs)) return false;
+  }
+  for (const rel of check.absent || []) {
+    const abs = inRepo(rel);
+    if (!abs || fs.existsSync(abs)) return false;
+  }
+  for (const [rel, needle] of check.contains || []) {
+    const abs = inRepo(rel);
+    if (!abs || !fs.existsSync(abs)) return false;
+    if (!fs.readFileSync(abs, 'utf8').includes(needle)) return false;
+  }
+  return true;
+}
+
+// POST /sync — met à jour les statuts depuis deux sources :
+//   (1) tâches de contenu  : marqueurs **Statut** des briefs .md ;
+//   (2) tâches de dev      : état réel du repo (task.check).
 // Règles de préservation : un 'blocked' manuel reste 'blocked' sauf détection 'done'.
+// Côté dev, la détection ne fait que PROMOUVOIR vers 'done' (jamais de rétrogradation),
+// pour ne pas écraser un statut posé à la main par glisser-déposer.
 app.post('/sync', (req, res) => {
   const roadmap = readRoadmap();
   const changes = [];
@@ -232,9 +264,18 @@ app.post('/sync', (req, res) => {
 
   for (const block of roadmap.blocks) {
     for (const task of block.tasks) {
-      // Tâches de dev (setup, roadmap) : pas de marqueur **Statut** dans un brief,
-      // statut piloté manuellement par drag & drop. On ne les touche jamais au sync.
-      if (task.noSync) continue;
+      // Tâches de dev (setup, roadmap) : pas de marqueur **Statut** dans un brief.
+      // On détecte ce qui est réalisé en inspectant l'état réel du repo (task.check).
+      if (task.noSync) {
+        if (!task.check) continue;                 // pas de sonde : pilotage 100% manuel
+        if (task.status === 'done') continue;       // déjà fait, rien à promouvoir
+        if (task.status === 'blocked') continue;    // blocage manuel respecté
+        if (!isDevTaskDone(task.check)) continue;   // pas (encore) réalisé dans le repo
+        changes.push({ id: task.id, from: task.status, to: 'done', marker: 'détecté dans le repo' });
+        task.status = 'done';
+        task.updatedAt = now;
+        continue;
+      }
 
       const briefRel = task.brief || block.brief;
       const abs = path.resolve(PROJECT_PATH, briefRel || '');

@@ -26,14 +26,15 @@ import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
 import { Platform } from 'react-native';
 
-// ─── Plage silence (D32) ─────────────────────────────────────────────────────
+// ─── Plage silence (D32, ajusté 3 juin 2026) ────────────────────────────────
 
 const SILENCE_START_HOUR = 22; // 22h00 locales
-const SILENCE_END_HOUR = 8; // 08h00 locales
+const SILENCE_END_HOUR = 7; // 07h00 locales (ajusté pour attraper les français
+                            // qui se lèvent 6h-7h avant départ travail)
 
 /**
- * Vrai si la date donnée tombe dans la plage silence 22h00 → 08h00 locales.
- * Plage inclusive bas, exclusive haut : 22:00 inclus, 08:00 exclu.
+ * Vrai si la date donnée tombe dans la plage silence 22h00 → 07h00 locales.
+ * Plage inclusive bas, exclusive haut : 22:00 inclus, 07:00 exclu.
  */
 export function isInSilenceWindow(date: Date): boolean {
   const h = date.getHours();
@@ -41,17 +42,17 @@ export function isInSilenceWindow(date: Date): boolean {
 }
 
 /**
- * Décale une date vers le premier instant hors plage silence (08h00 du
+ * Décale une date vers le premier instant hors plage silence (07h00 du
  * jour ou lendemain). Si déjà hors plage, renvoie la date inchangée.
  */
 export function shiftOutOfSilence(date: Date): Date {
   if (!isInSilenceWindow(date)) return date;
   const shifted = new Date(date);
   if (date.getHours() < SILENCE_END_HOUR) {
-    // entre 00h et 08h → décale à 08h00 du même jour
+    // entre 00h et 07h → décale à 07h00 du même jour
     shifted.setHours(SILENCE_END_HOUR, 0, 0, 0);
   } else {
-    // entre 22h et minuit → décale à 08h00 lendemain
+    // entre 22h et minuit → décale à 07h00 lendemain
     shifted.setDate(shifted.getDate() + 1);
     shifted.setHours(SILENCE_END_HOUR, 0, 0, 0);
   }

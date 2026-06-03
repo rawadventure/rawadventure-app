@@ -512,94 +512,105 @@
     },
     {
       "id": "Z-SETUP",
-      "title": "Sprint 0 — Setup technique",
+      "title": "Préparation technique (avant de coder les écrans)",
       "brief": "docs/note-passation-claude-code-demarrage-v1.md",
       "tasks": [
         {
           "id": "Z-SETUP-deps",
-          "label": "Installation dépendances (fonts Inter, splash) — validation Stéphane",
+          "label": "Installer les briques techniques (polices Inter, écran de démarrage)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["node_modules/@expo-google-fonts/inter", "node_modules/expo-splash-screen"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-appconfig",
-          "label": "app.config.ts (config Expo typée)",
+          "label": "Fichier de configuration de l'app (réglages centralisés app.config.ts)",
           "status": "todo",
           "noSync": true,
+          "check": { "exists": ["app.config.ts"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-envexample",
-          "label": ".env.example (variables Supabase)",
+          "label": "Modèle de fichier des clés privées (.env.example)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": [".env.example"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-supabase-env",
-          "label": "Externalisation clé Supabase (process.env EXPO_PUBLIC_*)",
+          "label": "Sortir la clé Supabase du code (la ranger dans un fichier privé)",
           "status": "done",
           "noSync": true,
+          "check": { "contains": [["src/lib/supabase.ts", "EXPO_PUBLIC_SUPABASE_URL"]] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-useprogress",
-          "label": "Suppression useProgress.ts legacy",
+          "label": "Supprimer un ancien fichier en double (useProgress)",
           "status": "done",
           "noSync": true,
+          "check": { "absent": ["src/hooks/useProgress.ts"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-protocol",
-          "label": "ProtocolScreen — balisage / retrait prototype Phase 1",
+          "label": "Mettre de côté l'écran prototype Phase 1 (ProtocolScreen)",
           "status": "done",
           "noSync": true,
+          "check": { "absent": ["src/screens/ProtocolScreen.tsx"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-theme-hooks",
-          "label": "Hooks thème (usePillarTheme + useScaledFontSize)",
+          "label": "Outils de style : couleurs par pilier + tailles de texte adaptatives",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["src/theme/usePillarTheme.ts", "src/theme/useScaledFontSize.ts"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-theme-index",
-          "label": "theme/index.ts (tokens + helpers)",
+          "label": "Palette centrale du design (couleurs, typos, espacements)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["src/theme/index.ts"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-fonts",
-          "label": "App.tsx — useFonts Inter + splash gate",
+          "label": "Charger les polices au lancement + écran d'attente propre",
           "status": "done",
           "noSync": true,
+          "check": { "contains": [["App.tsx", "useFonts"]] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-logo",
-          "label": "LogoRawAdventure.tsx",
+          "label": "Composant logo Raw Adventure",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["src/components/illustrations/LogoRawAdventure.tsx"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-SETUP-dirs",
-          "label": "Dossiers components/{primitives,compositions,toile,illustrations}",
+          "label": "Ranger les composants par dossiers (boutons, blocs, toile, illustrations)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["src/components/primitives", "src/components/compositions", "src/components/toile", "src/components/illustrations"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         }
@@ -607,36 +618,66 @@
     },
     {
       "id": "Z-ROADMAP",
-      "title": "Roadmap dev V1 (note passation, étapes 1-8)",
+      "title": "Construction de l'app — étapes 1 à 8",
       "brief": "docs/note-passation-claude-code-demarrage-v1.md",
       "tasks": [
         {
           "id": "Z-ROADMAP-1",
-          "label": "Étape 1 — Audit repo + nettoyage technique",
+          "label": "Étape 1 — Faire le ménage dans le code existant",
           "status": "done",
           "noSync": true,
+          "check": { "absent": ["src/hooks/useProgress.ts"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-ROADMAP-2",
-          "label": "Étape 2 — Schéma Supabase (9 tables V1 + RLS)",
+          "label": "Étape 2 — Créer la base de données (tables Supabase)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["docs/migrations/001-v1-tables.sql"] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-ROADMAP-3",
-          "label": "Étape 3 — Refonte ProgressContext (calendaire / streak / joker 5/7)",
+          "label": "Étape 3 — Moteur du parcours : calendrier réel, streak, joker (5 actions/7)",
           "status": "done",
           "noSync": true,
+          "check": { "exists": ["src/lib/streak.ts"], "contains": [["src/hooks/ProgressContext.tsx", "currentDay"]] },
           "sessionId": null,
           "updatedAt": "2026-06-02T00:00:00.000Z"
         },
         {
           "id": "Z-ROADMAP-4",
-          "label": "Étape 4 — Flow auth/onboarding (M7+A3) + migration local→distant",
+          "label": "Étape 4 — Inscription après l'onboarding + sauvegarde des données en ligne",
+          "status": "done",
+          "noSync": true,
+          "check": { "exists": ["src/screens/v1/OnboardingScreenV1.tsx", "src/screens/v1/RegisterScreen.tsx"] },
+          "sessionId": null,
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        },
+        {
+          "id": "Z-ROADMAP-4a",
+          "label": "Étape 4 (suite) — Mot de passe oublié + lien de réinitialisation",
+          "status": "done",
+          "noSync": true,
+          "check": { "exists": ["src/screens/v1/ResetPasswordConfirmScreen.tsx"] },
+          "sessionId": null,
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        },
+        {
+          "id": "Z-ROADMAP-4b",
+          "label": "Étape 4 (suite) — Confirmation d'email à l'inscription",
+          "status": "done",
+          "noSync": true,
+          "check": { "exists": ["src/screens/v1/EmailPendingScreen.tsx"] },
+          "sessionId": null,
+          "updatedAt": "2026-06-02T00:00:00.000Z"
+        },
+        {
+          "id": "Z-ROADMAP-4c",
+          "label": "Étape 4 (suite) — Finitions connexion (afficher le mot de passe, session expirée)",
           "status": "done",
           "noSync": true,
           "sessionId": null,
@@ -644,7 +685,7 @@
         },
         {
           "id": "Z-ROADMAP-5",
-          "label": "Étape 5 — Écrans Phase 0 (M2+M3, IA-11/13/14/15)",
+          "label": "Étape 5 — Écrans des 14 jours gratuits (Phase 0)",
           "status": "doing",
           "noSync": true,
           "sessionId": null,
@@ -652,7 +693,7 @@
         },
         {
           "id": "Z-ROADMAP-6",
-          "label": "Étape 6 — Écrans S0 transition (IA-20, IA-21)",
+          "label": "Étape 6 — Écrans de transition S0 (célébration + feuille de route)",
           "status": "doing",
           "noSync": true,
           "sessionId": null,
@@ -660,7 +701,7 @@
         },
         {
           "id": "Z-ROADMAP-7",
-          "label": "Étape 7 — Phase 1 / S1 Respiration complet (IA-40→47)",
+          "label": "Étape 7 — Première semaine payante : pilier Respiration (S1)",
           "status": "doing",
           "noSync": true,
           "sessionId": null,
@@ -668,7 +709,7 @@
         },
         {
           "id": "Z-ROADMAP-8",
-          "label": "Étape 8 — Écrans transverses (toile IA-25/26, paliers IA-50/51, profil IA-70)",
+          "label": "Étape 8 — Écrans communs : toile d'araignée, paliers, profil",
           "status": "doing",
           "noSync": true,
           "sessionId": null,

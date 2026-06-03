@@ -7,7 +7,8 @@
  * silence 22h-8h locales gérée par scheduler), D26 (soft-rappel non-culpabilisant).
  *
  * Périmètre V1 — 2 notifications/jour :
- *  - Morning 8h00 : rappel principal pour démarrer la journée
+ *  - Morning 7h00 : rappel principal pour démarrer la journée — calibré pour
+ *    attraper les français qui se lèvent 6h-7h avant départ travail.
  *  - Soir 20h00 : rappel doux SI aucune action validée à cette heure-là.
  *    Annulé dynamiquement par `validateDay()` quand l'utilisateur valide au
  *    moins une action (la première coche). D26 — ton bienveillant, jamais
@@ -35,15 +36,15 @@ export type Phase0NotificationDraft = {
 };
 
 /**
- * 14 notifications matin Phase 0 — 8h00 locales chaque jour.
+ * 14 notifications matin Phase 0 — 7h00 locales chaque jour.
  *
- * D32 : 8h00 est la borne haute de la plage silence (22h-8h exclu) — donc OK
+ * D32 : 7h00 est la borne haute de la plage silence (22h-7h exclu) — donc OK
  * (cf. `isInSilenceWindow`).
  */
 export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] = [
   {
     day: 1,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j1.morning',
     family: 'accueil',
@@ -52,7 +53,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 2,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j2.morning',
     family: 'rappel',
@@ -61,7 +62,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 3,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j3.morning',
     family: 'charniere',
@@ -70,7 +71,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 4,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j4.morning',
     family: 'observation',
@@ -79,7 +80,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 5,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j5.morning',
     family: 'rappel',
@@ -88,7 +89,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 6,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j6.morning',
     family: 'encouragement',
@@ -97,7 +98,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 7,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j7.morning',
     family: 'charniere',
@@ -106,7 +107,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 8,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j8.morning',
     family: 'rappel',
@@ -115,7 +116,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 9,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j9.morning',
     family: 'observation',
@@ -124,7 +125,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 10,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j10.morning',
     family: 'rappel',
@@ -133,7 +134,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 11,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j11.morning',
     family: 'charniere',
@@ -142,7 +143,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 12,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j12.morning',
     family: 'rappel',
@@ -151,7 +152,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 13,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j13.morning',
     family: 'encouragement',
@@ -160,7 +161,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
   },
   {
     day: 14,
-    hour: 8,
+    hour: 7,
     kind: 'morning',
     slot: 'copy.notif.phase0.j14.morning',
     family: 'charniere',
