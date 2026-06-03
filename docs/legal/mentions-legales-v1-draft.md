@@ -9,7 +9,7 @@
 
 ## 1. Éditeur de l'Application et du Site
 
-L'Application **Raw Adventure** (mobile iOS et Android) et le site `[À COMPLÉTER : rawadventure.fr]` sont édités par :
+L'Application **Raw Adventure** (mobile iOS et Android) et le site rawadventure.world sont édités par :
 
 - **Raison sociale** : Raw Adventure Limited
 - **Forme juridique** : Private Company Limited by Shares (Hong Kong, Companies Ordinance Cap. 622)
@@ -30,7 +30,7 @@ L'Application **Raw Adventure** (mobile iOS et Android) et le site `[À COMPLÉT
 
 ### 2.1 Hébergeur du site web
 
-Le site `[À COMPLÉTER : rawadventure.fr]` est hébergé par :
+Le site rawadventure.world est hébergé par :
 
 **Wix.com Ltd**
 Namal Tel Aviv 40
@@ -78,15 +78,15 @@ Les marques et logos cités appartiennent à leurs propriétaires respectifs.
 
 L'accès à l'Application et au Site est possible 24h/24, 7j/7, sauf interruption pour maintenance, mise à jour ou cas de force majeure.
 
-L'utilisation de l'Application est régie par les **Conditions Générales d'Utilisation et de Vente**, accessibles à : `[À COMPLÉTER : https://rawadventure.fr/cgu]`.
+L'utilisation de l'Application est régie par les **Conditions Générales d'Utilisation et de Vente**, accessibles à : https://rawadventure.world/cgu.
 
-Le traitement des données personnelles est régi par la **Politique de confidentialité**, accessible à : `[À COMPLÉTER : https://rawadventure.fr/politique-confidentialite]`.
+Le traitement des données personnelles est régi par la **Politique de confidentialité**, accessible à : https://rawadventure.world/politique-confidentialite.
 
 ---
 
 ## 5. Cookies
 
-Le site `[À COMPLÉTER : rawadventure.fr]` utilise uniquement des cookies strictement nécessaires à son fonctionnement (session, sécurité). Aucun cookie publicitaire, aucun cookie de tracking tiers.
+Le site rawadventure.world utilise uniquement des cookies strictement nécessaires à son fonctionnement (session, sécurité). Aucun cookie publicitaire, aucun cookie de tracking tiers.
 
 L'Application mobile n'utilise pas de cookies au sens technique. Elle utilise un stockage local (AsyncStorage) pour mémoriser la session et la progression hors ligne.
 

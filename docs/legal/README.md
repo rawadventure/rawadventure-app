@@ -45,7 +45,7 @@ Drafts générés par Claude à partir :
 
 ## Champs restants à compléter
 
-- URLs hébergées des documents finaux (rawadventure.fr/cgu, /politique-confidentialite, /mentions-legales) — Wix pages à créer
+- URLs hébergées des documents finaux : https://rawadventure.world/cgu, /politique-confidentialite, /mentions-legales — Wix pages à créer
 - Médiateur conso FR agréé : différé (Option B) — à activer quand volume ou litige justifie
 
 ## Workflow recommandé
