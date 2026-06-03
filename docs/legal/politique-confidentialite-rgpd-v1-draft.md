@@ -9,7 +9,9 @@
 
 ## 1. Qui sommes-nous ?
 
-L'Application **Raw Adventure** est éditée par **Raw Adventure Limited**, Hong Kong Limited Company (Companies Ordinance Cap. 622) enregistrée sous le numéro **80310100** (Business Registration Number 80310100-000-04-26-4), incorporée le 30 avril 2026, dont le siège social est **Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong** (« l'Éditeur », « nous »).
+L'Application **Raw Adventure** est éditée par **Raw Adventure Limited**, Private Company Limited by Shares (Hong Kong, Companies Ordinance Cap. 622) enregistrée sous le numéro **80310100** (Business Registration Number 80310100-000-04-26-4), incorporée le 30 avril 2026, capital social 100 HKD, dont le siège social est **Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong** (« l'Éditeur », « nous »).
+
+**Directeur de la publication** : Stéphane Tossens — stephane@rawadventure.world
 
 L'Éditeur est responsable de traitement au sens du Règlement (UE) 2016/679 du 27 avril 2016 (« RGPD »).
 

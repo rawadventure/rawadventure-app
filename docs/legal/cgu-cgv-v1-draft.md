@@ -11,10 +11,9 @@
 - Date d'incorporation : 30 avril 2026
 - Adresse : **Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong**
 
-**Champs restants à compléter avant publication** (marqués `[À COMPLÉTER]`) :
-- Directeur de la publication (nom)
+**Champs restants à compléter avant publication** :
 - Date dernière mise à jour à chaque modification
-- URL hébergement
+- URL hébergement Wix
 
 **Décisions actées (2 juin 2026)** :
 - Droit applicable : **droit français**
@@ -37,13 +36,15 @@ En créant un compte ou en utilisant l'Application, tu acceptes sans réserve l'
 L'Application Raw Adventure est éditée par :
 
 - **Raison sociale** : Raw Adventure Limited
-- **Forme juridique** : Hong Kong Limited Company (Companies Ordinance Cap. 622)
+- **Forme juridique** : Private Company Limited by Shares (Hong Kong, Companies Ordinance Cap. 622)
 - **Numéro d'immatriculation (CR Number)** : 80310100
 - **Business Registration Number** : 80310100-000-04-26-4
 - **Date d'incorporation** : 30 avril 2026
+- **Capital social** : 100 HKD (100 ordinary shares × 1 HKD, fully paid)
+- **Nature d'activité déclarée** : Education (code 085)
 - **Siège social** : Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
 - **Email de contact** : support@rawadventure.world
-- **Directeur de la publication** : `[À COMPLÉTER : nom]`
+- **Directeur de la publication** : Stéphane Tossens (stephane@rawadventure.world)
 
 L'Application est hébergée sur l'infrastructure de Supabase Inc. (970 Toa Payoh North #07-04, Singapour) pour la base de données utilisateur, et sur les serveurs d'Apple Inc. et Google LLC pour la distribution mobile.
 

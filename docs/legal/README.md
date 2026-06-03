@@ -18,14 +18,20 @@ Drafts générés par Claude à partir :
 - Cadre RGPD européen
 - Société HK + paiements EUR
 
-## Infos société renseignées (3 juin 2026 — confirmées via PDFs officiels)
+## Infos société renseignées (3 juin 2026 — confirmées via PDFs officiels HK)
 
 - Raison sociale : **Raw Adventure Limited**
-- Forme : Hong Kong Limited Company (Companies Ordinance Cap. 622)
+- Forme : Private Company Limited by Shares (Hong Kong, Companies Ordinance Cap. 622)
 - CR Number : **80310100**
 - BR Number : **80310100-000-04-26-4** (validité 30/04/2026 → 29/04/2027)
 - Date d'incorporation : **30 avril 2026**
+- Capital social : **100 HKD** (100 ordinary shares × 1 HKD, fully paid)
+- Nature activité : Education (code 085)
 - Adresse : Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
+- Directeur de la publication (FR/LCEN) : **Stéphane Tossens** — stephane@rawadventure.world
+- Company Secretary HK : Osome Limited (BRN 70760066, License TC006825)
+- Directors HK : Myriam Guillot, Jacky Boisset
+- Shareholders : Myriam Guillot 45 (45%), Jacky Boisset 45 (45%), Stéphane Tossens 10 (10%)
 - Registrar of Companies : Ms Kinnie WONG (HKSAR Registrar)
 
 ## Décisions actées (2 juin 2026)
@@ -39,8 +45,6 @@ Drafts générés par Claude à partir :
 
 ## Champs restants à compléter
 
-- Directeur de la publication (nom + qualité)
-- Capital social Raw Adventure Limited (HKD)
 - URLs hébergées des documents finaux (rawadventure.fr/cgu, /politique-confidentialite, /mentions-legales) — Wix pages à créer
 - Médiateur conso FR agréé : différé (Option B) — à activer quand volume ou litige justifie
 

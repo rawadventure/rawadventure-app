@@ -12,16 +12,17 @@
 L'Application **Raw Adventure** (mobile iOS et Android) et le site `[À COMPLÉTER : rawadventure.fr]` sont édités par :
 
 - **Raison sociale** : Raw Adventure Limited
-- **Forme juridique** : Hong Kong Limited Company (Companies Ordinance Cap. 622)
+- **Forme juridique** : Private Company Limited by Shares (Hong Kong, Companies Ordinance Cap. 622)
 - **Numéro d'immatriculation (CR Number)** : 80310100
 - **Business Registration Number** : 80310100-000-04-26-4
 - **Date d'incorporation** : 30 avril 2026
 - **Siège social** : Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
-- **Capital social** : `[À COMPLÉTER : montant en HKD — voir Articles of Association ou Annual Return NNC1]`
+- **Capital social** : 100 HKD (100 ordinary shares × 1 HKD, fully paid)
+- **Nature d'activité déclarée** : Education (code 085)
 - **Email** : support@rawadventure.world
 - **Numéro de TVA intracommunautaire** : non applicable (société hors Union européenne)
 
-**Directeur de la publication** : `[À COMPLÉTER : nom et qualité]`
+**Directeur de la publication** : Stéphane Tossens — stephane@rawadventure.world
 
 ---
 
