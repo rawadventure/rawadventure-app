@@ -178,8 +178,18 @@
     const BLOCK_COLORS = {
       A: '#7fae5e', B: '#5e9cae', C: '#ae8b5e', D: '#9c5eae',
       E: '#ae5e6e', F: '#5eae8b', G: '#ae9c5e', H: '#6e7fae',
-      'Z-SETUP': '#8a8f99', 'Z-ROADMAP': '#5e74ae'
+      R1: '#5e9cae', R2: '#ae5e9c', R3: '#ae7f5e', R4: '#7fae5e', R5: '#ae5e6e',
+      R6: '#5e74ae', R7: '#9c8b5e', R8: '#5eae9c', R9: '#8b5eae', R10: '#6b6b6b'
     };
+
+    // Priorités (issues de l'audit release §10) : libellé + couleur de pastille.
+    const PRIO = {
+      bloquant:     { label: '🔴 Bloquant',  color: '#d9534f', rank: 0 },
+      important:    { label: '🟡 Important', color: '#d6a020', rank: 1 },
+      polish:       { label: '🟢 Polish',    color: '#5fae5e', rank: 2 },
+      'hors-scope': { label: '⏸️ Hors-scope', color: '#777',   rank: 4 }
+    };
+    const prioRank = (p) => (PRIO[p] ? PRIO[p].rank : 3);
 
     let roadmap = { blocks: [] };
 
@@ -211,15 +221,18 @@
       document.querySelectorAll('.cards').forEach((c) => (c.innerHTML = ''));
       const counts = { todo: 0, doing: 0, review: 0, done: 0, blocked: 0 };
 
-      for (const { task, block } of allTasks()) {
-        const st = statuses.includes(task.status) ? task.status : 'todo';
-        counts[st]++;
-        const container = document.querySelector(`.cards[data-status="${st}"]`);
-        container.appendChild(buildCard(task, block));
+      // Regroupe par colonne, puis trie par priorité (bloquant en haut) pour que
+      // la colonne « À faire » se lise comme la liste priorisée de l'audit.
+      const buckets = { todo: [], doing: [], review: [], done: [], blocked: [] };
+      for (const entry of allTasks()) {
+        const st = statuses.includes(entry.task.status) ? entry.task.status : 'todo';
+        buckets[st].push(entry);
       }
-
-      // Compteurs colonnes.
       for (const st of statuses) {
+        buckets[st].sort((a, b) => prioRank(a.task.priority) - prioRank(b.task.priority));
+        const container = document.querySelector(`.cards[data-status="${st}"]`);
+        for (const { task, block } of buckets[st]) container.appendChild(buildCard(task, block));
+        counts[st] = buckets[st].length;
         document.querySelector(`[data-count="${st}"]`).textContent = counts[st];
       }
 
@@ -239,9 +252,12 @@
       const meta = task.sessionId
         ? `<div class="meta">session ${task.sessionId.slice(0, 8)}… · ${fmtDate(task.updatedAt)}</div>`
         : '';
+      const prio = PRIO[task.priority]
+        ? `<span class="prio" style="display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;color:#fff;background:${PRIO[task.priority].color}">${PRIO[task.priority].label}</span>`
+        : '';
 
       el.innerHTML = `
-        <span class="tag">${block.id}</span>
+        <span class="tag">${block.id}</span>${prio}
         <div class="label">${escapeHtml(task.label)}</div>
         ${subtasks}
         ${meta}
@@ -326,9 +342,9 @@
         const data = await res.json();
         if (data.changes && data.changes.length) {
           console.table(data.changes); // détail from/to + source détectée
-          toast(`${data.changed} tâche(s) mise(s) à jour (briefs + code réalisé)`);
+          toast(`${data.changed} tâche(s) mise(s) à jour (briefs contenu + audit lancement)`);
         } else {
-          toast('Aucun changement détecté (briefs + code)');
+          toast('Aucun changement (briefs contenu + audit lancement)');
         }
         await refresh();
       } catch {

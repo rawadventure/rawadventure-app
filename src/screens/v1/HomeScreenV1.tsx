@@ -83,6 +83,27 @@ const EMPTY_CHECKS: DailyChecksMap = {
 
 const STORAGE_KEY = (localDate: string) => `daily_check_actions.${localDate}`;
 
+/**
+ * Messages du jour J1-J14 — affichés sur HomeScreenV1 quand la journée n'est
+ * pas encore validée. Drafts Mimi validés 3 juin 2026.
+ */
+const MESSAGES_DU_JOUR_PHASE_0: Record<number, string> = {
+  1: "Premier jour. Pas un défi — un retour à toi-même. Ton corps n'attendait que ça.",
+  2: "Jour 2. Hier c'était le début. Aujourd'hui c'est le choix. Nuance.",
+  3: "Tu approches du premier seuil. Trois jours de signaux envoyés. Demain, tu vas sentir ce qui a déjà bougé.",
+  4: "Quatre jours. Si ton sommeil a changé, même légèrement, ce n'est pas un hasard. Le corps répond à ce qu'on lui donne.",
+  5: "Mi-parcours de la première semaine. Continue d'écouter — la fatigue qui baisse, la digestion qui s'allège. Ton corps parle. Tu apprends à l'entendre.",
+  6: "Six jours. Le rythme est posé. Pas spectaculaire — physiologique. C'est ce qui dure.",
+  7: "Une semaine. Demain, on regarde le chemin parcouru. Aujourd'hui, on coche encore.",
+  8: "Deuxième semaine. Le corps a digéré les premiers signaux. Maintenant il intègre.",
+  9: "Neuf jours. La régularité fait le travail à ta place. Les actions de base demandent moins d'effort qu'au début.",
+  10: "Dix jours. Cap des deux tiers. Ce qui était nouveau il y a une semaine devient automatique.",
+  11: "Onze jours. Dernière ligne droite. Dans trois jours, tu auras bouclé ce que beaucoup n'osent même pas commencer.",
+  12: "Douze jours. La marge est là — tu peux souffler sans casser le rythme. Le corps a intégré.",
+  13: "Treize jours. Demain, dernier jour d'amorçage. Profite de cette journée pour sentir ce qui a changé.",
+  14: "Quatorze jours. Tu as bouclé l'amorçage. Ton corps n'est plus le même qu'au Jour 1. La suite commence maintenant.",
+};
+
 type NavProp = NativeStackNavigationProp<Phase0StackParamList>;
 
 export default function HomeScreenV1() {
@@ -350,7 +371,8 @@ export default function HomeScreenV1() {
             : 'En attente de pilier';
   const messageDuJour = alreadyValidatedToday
     ? 'Journée validée. Tu peux te reposer ou explorer les détails des actions.'
-    : 'Coche ce que tu as fait aujourd\'hui. 5 sur 7 suffisent pour valider ta journée. Chaque action compte.';
+    : MESSAGES_DU_JOUR_PHASE_0[currentDay] ??
+      'Coche ce que tu as fait aujourd\'hui. 5 sur 7 suffisent pour valider ta journée. Chaque action compte.';
 
   return (
     <View style={styles.container}>

@@ -63,7 +63,7 @@ const TIER_COLOR: Record<TierId, string> = {
 const TIER_FIRST_MESSAGE: Record<TierId, { title: string; body: string }> = {
   7: {
     title: 'Sept jours.',
-    body: "Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.",
+    body: "Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions. Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.",
   },
   15: {
     title: 'Quinze jours.',

@@ -511,295 +511,832 @@
       ]
     },
     {
-      "id": "Z-SETUP",
-      "title": "Préparation technique (avant de coder les écrans)",
-      "brief": "docs/note-passation-claude-code-demarrage-v1.md",
+      "id": "R1",
+      "title": "App — parcours utilisateur",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
       "tasks": [
         {
-          "id": "Z-SETUP-deps",
-          "label": "Installer les briques techniques (polices Inter, écran de démarrage)",
+          "id": "R1-1",
+          "label": "Onboarding 10 slides (IA-01 à IA-10)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "node_modules/@expo-google-fonts/inter",
-              "node_modules/expo-splash-screen"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-appconfig",
-          "label": "Fichier de configuration de l'app (réglages centralisés app.config.ts)",
-          "status": "todo",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "app.config.ts"
-            ]
-          },
+          "id": "R1-2",
+          "label": "Slide création de compte IA-10",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-envexample",
-          "label": "Modèle de fichier des clés privées (.env.example)",
+          "id": "R1-3",
+          "label": "Email confirmation Supabase ON",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              ".env.example"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-supabase-env",
-          "label": "Sortir la clé Supabase du code (la ranger dans un fichier privé)",
+          "id": "R1-4",
+          "label": "Reset password flow",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "contains": [
-              [
-                "src/lib/supabase.ts",
-                "EXPO_PUBLIC_SUPABASE_URL"
-              ]
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-useprogress",
-          "label": "Supprimer un ancien fichier en double (useProgress)",
+          "id": "R1-5",
+          "label": "Polish auth (eye, regex, session expirée)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "absent": [
-              "src/hooks/useProgress.ts"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-protocol",
-          "label": "Mettre de côté l'écran prototype Phase 1 (ProtocolScreen)",
+          "id": "R1-6",
+          "label": "D24 démarrage différé (IA-10b/IA-10c)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "absent": [
-              "src/screens/ProtocolScreen.tsx"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-theme-hooks",
-          "label": "Outils de style : couleurs par pilier + tailles de texte adaptatives",
+          "id": "R1-7",
+          "label": "Transfert des données locales vers le compte en ligne",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/theme/usePillarTheme.ts",
-              "src/theme/useScaledFontSize.ts"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-theme-index",
-          "label": "Palette centrale du design (couleurs, typos, espacements)",
+          "id": "R1-8",
+          "label": "Sauvegarde différée pendant la création de compte",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/theme/index.ts"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-03T03:59:39.872Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-fonts",
-          "label": "Charger les polices au lancement + écran d'attente propre",
+          "id": "R1-9",
+          "label": "Écran d’accueil quotidien (Phase 0)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "contains": [
-              [
-                "App.tsx",
-                "useFonts"
-              ]
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-logo",
-          "label": "Composant logo Raw Adventure",
+          "id": "R1-10",
+          "label": "7 actions Phase 0 + détails",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/components/illustrations/LogoRawAdventure.tsx"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-SETUP-dirs",
-          "label": "Ranger les composants par dossiers (boutons, blocs, toile, illustrations)",
+          "id": "R1-11",
+          "label": "Validation 5/7 D6",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/components/primitives",
-              "src/components/compositions",
-              "src/components/toile",
-              "src/components/illustrations"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-12",
+          "label": "Soft-rappel D26 sous seuil",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-13",
+          "label": "4 jours-charnière (J3/J7/J11/J14)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-14",
+          "label": "Vidéo bienvenue J1 (IA-12)",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R1-15",
+          "label": "Streak + joker hebdomadaire",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-16",
+          "label": "6 paliers (TierReachedModal)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-17",
+          "label": "D29 cassure palier (1er vs suivants)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-18",
+          "label": "D30 collision palier vs charnière",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-19",
+          "label": "Reset complet DEV",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         }
       ]
     },
     {
-      "id": "Z-ROADMAP",
-      "title": "Construction de l'app — étapes 1 à 8",
-      "brief": "docs/note-passation-claude-code-demarrage-v1.md",
+      "id": "R2",
+      "title": "App — compte & abonnement",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
       "tasks": [
         {
-          "id": "Z-ROADMAP-1",
-          "label": "Étape 1 — Faire le ménage dans le code existant",
+          "id": "R2-1",
+          "label": "Système de connexion complet",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "absent": [
-              "src/hooks/useProgress.ts"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-2",
-          "label": "Étape 2 — Créer la base de données (tables Supabase)",
+          "id": "R2-2",
+          "label": "Liens qui rouvrent l’app (deep links)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "docs/migrations/001-v1-tables.sql"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-3",
-          "label": "Étape 3 — Moteur du parcours : calendrier réel, streak, joker (5 actions/7)",
+          "id": "R2-3",
+          "label": "Champ mot de passe réutilisable",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/lib/streak.ts"
-            ],
-            "contains": [
-              [
-                "src/hooks/ProgressContext.tsx",
-                "currentDay"
-              ]
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-4",
-          "label": "Étape 4 — Inscription après l'onboarding + sauvegarde des données en ligne",
+          "id": "R2-4",
+          "label": "Validation email regex",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/screens/v1/OnboardingScreenV1.tsx",
-              "src/screens/v1/RegisterScreen.tsx"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-4a",
-          "label": "Étape 4 (suite) — Mot de passe oublié + lien de réinitialisation",
+          "id": "R2-5",
+          "label": "Identifiant technique de l’app (Bundle ID)",
           "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/screens/v1/ResetPasswordConfirmScreen.tsx"
-            ]
-          },
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-4b",
-          "label": "Étape 4 (suite) — Confirmation d'email à l'inscription",
-          "status": "done",
-          "noSync": true,
-          "check": {
-            "exists": [
-              "src/screens/v1/EmailPendingScreen.tsx"
-            ]
-          },
+          "id": "R2-6",
+          "label": "Écran d’abonnement en fin de Phase 0 (J14)",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
         },
         {
-          "id": "Z-ROADMAP-4c",
-          "label": "Étape 4 (suite) — Finitions connexion (afficher le mot de passe, session expirée)",
-          "status": "done",
-          "noSync": true,
+          "id": "R2-7",
+          "label": "Base de données : table des abonnements",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
         },
         {
-          "id": "Z-ROADMAP-5",
-          "label": "Étape 5 — Écrans des 14 jours gratuits (Phase 0)",
+          "id": "R2-8",
+          "label": "Mémoire de l’abonnement dans l’app (SubscriptionContext)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R2-9",
+          "label": "Brancher Stripe à l’app : confirmer les paiements (webhook)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R2-10",
+          "label": "Retour dans l’app après paiement réussi (deep link)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R2-11",
+          "label": "Écran « gérer mon abonnement » (Profil, IA-71)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R2-12",
+          "label": "Logout depuis Profil",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R3",
+      "title": "App — notifications",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R3-1",
+          "label": "Socle technique des notifications",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R3-2",
+          "label": "Plage silence 22h-8h (D32)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R3-3",
+          "label": "28 notifs Phase 0 schedulées",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R3-4",
+          "label": "Annulation reminder soir au coche",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R3-5",
+          "label": "Demander l’autorisation des notifications au bon moment (J1)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R3-6",
+          "label": "Copy 28 notifs",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R3-7",
+          "label": "Test device permission denied",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R4",
+      "title": "Contenu — validations Mimi & Jacky",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R4-1",
+          "label": "Onboarding 10 slides",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-2",
+          "label": "Phase 0 actions (7 actions × why + tip)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-3",
+          "label": "Jours-charnière J3/J7/J11/J14",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-4",
+          "label": "Paliers TierReachedModal",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-5",
+          "label": "HomeScreenV1 messageDuJour",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-6",
+          "label": "WelcomeVideoScreen titre + sous-titre",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-7",
+          "label": "Reset password email template",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-8",
+          "label": "Email signup confirmation template",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-9",
+          "label": "Copy paywall fin Phase 0",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R4-10",
+          "label": "Copy bandeaux lapse / past_due",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R4-11",
+          "label": "28 notifications Phase 0",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R4-12",
+          "label": "Description de l’app pour les stores",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        }
+      ]
+    },
+    {
+      "id": "R5",
+      "title": "Contenu — vidéos à tourner",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R5-1",
+          "label": "Vidéo IA-12 bienvenue J1",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R5-2",
+          "label": "Vidéo IA-20 S0.1 célébration",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R5-3",
+          "label": "Vidéo IA-21 S0.2 roadmap",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R5-4",
+          "label": "6 vidéos paliers streak",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R5-5",
+          "label": "Brief Session 1 + 2 + 3 + 4",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R6",
+      "title": "Mise en vente — comptes & build",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R6-1",
+          "label": "Repo GitHub privé (D22)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-2",
+          "label": "Séparer les clés Supabase test / production",
           "status": "doing",
-          "noSync": true,
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-6",
-          "label": "Étape 6 — Écrans de transition S0 (célébration + feuille de route)",
-          "status": "doing",
-          "noSync": true,
+          "id": "R6-3",
+          "label": "Configurer la fabrication des apps (EAS Build)",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-7",
-          "label": "Étape 7 — Première semaine payante : pilier Respiration (S1)",
-          "status": "doing",
-          "noSync": true,
+          "id": "R6-4",
+          "label": "Dev build iOS fonctionnel",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "Z-ROADMAP-8",
-          "label": "Étape 8 — Écrans communs : toile d'araignée, paliers, profil",
-          "status": "doing",
-          "noSync": true,
+          "id": "R6-5",
+          "label": "App icon",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-02T00:00:00.000Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-6",
+          "label": "Splash screen",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-7",
+          "label": "Compte Apple Developer (DUNS à demander)",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-8",
+          "label": "Compte Google Play",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-9",
+          "label": "Compte Stripe",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-10",
+          "label": "Domaine rawadventure.world",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R6-11",
+          "label": "Email support@rawadventure.world",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-12",
+          "label": "Pages Wix CGU/Privacy/Mentions",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-13",
+          "label": "Détection des plantages (Sentry)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-14",
+          "label": "Statistiques d’usage (analytics)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        }
+      ]
+    },
+    {
+      "id": "R7",
+      "title": "Légal",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R7-1",
+          "label": "Drafts CGU/CGV V1",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-2",
+          "label": "Drafts Politique confidentialité RGPD",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-3",
+          "label": "Drafts Mentions légales",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-4",
+          "label": "Droit applicable acté",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-5",
+          "label": "Médiation Option B (amiable)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R7-6",
+          "label": "Directeur publication",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-7",
+          "label": "Capital social Raw Adventure Limited",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R7-8",
+          "label": "URLs hébergement finales",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R7-9",
+          "label": "Validation avocat",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R7-10",
+          "label": "Case CGU acceptation in-app",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R8",
+      "title": "Supabase — réglages tableau de bord",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R8-1",
+          "label": "Projet créé",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R8-2",
+          "label": "Tables V1 (profiles, progress, etc.)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R8-3",
+          "label": "Règles de sécurité d’accès aux données (RLS)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R8-4",
+          "label": "Email confirmation activée",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R8-5",
+          "label": "Autoriser les liens de retour dans l’app (Supabase)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
+        },
+        {
+          "id": "R8-6",
+          "label": "Email templates FR (reset + signup confirm)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R8-7",
+          "label": "Espace de stockage des vidéos (Supabase)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R8-8",
+          "label": "Auth → Settings : password min length 6",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R8-9",
+          "label": "Auth → Rate limiting",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R9",
+      "title": "Tests & qualité",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R9-1",
+          "label": "Tests unitaires Jest",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-2",
+          "label": "Test E2E onboarding → J1 device réel",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-3",
+          "label": "Test E2E J1 → J14 + paliers",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-4",
+          "label": "Test signup + email confirm flow",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-5",
+          "label": "Test reset password flow",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-6",
+          "label": "Test notifications iOS device",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-7",
+          "label": "Test notifications Android",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R9-8",
+          "label": "Test edge cases (joker, charnière, cassure streak)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-9",
+          "label": "Test reset complet",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R9-10",
+          "label": "TestFlight beta (5-10 testeurs)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        }
+      ]
+    },
+    {
+      "id": "R10",
+      "title": "Hors-scope V1 (différé, acté)",
+      "brief": "docs/release/phase0-release-readiness-audit.md",
+      "tasks": [
+        {
+          "id": "R10-1",
+          "label": "Synchronisation multi-appareil (D28)",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R10-2",
+          "label": "Mentorat séparé (IA-61)",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R10-3",
+          "label": "Phase 2 et au-delà (contenu)",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R10-4",
+          "label": "Analytics avancés",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R10-5",
+          "label": "Multi-langue (architecture prête, contenu FR seulement)",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         }
       ]
     }

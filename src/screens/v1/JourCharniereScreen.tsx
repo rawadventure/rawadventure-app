@@ -61,7 +61,7 @@ const COPY: Record<CharniereDay, CharniereCopy> = {
   7: {
     marker: 'Jour 7 · une semaine',
     title: 'Sept jours.',
-    body: "Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.",
+    body: "Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions. Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.",
     cta: 'Je continue',
   },
   11: {
@@ -73,7 +73,7 @@ const COPY: Record<CharniereDay, CharniereCopy> = {
   14: {
     marker: 'Jour 14 · fin de Phase 0',
     title: 'Tu as tenu.\n14 jours.',
-    body: "Quatorze jours. Tu as tenu. Ton corps n'est plus le même qu'au Jour 1 — même si tu ne vois pas encore tout. La Phase 0 est complète. La suite commence maintenant.",
+    body: "Quatorze jours. Tu as fait ce que peu font — pas par intensité, par choix. Ton corps n'est plus le même qu'au Jour 1. Champion de ta vie. C'est toi.",
     cta: 'Voir la suite',
   },
 };

@@ -76,7 +76,8 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
         <View style={styles.notes}>
           <Text style={styles.note}>
             5 sur 7 suffisent pour valider ta journée. Et le joker est là pour
-            les jours difficiles.
+            les jours difficiles.{'\n\n'}
+            Ton corps n'attendait que ça.
           </Text>
         </View>
       </ScrollView>
