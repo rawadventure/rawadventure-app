@@ -18,12 +18,15 @@ Drafts générés par Claude à partir :
 - Cadre RGPD européen
 - Société HK + paiements EUR
 
-## Infos société renseignées (2 juin 2026)
+## Infos société renseignées (3 juin 2026 — confirmées via PDFs officiels)
 
 - Raison sociale : **Raw Adventure Limited**
-- Forme : Hong Kong Limited Company
+- Forme : Hong Kong Limited Company (Companies Ordinance Cap. 622)
 - CR Number : **80310100**
-- Adresse : Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
+- BR Number : **80310100-000-04-26-4** (validité 30/04/2026 → 29/04/2027)
+- Date d'incorporation : **30 avril 2026**
+- Adresse : Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
+- Registrar of Companies : Ms Kinnie WONG (HKSAR Registrar)
 
 ## Décisions actées (2 juin 2026)
 

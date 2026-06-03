@@ -3,11 +3,13 @@
 **Version V1.0 — Draft Claude du 2 juin 2026**
 **Statut** : Brouillon adapté pour relecture / validation Mimi + adaptation finale Stéphane. **Pas validé juridiquement.** Pour conformité stricte, consulter avocat spécialisé.
 
-**Infos société renseignées (2 juin 2026)** :
+**Infos société renseignées (3 juin 2026 — confirmées via Certificate of Incorporation + BR)** :
 - Raison sociale : **Raw Adventure Limited**
-- Forme : Hong Kong Limited Company
+- Forme : Hong Kong Limited Company (Companies Ordinance Cap. 622)
 - CR Number : **80310100**
-- Adresse : **Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong**
+- BR Number : **80310100-000-04-26-4** (validité 30/04/2026 → 29/04/2027, à renouveler annuellement)
+- Date d'incorporation : 30 avril 2026
+- Adresse : **Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong**
 
 **Champs restants à compléter avant publication** (marqués `[À COMPLÉTER]`) :
 - Directeur de la publication (nom)
@@ -35,9 +37,11 @@ En créant un compte ou en utilisant l'Application, tu acceptes sans réserve l'
 L'Application Raw Adventure est éditée par :
 
 - **Raison sociale** : Raw Adventure Limited
-- **Forme juridique** : Hong Kong Limited Company
+- **Forme juridique** : Hong Kong Limited Company (Companies Ordinance Cap. 622)
 - **Numéro d'immatriculation (CR Number)** : 80310100
-- **Siège social** : Unit 1603, 16th Floor, The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
+- **Business Registration Number** : 80310100-000-04-26-4
+- **Date d'incorporation** : 30 avril 2026
+- **Siège social** : Unit 1603, 16/F The L. Plaza, 367-375 Queen's Road Central, Sheung Wan, Hong Kong
 - **Email de contact** : support@rawadventure.world
 - **Directeur de la publication** : `[À COMPLÉTER : nom]`
 
