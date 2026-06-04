@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "RawAdventureRN",
+    "name": "Raw Adventure",
     "slug": "RawAdventureRN",
     "scheme": "rawadventure",
     "version": "1.0.0",
@@ -11,7 +11,7 @@
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#F5F1E8"
     },
     "ios": {
       "supportsTablet": true,
@@ -21,7 +21,7 @@
       "package": "world.rawadventure.app",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#F5F1E8"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
