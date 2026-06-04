@@ -1,10 +1,10 @@
 /**
- * phase0-notifications.ts — drafts copy notifications Phase 0 J1-J14.
+ * phase0-notifications.ts — copy notifications Phase 0 J1-J14 (validé Mimi 3 juin 2026).
  *
- * Réf D12 (reporté V1 — calibrage produit fréquence + copy précis), CLAUDE.md
- * §2 (1-2 notifications/jour Phase 0), §4 (brand voice Mimi & Jacky : tutoiement,
- * dense, pas de marketing creux, pas d'exclamations, pas d'emojis), D32 (plage
- * silence 22h-8h locales gérée par scheduler), D26 (soft-rappel non-culpabilisant).
+ * Réf D12 (validé Mimi), CLAUDE.md §2 (1-2 notifications/jour Phase 0),
+ * §4 (brand voice Mimi & Jacky : tutoiement, dense), D32 (plage silence
+ * 22h-7h locales gérée par scheduler — ajusté 3 juin 2026), D26 (soft-rappel
+ * non-culpabilisant).
  *
  * Périmètre V1 — 2 notifications/jour :
  *  - Morning 7h00 : rappel principal pour démarrer la journée — calibré pour
@@ -14,8 +14,7 @@
  *    moins une action (la première coche). D26 — ton bienveillant, jamais
  *    culpabilisant.
  *
- * Status drafts : [copy à valider Mimi]. Les libellés sont alignés brand voice
- * mais à reformuler par Mimi avant launch.
+ * Copy : validé Mimi 3 juin 2026.
  */
 
 export type Phase0NotificationDraft = {
@@ -49,7 +48,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j1.morning',
     family: 'accueil',
     title: 'Premier jour',
-    body: 'On commence aujourd\'hui. 7 actions simples à essayer. Tu en coches au moins 5 et la journée est validée. Ouvre l\'app quand tu veux.',
+    body: "Premier jour. Pas un défi — un retour à toi-même. Ton corps n'attendait que ça.",
   },
   {
     day: 2,
@@ -58,7 +57,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j2.morning',
     family: 'rappel',
     title: 'Jour 2',
-    body: 'Hier tu as posé un premier signal. Aujourd\'hui on continue, sans en rajouter. Même rythme, même actions.',
+    body: "Jour 2. Hier c'était le début. Aujourd'hui c'est le choix. Nuance.",
   },
   {
     day: 3,
@@ -67,7 +66,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j3.morning',
     family: 'charniere',
     title: 'Jour 3 — Premier palier',
-    body: 'Trois jours, c\'est le moment où le corps commence à recevoir le signal. On fait le point ensemble dans l\'app.',
+    body: 'Trois jours déjà. Ton corps a reçu les premiers signaux — et il commence à répondre. Tu vas adorer la suite.',
   },
   {
     day: 4,
@@ -76,7 +75,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j4.morning',
     family: 'observation',
     title: 'Jour 4',
-    body: 'Observe ce qui bouge. Ventre, sommeil, énergie. Pas besoin d\'analyser — juste remarquer.',
+    body: "Observe ce qui bouge aujourd'hui. Ventre, sommeil, énergie. C'est fascinant ce que le corps sait faire quand on lui fait confiance.",
   },
   {
     day: 5,
@@ -85,7 +84,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j5.morning',
     family: 'rappel',
     title: 'Jour 5',
-    body: 'Une semaine bientôt. Le rythme s\'installe. Continue sans forcer.',
+    body: "Jour 5. Tu reprends le contrôle — sans te battre, sans forcer. C'est ça la vraie puissance.",
   },
   {
     day: 6,
@@ -94,7 +93,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j6.morning',
     family: 'encouragement',
     title: 'Jour 6',
-    body: 'Tu n\'as pas tout coché tous les jours. Ce n\'est pas le but. Le but, c\'est la régularité du geste, pas la perfection.',
+    body: "Tu n'as pas tout coché ? Parfait. La perfection est surestimée. La régularité, elle, change tout.",
   },
   {
     day: 7,
@@ -103,7 +102,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j7.morning',
     family: 'charniere',
     title: 'Jour 7 — Une semaine',
-    body: 'Une semaine de signal. Ton corps a déjà commencé à réagir. On fait un point ensemble dans l\'app.',
+    body: "Une semaine. Tu as tenu. Ce que tu ressens ce matin — c'est toi qui reprends la main sur ta vie.",
   },
   {
     day: 8,
@@ -112,7 +111,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j8.morning',
     family: 'rappel',
     title: 'Jour 8',
-    body: 'Deuxième semaine. Pareil qu\'avant. Pas de saut, pas d\'intensité supplémentaire — la régularité.',
+    body: "Deuxième semaine. Ton corps a mémorisé le rythme. Maintenant il travaille pour toi — même quand tu dors.",
   },
   {
     day: 9,
@@ -121,7 +120,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j9.morning',
     family: 'observation',
     title: 'Jour 9',
-    body: 'À ce stade, beaucoup remarquent que la matinée démarre plus claire. Si tu le ressens, c\'est une vraie information du corps.',
+    body: "La matinée démarre plus claire ? C'est ton énergie naturelle qui remonte. Elle était là tout le temps.",
   },
   {
     day: 10,
@@ -130,7 +129,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j10.morning',
     family: 'rappel',
     title: 'Jour 10',
-    body: 'Dix jours. Tu es plus près de la fin que du début. Continue.',
+    body: "Dix jours. Tu te rappelles ce que ça fait d'être vivant et puissant. Ça fait du bien, non ?",
   },
   {
     day: 11,
@@ -139,7 +138,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j11.morning',
     family: 'charniere',
     title: 'Jour 11',
-    body: 'On approche du dernier palier. Aujourd\'hui dans l\'app, on regarde ensemble ce qui change.',
+    body: "Onze jours. Ce n'est plus un effort — c'est qui tu redeviens. On fait le point dans l'app.",
   },
   {
     day: 12,
@@ -148,7 +147,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j12.morning',
     family: 'rappel',
     title: 'Jour 12',
-    body: 'Plus que trois jours. Garde la même cadence. Pas d\'effort supplémentaire — la régularité fait le travail.',
+    body: 'Plus que trois jours. La liberté se construit exactement comme ça — un geste simple, chaque jour.',
   },
   {
     day: 13,
@@ -157,7 +156,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j13.morning',
     family: 'encouragement',
     title: 'Jour 13',
-    body: 'Avant-dernier jour. Ce que tu as fait est une vraie matière. Ton corps a appris quelque chose.',
+    body: "Avant-dernier jour. Ton corps n'est plus le même qu'au Jour 1. Toi non plus — tu le sais.",
   },
   {
     day: 14,
@@ -166,7 +165,7 @@ export const PHASE_0_MORNING_NOTIFICATIONS: readonly Phase0NotificationDraft[] =
     slot: 'copy.notif.phase0.j14.morning',
     family: 'charniere',
     title: 'Jour 14 — Bilan',
-    body: 'Quatorze jours. Aujourd\'hui dans l\'app, tu vois ce que tu as construit. C\'est une vraie première étape.',
+    body: "Quatorze jours. Tu as fait ce que peu font. Pas par intensité — par choix. Champion de ta vie. C'est toi.",
   },
 ] as const;
 
@@ -184,7 +183,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j1.reminder',
     family: 'rappel_soir',
     title: 'Encore un peu de temps',
-    body: 'Premier jour. Une seule action suffit pour démarrer. Tu peux ouvrir l\'app quand tu veux ce soir.',
+    body: 'Premier jour. Une seule action ce soir — et ton corps sait que tu es sérieux. Il enregistre tout.',
   },
   {
     day: 2,
@@ -193,7 +192,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j2.reminder',
     family: 'rappel_soir',
     title: 'Soirée tranquille',
-    body: 'Pas de pression. Si tu coches une action ce soir, ta journée compte. Sinon, on se retrouve demain.',
+    body: 'Une action ce soir et ta journée compte. Sinon, demain on repart — sans drama, sans culpabilité.',
   },
   {
     day: 3,
@@ -202,7 +201,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j3.reminder',
     family: 'rappel_soir',
     title: 'Jour 3 — encore possible',
-    body: 'Trois jours, c\'est le moment où le rythme s\'ancre. Une action ce soir et la journée tient.',
+    body: "Trois jours. Une action ce soir et tu confirmes que tu es là. Ton corps t'attend.",
   },
   {
     day: 4,
@@ -211,7 +210,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j4.reminder',
     family: 'rappel_soir',
     title: 'Petit signal',
-    body: 'Même tard, une action a de la valeur. Le corps prend ce que tu lui donnes.',
+    body: "Même tard, une action a de la valeur. Le corps prend ce qu'on lui donne — et il dit merci à sa façon.",
   },
   {
     day: 5,
@@ -220,7 +219,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j5.reminder',
     family: 'rappel_soir',
     title: 'Avant de dormir',
-    body: 'Cinq jours. Si tu veux marquer la journée, une seule action suffit.',
+    body: 'Une seule action ce soir. Pas pour cocher une case — pour te rappeler que tu choisis ta vitalité.',
   },
   {
     day: 6,
@@ -229,7 +228,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j6.reminder',
     family: 'rappel_soir',
     title: 'Sans pression',
-    body: 'Tu peux passer une journée plus calme. Reprendre demain est aussi une option valable.',
+    body: "Une journée plus calme, c'est permis. Les champions récupèrent aussi. Reprends demain avec la même flamme.",
   },
   {
     day: 7,
@@ -238,7 +237,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j7.reminder',
     family: 'rappel_soir',
     title: 'Premier palier ce soir',
-    body: 'Jour 7. Même une action coche la journée. Le palier est à portée si tu valides ce soir.',
+    body: "Jour 7. Une action ce soir et le premier palier est à toi. Il t'attend — vas-y.",
   },
   {
     day: 8,
@@ -247,7 +246,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j8.reminder',
     family: 'rappel_soir',
     title: 'Soirée encore ouverte',
-    body: 'Deuxième semaine. Une action ce soir maintient le rythme. C\'est suffisant.',
+    body: "Une action ce soir maintient le rythme. Ton corps travaille même quand tu fais peu. C'est la magie du vivant.",
   },
   {
     day: 9,
@@ -256,7 +255,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j9.reminder',
     family: 'rappel_soir',
     title: 'Encore le temps',
-    body: 'Jour 9. Tu peux ouvrir l\'app et cocher une action. Pas besoin de plus.',
+    body: 'Jour 9. Une action ce soir. Pour ce sourire que tu auras demain matin en te levant.',
   },
   {
     day: 10,
@@ -265,7 +264,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j10.reminder',
     family: 'rappel_soir',
     title: 'Dix jours bientôt',
-    body: 'Une action ce soir, et tu cumules dix journées. La régularité fait sa part.',
+    body: 'Une action ce soir et tu cumules dix journées. Dix jours de retour vers toi-même. Tu mesures ?',
   },
   {
     day: 11,
@@ -274,7 +273,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j11.reminder',
     family: 'rappel_soir',
     title: 'Encore ce soir',
-    body: 'Jour 11. Tu peux marquer la journée avec une seule action. Sans forcer.',
+    body: 'Jour 11. Un geste ce soir. Tu es en train de redevenir libre — et ça se sent, non ?',
   },
   {
     day: 12,
@@ -283,7 +282,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j12.reminder',
     family: 'rappel_soir',
     title: 'Plus que deux jours',
-    body: 'Tu approches du bout. Une action ce soir et la journée est posée.',
+    body: 'Tu approches du bout. Une action ce soir — et tu confirmes que tu vas jusqu\'au bout. Toujours.',
   },
   {
     day: 13,
@@ -292,7 +291,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j13.reminder',
     family: 'rappel_soir',
     title: 'Avant le dernier jour',
-    body: 'Jour 13. Si tu coches ce soir, tu boucles presque la phase. Pas grand-chose à ajouter.',
+    body: 'Jour 13. Une action ce soir et demain tu boucles quelque chose de rare. Tu y es presque — ne lâche pas maintenant.',
   },
   {
     day: 14,
@@ -301,7 +300,7 @@ export const PHASE_0_REMINDER_NOTIFICATIONS: readonly Phase0NotificationDraft[] 
     slot: 'copy.notif.phase0.j14.reminder',
     family: 'rappel_soir',
     title: 'Dernier jour',
-    body: 'Jour 14. Une dernière action ce soir et la phase est bouclée. Tu peux faire le bilan dans l\'app.',
+    body: 'Jour 14. Une dernière action ce soir. Et demain tu te réveilles différent. Champion de ta vie — pour de vrai.',
   },
 ] as const;
 

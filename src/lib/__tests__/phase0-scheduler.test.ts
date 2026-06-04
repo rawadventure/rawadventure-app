@@ -9,18 +9,18 @@ import { computePhase0NotificationTime } from '../phase0-scheduler';
 
 describe('computePhase0NotificationTime', () => {
   it('J1 7h = lendemain matin', () => {
-    const accountCreatedAt = new Date('2026-06-03T14:00:00');
+    const accountCreatedAt = new Date('2027-06-03T14:00:00');
     const result = computePhase0NotificationTime(accountCreatedAt, 1, 7);
     expect(result).not.toBeNull();
     expect(result!.getDate()).toBe(4);
     expect(result!.getMonth()).toBe(5); // juin
-    expect(result!.getFullYear()).toBe(2026);
+    expect(result!.getFullYear()).toBe(2027);
     expect(result!.getHours()).toBe(7);
     expect(result!.getMinutes()).toBe(0);
   });
 
   it('J1 20h = lendemain soir', () => {
-    const accountCreatedAt = new Date('2026-06-03T14:00:00');
+    const accountCreatedAt = new Date('2027-06-03T14:00:00');
     const result = computePhase0NotificationTime(accountCreatedAt, 1, 20);
     expect(result).not.toBeNull();
     expect(result!.getDate()).toBe(4);
@@ -28,7 +28,7 @@ describe('computePhase0NotificationTime', () => {
   });
 
   it('J14 7h = 14 jours après accountCreatedAt', () => {
-    const accountCreatedAt = new Date('2026-06-03T14:00:00');
+    const accountCreatedAt = new Date('2027-06-03T14:00:00');
     const result = computePhase0NotificationTime(accountCreatedAt, 14, 7);
     expect(result).not.toBeNull();
     expect(result!.getDate()).toBe(17);

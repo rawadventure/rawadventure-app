@@ -72,6 +72,18 @@
       padding: 16px 20px;
       align-items: start;
     }
+    /* Colonne « Fait » repliée : on récupère la largeur pour les colonnes utiles. */
+    .board.done-collapsed { grid-template-columns: 1fr 1fr 1fr 44px 1fr; }
+    .column.collapsed .cards { display: none; }
+    .column.collapsed h2 {
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      margin: 0;
+      white-space: nowrap;
+      height: 120px;
+    }
+    .column h2 { cursor: default; }
+    .column[data-status="done"] h2 { cursor: pointer; user-select: none; }
     .column {
       background: var(--panel);
       border: 1px solid var(--line);
@@ -167,7 +179,7 @@
     <div class="column" data-status="todo"><h2><span>À faire</span><span data-count="todo">0</span></h2><div class="cards" data-status="todo"></div></div>
     <div class="column" data-status="doing"><h2><span>En cours</span><span data-count="doing">0</span></h2><div class="cards" data-status="doing"></div></div>
     <div class="column" data-status="review"><h2><span>À vérifier (Mimi &amp; Jacky)</span><span data-count="review">0</span></h2><div class="cards" data-status="review"></div></div>
-    <div class="column" data-status="done"><h2><span>Fait</span><span data-count="done">0</span></h2><div class="cards" data-status="done"></div></div>
+    <div class="column" data-status="done"><h2 title="Cliquer pour replier / déplier"><span class="done-label">Fait</span><span data-count="done">0</span></h2><div class="cards" data-status="done"></div></div>
     <div class="column" data-status="blocked"><h2><span>Bloqué</span><span data-count="blocked">0</span></h2><div class="cards" data-status="blocked"></div></div>
   </div>
 
@@ -398,6 +410,19 @@
 
     // Bouton de mise à jour.
     document.getElementById('sync-btn').addEventListener('click', sync);
+
+    // --- Colonne « Fait » repliable (masquée par défaut) ---
+    const board = document.querySelector('.board');
+    const doneCol = document.querySelector('.column[data-status="done"]');
+    function setDoneCollapsed(collapsed) {
+      doneCol.classList.toggle('collapsed', collapsed);
+      board.classList.toggle('done-collapsed', collapsed);
+      localStorage.setItem('doneCollapsed', collapsed ? '1' : '0');
+    }
+    doneCol.querySelector('h2').addEventListener('click', () =>
+      setDoneCollapsed(!doneCol.classList.contains('collapsed')));
+    // Repliée par défaut (sauf si l'utilisateur l'a déjà dépliée).
+    setDoneCollapsed(localStorage.getItem('doneCollapsed') !== '0');
 
     // Démarrage + auto-refresh 5s.
     refresh();
