@@ -363,3 +363,22 @@ Test fonctionnel app : pass / fail (détails)
 ---
 
 *Audit à exécuter avant TestFlight beta launch. Sans RLS valide, ne pas distribuer l'app.*
+
+---
+
+## 11. Résultats audit exécuté (5 juin 2026)
+
+| Vérif | Résultat |
+|---|---|
+| Tables RLS enabled | ✅ 10/10 (profiles, progress, streak_history, joker_consumptions, tier_reaches, pillar_evaluations, pillar_sessions, level_adaptive_choices, notifications_sent, daily_check_ins) |
+| Policies totales | 40 (4 par table — CRUD complet) |
+| Toutes policies utilisent `auth.uid()` | ✅ |
+| Policies anon role | ✅ 0 trouvée |
+| Trigger `on_auth_user_created` | ✅ Actif (auth.users) |
+| Doublons détectés | 7 (profil_*, progress_*) — **droppés** |
+
+**Statut launch** : ✅ Supabase RLS V1 sécurisé.
+
+**Tables futures à ajouter** (pas bloquant V1) :
+- `subscriptions` : Sprint webhook Stripe — schema + RLS dans §8.1
+
