@@ -45,3 +45,10 @@ yarn-error.*
 
 # Variables d'environnement (clés API, secrets)
 .env
+
+# EAS Build secrets — credentials externes
+google-play-service-account.json
+google-services.json
+GoogleService-Info.plist
+*.cer
+AuthKey_*.p8
