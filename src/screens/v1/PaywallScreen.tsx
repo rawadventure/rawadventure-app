@@ -47,24 +47,37 @@ import {
   pillarColors,
   space,
 } from '../../theme';
+import { useAuth } from '../../hooks/AuthContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 
-const SUBSCRIBE_URL = 'https://rawadventure.world/abonnement/';
+const SUBSCRIBE_BASE_URL = 'https://rawadventure.world/abonnement/';
 
 export default function PaywallScreen() {
+  const { user } = useAuth();
   const { reload } = useSubscription();
   const [loading, setLoading] = useState(false);
 
   const handleContinue = async () => {
     setLoading(true);
     try {
+      // Passe user_id + email en query params pour que la page abonnement
+      // puisse les injecter dans le Stripe Pricing Table (attributs
+      // client-reference-id + customer-email). Le webhook utilise
+      // client_reference_id pour matcher l'user Supabase fiablement.
+      const params = new URLSearchParams();
+      if (user?.id) params.set('user_id', user.id);
+      if (user?.email) params.set('email', user.email);
+      const url = params.toString()
+        ? `${SUBSCRIBE_BASE_URL}?${params.toString()}`
+        : SUBSCRIBE_BASE_URL;
+
       // Ouvre le navigateur intégré iOS/Android (SFSafariViewController iOS /
       // Custom Tabs Android) — meilleure UX qu'un Linking.openURL (reste dans
       // l'app, retour automatique au close). Après paiement, Stripe redirige
       // vers rawadventure.world/checkout-success qui a un deep link
       // rawadventure://subscription-success → ferme automatiquement le browser
       // et déclenche notre handler dans App.tsx.
-      const result = await WebBrowser.openBrowserAsync(SUBSCRIBE_URL, {
+      const result = await WebBrowser.openBrowserAsync(url, {
         // Match brand colors
         toolbarColor: pillarColors.phase0.bg,
         controlsColor: pillarColors.phase0.text,

@@ -9,10 +9,26 @@ permalink: /abonnement/
 </p>
 
 <script async src="https://js.stripe.com/v3/pricing-table.js"></script>
-<stripe-pricing-table
-  pricing-table-id="prctbl_1TfB5qQssbHmxKdShf85wu23"
-  publishable-key="pk_test_51TenaZQssbHmxKdSxxARe4zajONAWvbgRcngNl5mxw6GVMP2mdRaiRb046XssJc7lJUu4zzHB5r90coJfhj6wwtn006DrEiU5B">
-</stripe-pricing-table>
+<div id="pricing-table-mount"></div>
+<script>
+  // Lit les query params depuis l'URL ouverte par PaywallScreen :
+  //   rawadventure.world/abonnement/?user_id=XXXX&email=YYYY
+  // et les passe au Stripe Pricing Table pour que le webhook puisse
+  // identifier le user Supabase via client_reference_id.
+  (function() {
+    var params = new URLSearchParams(window.location.search);
+    var userId = params.get('user_id');
+    var email = params.get('email');
+
+    var el = document.createElement('stripe-pricing-table');
+    el.setAttribute('pricing-table-id', 'prctbl_1TfB5qQssbHmxKdShf85wu23');
+    el.setAttribute('publishable-key', 'pk_test_51TenaZQssbHmxKdSxxARe4zajONAWvbgRcngNl5mxw6GVMP2mdRaiRb046XssJc7lJUu4zzHB5r90coJfhj6wwtn006DrEiU5B');
+    if (userId) el.setAttribute('client-reference-id', userId);
+    if (email) el.setAttribute('customer-email', email);
+
+    document.getElementById('pricing-table-mount').appendChild(el);
+  })();
+</script>
 
 ---
 
