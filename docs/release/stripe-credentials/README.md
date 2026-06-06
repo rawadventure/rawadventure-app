@@ -54,12 +54,38 @@ Setup créé le 5 juin 2026 par Stéphane + Mimi.
 
 ## Mode TEST (dev + TestFlight beta)
 
-⏳ À créer — duplicate du setup LIVE en mode test.
+Setup créé le 6 juin 2026 par Stéphane + Mimi.
 
-Une fois fait, copier ici :
-- Pricing Table embed code (avec `pk_test_...`)
-- Pricing Table ID (`prctbl_test_xxx`)
-- 3 Price IDs (`price_test_xxx`)
+### Pricing Table embed code
+
+```html
+<script async src="https://js.stripe.com/v3/pricing-table.js"></script>
+<stripe-pricing-table
+  pricing-table-id="prctbl_1TfB5qQssbHmxKdShf85wu23"
+  publishable-key="pk_test_51TenaZQssbHmxKdSxxARe4zajONAWvbgRcngNl5mxw6GVMP2mdRaiRb046XssJc7lJUu4zzHB5r90coJfhj6wwtn006DrEiU5B">
+</stripe-pricing-table>
+```
+
+### Account
+
+- **Pricing Table ID TEST** : `prctbl_1TfB5qQssbHmxKdShf85wu23`
+- **Publishable Key TEST** : `pk_test_51TenaZQssbHmxKdSxxARe4zajONAWvbgRcngNl5mxw6GVMP2mdRaiRb046XssJc7lJUu4zzHB5r90coJfhj6wwtn006DrEiU5B`
+- **Secret Key TEST** : à récupérer (`sk_test_...`) + stocker en env var Supabase Edge Function
+
+### Cartes de test Stripe
+
+| Scénario | Numéro carte |
+|---|---|
+| Paiement OK | `4242 4242 4242 4242` |
+| 3D Secure requis | `4000 0025 0000 3155` |
+| Refusée | `4000 0000 0000 0002` |
+| Solde insuffisant | `4000 0000 0000 9995` |
+
+Expiration : n'importe quelle future (ex `12/30`) — CVC : `123` — ZIP : `12345`
+
+### Usage dev
+
+L'app utilise cette pricing table pendant dev + TestFlight beta. Migration vers LIVE au launch App Store final = swap les 2 chaînes d'embed code dans la page `rawadventure.world/abonnement`.
 
 ### Webhook config (à faire post-creation)
 
