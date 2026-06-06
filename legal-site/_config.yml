@@ -17,6 +17,17 @@ exclude:
   - Gemfile
   - Gemfile.lock
 
+# Force Jekyll à inclure le dossier .well-known (sinon ignoré par défaut car
+# préfixé d'un point). Contient apple-app-site-association (Universal Links iOS)
+# et assetlinks.json (App Links Android).
+include:
+  - .well-known
+  - .well-known/apple-app-site-association
+  - .well-known/assetlinks.json
+
+# Force MIME type application/json pour AASA (Apple exige).
+# GitHub Pages sert correctement via Content-Type auto, mais on documente.
+
 # Defaults — applique layout `default` à toutes les pages
 defaults:
   - scope:
