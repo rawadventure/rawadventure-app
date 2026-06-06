@@ -9,13 +9,22 @@
  * Reader App rules respectées :
  *  - Aucun prix affiché
  *  - Aucun mot "abonnement" / "payer" / "souscrire"
- *  - CTA neutre "Continuer mon parcours" → ouvre WebBrowser sur Stripe
- *    Payment Link (URL à fournir post-création compte Stripe Stéphane)
+ *  - CTA neutre "Continuer mon parcours" → ouvre WebBrowser sur la page
+ *    rawadventure.world/abonnement qui héberge le Stripe Pricing Table
+ *    (3 plans : mensuel, 6 mois, annuel)
  *
- * V1 mock : le CTA principal pose juste un état `active` mocké (DEV).
- * Quand Stripe Payment Link sera prêt, on remplace par `WebBrowser.openBrowserAsync`.
+ * Flow paiement :
+ *   PaywallScreen
+ *     → WebBrowser sur rawadventure.world/abonnement
+ *     → User choisit plan + paye via Stripe Checkout
+ *     → Stripe webhook → Supabase Edge Function → update table subscriptions
+ *     → Stripe redirect → rawadventure.world/checkout-success
+ *     → User tap "Retourner dans l'app"
+ *     → Deep link rawadventure://subscription-success
+ *     → App reload SubscriptionContext → isActive = true
+ *     → RootNavigator route TabNavigator (paywall disparaît)
  *
- * Copy : [drafts Claude à valider Mimi]
+ * DEV : bouton "Mock active" reste dispo dans ProfilTabScreen pour bypass tests.
  */
 
 import React, { useState } from 'react';
@@ -28,6 +37,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as WebBrowser from 'expo-web-browser';
 import { ArrowRight, ExternalLink } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import {
@@ -39,30 +49,39 @@ import {
 } from '../../theme';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 
+const SUBSCRIBE_URL = 'https://rawadventure.world/abonnement/';
+
 export default function PaywallScreen() {
-  const { setMockSubscriptionState } = useSubscription();
+  const { reload } = useSubscription();
   const [loading, setLoading] = useState(false);
 
   const handleContinue = async () => {
     setLoading(true);
     try {
-      // V1 mock : pose un état active. Sera remplacé par WebBrowser →
-      // Stripe Payment Link + webhook + retour deep link.
-      //
-      // const url = 'https://buy.stripe.com/test_xxx'; // Stripe Payment Link
-      // await WebBrowser.openBrowserAsync(url);
-      // → user paye → webhook → app update via deep link
-      const nowIso = new Date().toISOString();
-      const renewsAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-      await setMockSubscriptionState({
-        status: 'active',
-        plan: 'monthly',
-        startedAt: nowIso,
-        renewsAt,
+      // Ouvre le navigateur intégré iOS/Android (SFSafariViewController iOS /
+      // Custom Tabs Android) — meilleure UX qu'un Linking.openURL (reste dans
+      // l'app, retour automatique au close). Après paiement, Stripe redirige
+      // vers rawadventure.world/checkout-success qui a un deep link
+      // rawadventure://subscription-success → ferme automatiquement le browser
+      // et déclenche notre handler dans App.tsx.
+      const result = await WebBrowser.openBrowserAsync(SUBSCRIBE_URL, {
+        // Match brand colors
+        toolbarColor: pillarColors.phase0.bg,
+        controlsColor: pillarColors.phase0.text,
+        // Permet le close manuel via le bouton "Done" iOS / X Android
+        dismissButtonStyle: 'close',
       });
+
+      // Si user a fermé manuellement le browser (cancel, ou retour app),
+      // on recharge le state SubscriptionContext au cas où le webhook
+      // aurait déjà été déclenché en parallèle.
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        await reload();
+      }
+    } catch (e: any) {
       Alert.alert(
-        '[MOCK] Abonnement activé',
-        'État simulé : active / monthly. Stripe Payment Link sera câblé quand URL fournie.',
+        'Impossible d\'ouvrir le navigateur',
+        e.message ?? 'Réessaie dans un instant.',
       );
     } finally {
       setLoading(false);
