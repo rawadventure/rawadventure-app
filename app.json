@@ -15,7 +15,10 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "world.rawadventure.app"
+      "bundleIdentifier": "world.rawadventure.app",
+      "associatedDomains": [
+        "applinks:rawadventure.world"
+      ]
     },
     "android": {
       "package": "world.rawadventure.app",
@@ -24,7 +27,26 @@
         "backgroundColor": "#F5F1E8"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "rawadventure.world",
+              "pathPrefix": "/subscription-success"
+            },
+            {
+              "scheme": "https",
+              "host": "rawadventure.world",
+              "pathPrefix": "/checkout-success"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -43,19 +43,26 @@ export type RootStackParamList = {
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
 /**
- * Linking config — Sprint A auth + futur Sprint abonnement.
+ * Linking config — Sprint A auth + Sprint abonnement + Universal Links.
  *
- * Scheme `rawadventure://` déclaré dans app.json. Permet à Supabase de
- * rappeler l'app depuis le lien email de reset password
- * (`rawadventure://reset-password#access_token=...`). Stripe Payment Link
- * utilisera plus tard `rawadventure://subscription-success`.
+ * Schemes acceptés :
+ *  - `rawadventure://` (custom scheme déclaré app.json) — utilisé par
+ *    Supabase reset password et fallback Stripe.
+ *  - `https://rawadventure.world/...` (Universal Link iOS / App Link Android)
+ *    — actif post-activation Apple Team ID + Android SHA256 dans
+ *    `legal-site/.well-known/`. Cf. docs/release/universal-links-setup.md.
  *
  * Pas de mapping de routes ici — la gestion se fait via les events
- * Supabase (`PASSWORD_RECOVERY`) captés dans AuthContext. NavigationContainer
- * a juste besoin du prefix pour ne pas bloquer l'ouverture du deep link.
+ * Supabase (`PASSWORD_RECOVERY`) captés dans AuthContext et SubscriptionContext
+ * (reload sur deep link checkout-success). NavigationContainer a juste besoin
+ * des prefixes pour ne pas bloquer l'ouverture des deep links.
  */
 const linking: LinkingOptions<ReactNavigation.RootParamList> = {
-  prefixes: [Linking.createURL('/'), 'rawadventure://'],
+  prefixes: [
+    Linking.createURL('/'),
+    'rawadventure://',
+    'https://rawadventure.world',
+  ],
   config: {
     screens: {},
   },
