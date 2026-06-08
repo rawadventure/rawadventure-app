@@ -13,6 +13,7 @@ import {
   Inter_700Bold,
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
+import * as Sentry from '@sentry/react-native';
 
 import { AuthProvider } from './src/hooks/AuthContext';
 import { ProgressProvider } from './src/hooks/ProgressContext';
@@ -22,6 +23,36 @@ import {
   configureAndroidChannel,
   configureNotificationHandler,
 } from './src/lib/notifications';
+
+// Sentry crash reporting — init au load module (avant tout le reste).
+// DSN injecté via env var EXPO_PUBLIC_SENTRY_DSN. Si absent (DEV local sans
+// .env) → init skip pour éviter spam logs Sentry.
+const SENTRY_DSN = process.env.EXPO_PUBLIC_SENTRY_DSN;
+if (SENTRY_DSN) {
+  Sentry.init({
+    dsn: SENTRY_DSN,
+    // Désactive en DEV pour ne pas polluer les events de crash de prod
+    // avec des erreurs liées au hot reload, fast refresh, etc.
+    enabled: !__DEV__,
+    // Sampling — 100% des erreurs en prod (volume faible attendu V1).
+    sampleRate: 1.0,
+    // Tracing performance — 10% en prod, suffisant pour identifier
+    // les écrans lents sans exploser le quota Sentry.
+    tracesSampleRate: 0.1,
+    // Release version automatique via app version.
+    release: 'rawadventure@1.0.0',
+    // Env tag pour distinguer dev/staging/prod dans Sentry UI.
+    environment: __DEV__ ? 'development' : 'production',
+    // Filtre les erreurs réseau attendues (offline, timeouts) qui
+    // polluent et n'aident pas au debug.
+    beforeSend(event, hint) {
+      const err = hint?.originalException as any;
+      if (err?.message?.includes('Network request failed')) return null;
+      if (err?.message?.includes('aborted')) return null;
+      return event;
+    },
+  });
+}
 
 // Sprint 25 — cadre technique notifications (D32 plage silence 22h-8h).
 // Configure handler foreground + canal Android au load module (idempotent).
@@ -68,7 +99,7 @@ const linking: LinkingOptions<ReactNavigation.RootParamList> = {
   },
 };
 
-export default function App() {
+function App() {
   // 5 poids Inter du design system V1.1 §3.2
   const [fontsLoaded, fontError] = useFonts({
     Inter_400Regular,
@@ -111,3 +142,8 @@ export default function App() {
     </SafeAreaProvider>
   );
 }
+
+// Wrap App avec Sentry pour capturer automatiquement les erreurs React
+// (ErrorBoundary global) + le tracking performance (TransactionRouter).
+// Si DSN absent (env var pas set), wrap reste passthrough no-op.
+export default Sentry.wrap(App);
