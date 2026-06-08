@@ -31,6 +31,13 @@
  *  - Priorité 2 : lookup existing row par stripe_customer_id
  *  - Priorité 3 : match par email dans auth.users
  *  - Sinon : log warning + skip update (orphan)
+ *
+ * Idempotency :
+ *  Table `stripe_webhook_events` (event_id PRIMARY KEY) dédupe les retries
+ *  Stripe (network failures, 5xx, etc.). INSERT ON CONFLICT DO NOTHING au
+ *  début du handler — atomique au niveau Postgres. Si rowCount=0 → event
+ *  déjà traité → skip + 200 OK pour stopper les retries. Cf migration
+ *  supabase/migrations/20260608_stripe_webhook_events.sql.
  */
 
 // @ts-ignore — Deno imports
@@ -274,7 +281,40 @@ Deno.serve(async (req: Request) => {
     return new Response(`Webhook Error: ${err.message}`, { status: 400 });
   }
 
-  console.log('Stripe event received:', event.type);
+  console.log('Stripe event received:', event.type, event.id);
+
+  // ── Idempotency : INSERT ON CONFLICT DO NOTHING (atomique Postgres) ──
+  // Si le row existe déjà → Stripe a retry un event qu'on a déjà traité.
+  // On retourne 200 OK pour stopper les retries Stripe.
+  const { data: insertedRows, error: insertErr } = await supabase
+    .from('stripe_webhook_events')
+    .insert({
+      event_id: event.id,
+      event_type: event.type,
+    })
+    .select('event_id');
+
+  if (insertErr) {
+    // Si conflict explicite (PK duplicate) → déjà traité, OK.
+    if (insertErr.code === '23505') {
+      console.log(`Event ${event.id} already processed, skipping`);
+      return new Response(JSON.stringify({ received: true, deduped: true }), {
+        headers: { 'Content-Type': 'application/json' },
+        status: 200,
+      });
+    }
+    // Autre erreur DB → on log mais on continue (préfère traiter
+    // deux fois plutôt que perdre un event).
+    console.error('Idempotency insert error', insertErr);
+  } else if (!insertedRows || insertedRows.length === 0) {
+    // Cas safety : insert n'a pas erroré mais aucune ligne créée → déjà
+    // existant. Skip.
+    console.log(`Event ${event.id} already processed (no row inserted), skipping`);
+    return new Response(JSON.stringify({ received: true, deduped: true }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+  }
 
   try {
     switch (event.type) {
@@ -297,12 +337,23 @@ Deno.serve(async (req: Request) => {
         console.log('Unhandled event type:', event.type);
     }
 
+    // Marque l'event comme traité avec succès.
+    await supabase
+      .from('stripe_webhook_events')
+      .update({ processed_at: new Date().toISOString() })
+      .eq('event_id', event.id);
+
     return new Response(JSON.stringify({ received: true }), {
       headers: { 'Content-Type': 'application/json' },
       status: 200,
     });
   } catch (err: any) {
     console.error('Handler error:', err);
+    // Marque l'event en erreur pour permettre debug / retry manuel.
+    await supabase
+      .from('stripe_webhook_events')
+      .update({ error: String(err?.message ?? err).slice(0, 1000) })
+      .eq('event_id', event.id);
     return new Response(`Handler error: ${err.message}`, { status: 500 });
   }
 });
