@@ -12,7 +12,7 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/PLACEHOLDER_EAS_PROJECT_ID",
+      "url": "https://u.expo.dev/ef8346db-6892-4218-a129-b3e9d22ec711",
       "fallbackToCacheTimeout": 0
     },
     "splash": {
@@ -51,7 +51,10 @@
               "pathPrefix": "/checkout-success"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -60,6 +63,12 @@
     },
     "plugins": [
       "expo-web-browser"
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "ef8346db-6892-4218-a129-b3e9d22ec711"
+      }
+    },
+    "owner": "rawadventure"
   }
 }
