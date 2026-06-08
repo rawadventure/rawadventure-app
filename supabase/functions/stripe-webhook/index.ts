@@ -212,12 +212,27 @@ async function handleSubscriptionUpdated(subscription: any) {
     return;
   }
 
+  // Cancel detection robuste — couvre les variantes API Stripe :
+  //  - subscription.cancel_at_period_end : true → cancel programmé fin période
+  //  - subscription.cancel_at : timestamp futur → cancel programmé
+  //  - subscription.canceled_at : timestamp passé → cancel déjà effectif
+  //  - subscription.status === 'canceled' : cancel fully appliqué
+  const cancelScheduled = Boolean(
+    subscription.cancel_at_period_end ||
+    subscription.cancel_at ||
+    subscription.canceled_at,
+  );
+
   let status: string = 'active';
-  if (subscription.cancel_at_period_end) status = 'cancelled';
-  else if (subscription.status === 'past_due') status = 'past_due';
-  else if (subscription.status === 'canceled') status = 'expired';
-  else if (subscription.status === 'unpaid') status = 'past_due';
-  else if (subscription.status === 'active') status = 'active';
+  if (subscription.status === 'canceled' || subscription.status === 'incomplete_expired') {
+    status = 'expired';
+  } else if (subscription.status === 'past_due' || subscription.status === 'unpaid') {
+    status = 'past_due';
+  } else if (cancelScheduled) {
+    status = 'cancelled';
+  } else if (subscription.status === 'active' || subscription.status === 'trialing') {
+    status = 'active';
+  }
 
   const priceId = subscription.items.data[0]?.price.id;
   const plan = priceId ? await planFromPriceId(priceId) : null;
