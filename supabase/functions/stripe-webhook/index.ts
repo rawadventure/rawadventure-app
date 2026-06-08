@@ -134,6 +134,35 @@ async function updateSubscription(userId: string, fields: Record<string, any>) {
   }
 }
 
+/**
+ * Convertit un timestamp Unix Stripe (secondes) en ISO string, en gérant les
+ * cas où le champ est absent / null / undefined / NaN.
+ *
+ * Indispensable depuis l'API Stripe 2024-12+ où certains champs (notamment
+ * current_period_end) sont déplacés au niveau item plutôt que subscription.
+ * Sans ce guard, `new Date(undefined * 1000).toISOString()` jette
+ * RangeError: Invalid time value et fait crasher tout le handler.
+ */
+function unixToIsoOrNull(unixSec: number | null | undefined): string | null {
+  if (typeof unixSec !== 'number' || !Number.isFinite(unixSec)) return null;
+  return new Date(unixSec * 1000).toISOString();
+}
+
+/**
+ * Extrait current_period_end depuis subscription ou item, selon la version
+ * de l'API Stripe utilisée.
+ *  - API < 2024-12 : subscription.current_period_end
+ *  - API >= 2024-12 : subscription.items.data[0].current_period_end
+ */
+function getCurrentPeriodEnd(subscription: any): number | null {
+  if (typeof subscription?.current_period_end === 'number') {
+    return subscription.current_period_end;
+  }
+  const itemEnd = subscription?.items?.data?.[0]?.current_period_end;
+  if (typeof itemEnd === 'number') return itemEnd;
+  return null;
+}
+
 // ─── Handlers ───────────────────────────────────────────────────────────────
 
 async function handleCheckoutCompleted(session: any) {
@@ -163,8 +192,8 @@ async function handleCheckoutCompleted(session: any) {
   await updateSubscription(userId, {
     status: 'active',
     plan,
-    started_at: new Date(subscription.start_date * 1000).toISOString(),
-    renews_at: new Date(subscription.current_period_end * 1000).toISOString(),
+    started_at: unixToIsoOrNull(subscription.start_date),
+    renews_at: unixToIsoOrNull(getCurrentPeriodEnd(subscription)),
     cancelled_at: null,
     stripe_customer_id: session.customer,
     stripe_subscription_id: subscriptionId,
@@ -196,12 +225,8 @@ async function handleSubscriptionUpdated(subscription: any) {
   await updateSubscription(existing.user_id, {
     status,
     plan,
-    renews_at: new Date(subscription.current_period_end * 1000).toISOString(),
-    cancelled_at: subscription.cancel_at
-      ? new Date(subscription.cancel_at * 1000).toISOString()
-      : subscription.canceled_at
-      ? new Date(subscription.canceled_at * 1000).toISOString()
-      : null,
+    renews_at: unixToIsoOrNull(getCurrentPeriodEnd(subscription)),
+    cancelled_at: unixToIsoOrNull(subscription.cancel_at ?? subscription.canceled_at),
     stripe_subscription_id: subscription.id,
   });
 }
@@ -237,7 +262,7 @@ async function handleInvoicePaid(invoice: any) {
   const subscription = await stripe.subscriptions.retrieve(subscriptionId);
   await updateSubscription(existing.user_id, {
     status: 'active',
-    renews_at: new Date(subscription.current_period_end * 1000).toISOString(),
+    renews_at: unixToIsoOrNull(getCurrentPeriodEnd(subscription)),
   });
 }
 
