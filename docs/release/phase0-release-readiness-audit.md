@@ -1,7 +1,7 @@
 # Phase 0 — Audit Release Readiness
 
 **Date initiale** : 3 juin 2026
-**Dernière mise à jour** : 6 juin 2026
+**Dernière mise à jour** : 8 juin 2026
 **Cible** : TestFlight beta puis App Store / Play Store launch
 **Périmètre** : 14 premiers jours de l'expérience utilisateur (onboarding + Phase 0) + paywall fin Phase 0
 
@@ -112,22 +112,25 @@
 
 | Élément | Statut | Notes |
 |---|---|---|
-| Repo GitHub privé (D22) | 🟡 | Repo legal-site public sur rawadventure.world. Repo app principal toujours local — à pousser GitHub privé avant TestFlight |
+| Repo GitHub privé (D22) | ✅ | **8 juin** : repo `rawadventure/rawadventure-app` privé, main + 9 branches Sprint pushed |
 | Env vars Supabase prod vs dev | 🔶 | .env existe mais pas de séparation prod/dev |
-| EAS Build config | ❌ | Pas configuré |
-| Dev build iOS fonctionnel | ✅ | `npx expo run:ios` OK + expo-web-browser native module linké |
+| EAS Build config | ✅ | **8 juin** : eas.json 3 profils + .easignore + projectId `ef8346db-6892-4218-a129-b3e9d22ec711` (projet `@rawadventure/RawAdventureRN`). Premier build pending Apple Dev / sanity check dispo |
+| Dev build iOS fonctionnel | ✅ | `npx expo run:ios` OK + expo-web-browser + Sentry native module linkés |
 | App icon | ✅ | Portraits Mimi+Jacky cartoonisés (ChatGPT) intégrés |
 | Splash screen | ✅ | Idem |
-| Compte Apple Developer Organization | 🔶 | DUNS HK demandé via D&B HK (3 juin), attente ~14 jours. Apple ID admin@rawadventure.world bloqué anti-fraud, deferred 24-48h |
+| Compte Apple Developer Organization | 🔶 | DUNS HK demandé via D&B HK (8 juin Standard application submitted), attente ~14 jours. Apple ID admin@rawadventure.world bloqué anti-fraud, deferred 24-48h |
 | Compte Google Play Console | 🔶 | DUNS également requis (politique Google nov 2025), même délai |
-| Compte Stripe | ✅ | Compte créé. TEST mode : 1 product Raw Adventure Abonnement + 3 prices (ra_monthly 49€ / ra_semestrial 239€ / ra_annual 399€) + Pricing Table prctbl_1TfB5qQssbHmxKdShf85wu23. LIVE mode : prctbl_1TevYeQssbHmxKdSQJy3KjUE (idem produits, à activer pour launch) |
-| Webhook Stripe → Supabase | ✅ | Endpoint configuré + signing secret + Edge Function déployée + 5 events écoutés. Webhook idempotency à durcir avant LIVE (cf §10 Polish) |
+| Compte Stripe | ✅ | Compte créé. TEST mode : 1 product Raw Adventure Abonnement + 3 prices (ra_monthly 49€ / ra_semestrial 239€ / ra_annual 399€) + Pricing Table prctbl_1TfB5qQssbHmxKdShf85wu23. **Customer Portal configuré** (Mimi 8 juin) : update payment, cancel period end, switch plans 3 prices, URLs CGU+Privacy. LIVE mode : prctbl_1TevYeQssbHmxKdSQJy3KjUE (idem produits, à activer pour launch) |
+| Webhook Stripe → Supabase | ✅ | Endpoint configuré + signing secret + Edge Function déployée + 5 events écoutés. **8 juin** : idempotency via table stripe_webhook_events (dedup retries) + handler hardened (timestamps safe + cancel detect robuste cancel_at/canceled_at) |
+| Edge Function stripe-portal | ✅ | **8 juin** : déployée. Génère Customer Portal session par user JWT, return URL `rawadventure.world/account-returned/` |
 | Domaine rawadventure.world | ✅ | OVH + DNS A records + CNAME → GitHub Pages |
 | Email support@rawadventure.world | ❌ | À créer (Proton ou OVH) |
-| **Site légal rawadventure.world** | ✅ | GitHub Pages déployé : /cgu, /confidentialite, /mentions-legales, /abonnement (Stripe Pricing Table), /checkout-success |
-| Crash reporting (Sentry / autre) | ❌ | Pas intégré |
+| **Site légal rawadventure.world** | ✅ | GitHub Pages déployé : /cgu, /politique-confidentialite, /mentions-legales, /abonnement (Stripe Pricing Table), /checkout-success, /account-returned |
+| Universal Links iOS / App Links Android | 🔶 | **8 juin** : config prête côté app (associatedDomains + intentFilters + linking.prefixes) + AASA/assetlinks dans legal-site/.well-known/. Placeholders TEAMID + SHA256 à remplir post-Apple Dev / Play Console |
+| JS fallback bouton "Retourner dans l'app" | ✅ | **8 juin** : checkout-success + account-returned JS window.location + visibilitychange detect + hint fallback 1.5s. Contourne blocage SFSafariViewController sur custom scheme. Activable Universal Link post-TEAMID |
+| Crash reporting (Sentry) | 🟡 | **8 juin** : @sentry/react-native installé + plugin app.json + init guard DSN + Sentry.wrap(App). Filtre Network errors + DEV skip. Compte créé + DSN obtenu, ajouté .env. À valider sur premier build prod (DEV skip enabled=!__DEV__) |
 | Analytics (Mixpanel / PostHog) | ❌ | Pas intégré |
-| Screenshots App Store iPhone 6.9" | ✅ | 10 captures 1320x2868 dans assets/store-screenshots/iphone-6.9/ |
+| Screenshots App Store iPhone 6.9" | ✅ | 10 captures 1320x2868 dans assets/store-screenshots/iphone-6.9/. 08-profil refait avec compte démo (plus de leak email perso) |
 
 ---
 
@@ -136,15 +139,15 @@
 | Élément | Statut | Notes |
 |---|---|---|
 | Drafts CGU/CGV V1 | ✅ | docs/legal/cgu-cgv-v1-draft.md + publié rawadventure.world/cgu |
-| Drafts Politique confidentialité RGPD | ✅ | docs/legal/politique-confidentialite-rgpd-v1-draft.md + publié /confidentialite |
+| Drafts Politique confidentialité RGPD | ✅ | docs/legal/politique-confidentialite-rgpd-v1-draft.md + publié /politique-confidentialite |
 | Drafts Mentions légales | ✅ | docs/legal/mentions-legales-v1-draft.md + publié /mentions-legales |
 | Droit applicable acté | ✅ | Français (B2C) + HK (B2B) |
 | Médiation Option B (amiable) | ✅ | Sans adhésion V1 |
 | Directeur publication | ✅ | Stéphane Tossens — stephane@rawadventure.world |
 | Capital social Raw Adventure Limited | ✅ | Renseigné dans mentions légales |
-| URLs hébergement finales | ✅ | rawadventure.world/{cgu,confidentialite,mentions-legales} |
+| URLs hébergement finales | ✅ | rawadventure.world/{cgu,politique-confidentialite,mentions-legales} |
 | Validation avocat | ❌ | Recommandé avant launch |
-| Case CGU acceptation in-app | 🔶 | Mention présente IA-10 + PaywallScreen, lien actif à câbler (Linking.openURL vers rawadventure.world/cgu) |
+| Case CGU acceptation in-app | ✅ | **8 juin** : Linking.openURL câblé dans RegisterScreen (fine print) + PaywallScreen (fine print) + ProfilTabScreen (Card Légal avec 3 boutons CGU/Privacy/Mentions). App Store §5.1.1 + §3.1.2(a) compliance |
 
 ---
 
@@ -161,9 +164,12 @@
 | Storage buckets pour vidéos | ❌ | Pas créés |
 | Auth → Settings : password min length 6 | ✅ | Défaut Supabase |
 | Auth → Rate limiting | 🟡 | À vérifier defaults OK |
-| Edge Function stripe-webhook | ✅ | Déployée + secrets posés (STRIPE_SECRET_KEY test, STRIPE_WEBHOOK_SECRET) |
-| Realtime postgres_changes activé | ✅ | Channel subscriptions:user:{id} testé fonctionnel |
+| Edge Function stripe-webhook | ✅ | Déployée + secrets posés (STRIPE_SECRET_KEY test, STRIPE_WEBHOOK_SECRET). 8 juin : handler hardened (timestamps safe via unixToIsoOrNull + cancel detect élargi cancel_at_period_end OR cancel_at OR canceled_at) |
+| Edge Function stripe-portal | ✅ | **8 juin** : déployée, lookup customer_id par JWT user, génère billing_portal session |
+| Table stripe_webhook_events (idempotency) | ✅ | **8 juin** : table créée, PRIMARY KEY event_id, INSERT ON CONFLICT DO NOTHING dans handler. Dedup retries Stripe validé E2E logs |
+| Realtime postgres_changes activé | ✅ | Channel subscriptions:user:{id} testé fonctionnel + 8 juin validé end-to-end avec cancel via portal |
 | Trigger handle_new_user | ✅ | Crée row subscriptions status=free à chaque signup |
+| Compte démo (`demo@rawadventure.world`) | ✅ | **8 juin** : créé via Dashboard, auto-confirm email. Password `RawDemo2026!`. À transférer en alias email réel post-DUNS pour Apple review |
 
 ---
 
@@ -177,6 +183,9 @@
 | Test signup + email confirm flow | 🔶 | UI OK, deep link non testé device réel |
 | Test reset password flow | 🔶 | Idem deep link |
 | **Test E2E paywall J14 → Stripe → Phase 1** | ✅ | 6 juin 2026 simu iOS : flow complet validé, webhook firing, Supabase update, realtime push, TabNavigator routing |
+| **Test E2E Stripe Customer Portal + cancel** | ✅ | **8 juin** simu iOS : button "Gérer mon abonnement" → portail Stripe → annulation → webhook cancel detect → Supabase row cancelled → Realtime push → app Card status passe à cancelled |
+| **Test idempotency webhook (dedup retries)** | ✅ | **8 juin** : Stripe resend même event 2x → 1er traité, 2e skipped via stripe_webhook_events PK conflict. Logs validés |
+| **Test JS fallback bouton "Retourner dans l'app"** | ✅ | **8 juin** : SFSafariViewController bloque scheme custom → hint fallback affiché après 1.5s → workaround OK |
 | Test notifications iOS device | ❌ | À faire avec build dev |
 | Test notifications Android | ❌ | Build Android non créé encore |
 | Test edge cases (joker, charnière, cassure streak) | 🟡 | DEV buttons OK, scenarios full à dérouler |
@@ -189,27 +198,24 @@
 
 ### 🔴 Bloquants release stores
 
-1. **Compte Apple Developer Organization** (DUNS HK en cours ~14j + Apple ID anti-fraud 24-48h)
+1. **Compte Apple Developer Organization** (DUNS HK Standard submitted 8 juin, attente ~14j + Apple ID anti-fraud 24-48h)
 2. **Compte Google Play Console** (DUNS idem)
-3. **Stripe LIVE setup** (dupliquer product + 3 prices + pricing table en mode live + webhook endpoint live)
-4. **EAS Build config** (TestFlight nécessite build cloud signé)
-5. **Repo GitHub privé app principal** (push code RawAdventureRN)
-6. **Email support@rawadventure.world** (mentionné docs légaux, doit fonctionner)
-7. **Validation avocat docs légaux** (ou risque assumé)
-8. **Câblage Stripe Customer Portal** dans Profil (sinon utilisateur peut pas annuler/changer plan in-app)
-9. **Remplacer email perso stephanetossens@gmail.com** par compte démo dans screenshots store (08-profil.png leak)
+3. **Stripe LIVE setup** (dupliquer product + 3 prices + pricing table + webhook endpoint en mode live — Mimi access requis)
+4. **EAS production build + TestFlight submit** (post-Apple Dev — config EAS prête)
+5. **Email support@rawadventure.world** (mentionné docs légaux, doit fonctionner pour Apple review)
+6. **Validation avocat docs légaux** (ou risque assumé)
+7. **Apple Team ID + SHA256 Android** → remplacer placeholders dans `legal-site/.well-known/apple-app-site-association` + `assetlinks.json` → activation Universal Links
+8. **Fix Stripe Customer Portal URL Privacy** : Mimi a mis `/confidentialite/` (404), à corriger `/politique-confidentialite/`
 
 ### 🟡 Importants mais non-bloquants
 
 1. Vidéo IA-12 bienvenue J1 (placeholder OK, à remplacer tournage)
-2. Universal Link + apple-app-site-association (bouton "Retourner dans l'app" post-paiement vraiment cliquable)
-3. Webhook idempotency (clé sur event.id, prévention double-update sur retry Stripe)
-4. Crash reporting (Sentry)
-5. Analytics (Mixpanel/PostHog)
-6. Prompt permission notifs au J1 (UX)
-7. RLS policies audit complet (autres tables que subscriptions)
-8. Câblage links CGU/Privacy in-app (Linking.openURL)
-9. Validation Mimi copy paywall final + bandeaux lapse/past_due
+2. Analytics (Mixpanel/PostHog)
+3. Prompt permission notifs au J1 (UX)
+4. RLS policies audit complet (autres tables que subscriptions)
+5. Validation Mimi copy paywall final + bandeaux lapse/past_due
+6. Sentry user context (Sentry.setUser dans AuthContext post-login pour grouper crashes par user)
+7. Sentry sourcemaps upload (EAS post-build hook) — avant submit App Store
 
 ### 🟢 Polish post-launch
 
@@ -233,27 +239,26 @@
 
 ## 11. CHEMIN CRITIQUE RESTANT TestFlight beta
 
-**État au 6 juin 2026** : code app + paywall + Stripe + Supabase + legal site **OK end-to-end**. Reste essentiellement admin (DUNS, Apple Dev, Play Console) + EAS Build + LIVE setup.
+**État au 8 juin 2026** : code app + paywall + Stripe + Supabase + legal site + Customer Portal + idempotency webhook + Sentry + Universal Links prep + links légal câblés **OK end-to-end et validé E2E simu iOS**. Reste essentiellement admin (DUNS, Apple Dev, Play Console) + EAS production build + Stripe LIVE setup.
 
 | Bloc restant | Effort estimé | Owner |
 |---|---|---|
-| Attente DUNS HK | ~14 jours | Passif (D&B) |
+| Attente DUNS HK | ~14 jours (Standard submitted 8 juin) | Passif (D&B) |
 | Apple ID admin@ création | 24-48h anti-fraud | Stéphane |
 | Inscription Apple Developer (post-DUNS) | 2-7j review Apple | Stéphane |
 | Inscription Google Play Console (post-DUNS) | 1-3j review Google | Stéphane |
-| EAS Build config + premier build iOS dev | 2-3 h | Claude |
-| Push repo GitHub privé app | 30 min | Stéphane + Claude |
-| Stripe LIVE setup (product + prices + pricing table + webhook) | 1-2 h | Stéphane + Claude |
-| Câblage Customer Portal | 1-2 h | Claude |
+| Récup Apple Team ID → remplir AASA + eas.json | 5 min | Claude (post-DUNS) |
+| Premier EAS build dev sanity check (optionnel maintenant) | 20 min cloud | Claude |
+| EAS build production iOS + submit TestFlight | 30 min + processing Apple | Claude |
+| EAS build production Android + submit Play Console | 30 min + processing Google | Claude |
+| Stripe LIVE setup (product + prices + pricing table + webhook + portal) | 1-2 h | Mimi + Claude |
 | Email support@ Proton/OVH | 30 min | Stéphane |
-| Webhook idempotency (event.id dedup) | 1 h | Claude |
-| Compte démo (remplacer screenshot 08-profil) | 30 min | Claude + nouveau utilisateur Supabase |
-| Câblage links CGU/Privacy in-app | 30 min | Claude |
 | Audit RLS policies complet | 2 h | Claude |
-| **Total dev Claude** | **~8-10 h** | |
-| **Total Stéphane** | ~2 h + délais admin | |
+| Sentry user context (AuthContext) + sourcemaps EAS hook | 1 h | Claude |
+| **Total dev Claude restant** | **~4 h** | |
+| **Total Stéphane** | ~1 h + délais admin | |
 
-**Bloqueur dominant** : DUNS HK (~14j). Tout le dev restant peut tenir en parallèle de l'attente.
+**Bloqueur dominant** : DUNS HK (~14j). Tout le dev restant peut tenir en parallèle. Pratiquement tout le code est prêt — reste les credentials Apple/Google pour signer + submit.
 
 ---
 
@@ -261,6 +266,19 @@
 
 - **3 juin 2026** : Audit initial créé. 28 notifs draftées, paywall pas codé, legal docs draftés non hébergés, Stripe inexistant.
 - **6 juin 2026** : Paywall + table subscriptions + SubscriptionContext + webhook Stripe + Edge Function déployés et **E2E validé en simu iOS**. Legal site rawadventure.world LIVE (GitHub Pages). Stripe TEST mode 1 product 3 prices LIVE. 10 screenshots store iPhone 6.9" capturés. Notifications Phase 0 validées Mimi. App icon + splash intégrés. DUNS HK demandé, Apple ID anti-fraud bloqué.
+- **8 juin 2026** (grosse session) :
+  - **M** repo `rawadventure/rawadventure-app` pushé GitHub privé (main + 9 branches Sprint)
+  - **R** rebuild iOS + retest paywall E2E avec JS fallback bouton "Retourner dans l'app"
+  - **I** compte démo `demo@rawadventure.world` créé + screenshot 08-profil refait (élimine leak email perso)
+  - **H** Stripe Customer Portal câblé : Edge Function stripe-portal + UI bouton ProfilTabScreen + page account-returned + Stripe Dashboard config (Mimi). E2E validé avec cancel → status passé à cancelled via webhook
+  - **L** EAS Build init : eas-cli installé + projet `@rawadventure/RawAdventureRN` créé + projectId ef8346db... + runtimeVersion + .easignore + doc setup
+  - **F** Webhook idempotency : table stripe_webhook_events + INSERT ON CONFLICT DO NOTHING + UPDATE processed_at. Dedup retries Stripe validé E2E logs
+  - **G** Sentry installé : @sentry/react-native + plugin app.json + init guard DSN + .env DSN ajouté + Sentry.wrap(App). Activation skip DEV par design
+  - **J** Câblage links légal : Linking.openURL CGU + Privacy dans RegisterScreen + PaywallScreen + nouveau Card "Légal" dans ProfilTabScreen (App Store §5.1.1 compliance)
+  - **Bug fix critique** webhook handler : RangeError sur `new Date(undefined).toISOString()` car Stripe API 2024-12+ déplace `current_period_end` au niveau item. Fix : unixToIsoOrNull() + getCurrentPeriodEnd() helpers
+  - **Bug fix** détection cancel : élargi de cancel_at_period_end seul à cancel_at OR canceled_at (couvre variantes Stripe API)
+  - **Bug fix** URL Politique confidentialité : `/confidentialite/` (404) → `/politique-confidentialite/` (200)
+  - DUNS HK : application Standard submitted via D&B HK Self-Service Portal (queue ~14j)
 
 ---
 
