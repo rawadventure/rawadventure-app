@@ -60,7 +60,7 @@ URL : `https://dashboard.stripe.com/test/settings/billing/portal`
 
 **Section "Business information"** :
 - Headline : "Gérer ton abonnement Raw Adventure"
-- Privacy policy URL : `https://rawadventure.world/confidentialite/`
+- Privacy policy URL : `https://rawadventure.world/politique-confidentialite/`
 - Terms of service URL : `https://rawadventure.world/cgu/`
 
 **Section "Branding"** (en haut, lien "Branding") :

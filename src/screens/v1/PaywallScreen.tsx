@@ -163,7 +163,7 @@ export default function PaywallScreen() {
                 style={styles.link}
                 onPress={() =>
                   Linking.openURL(
-                    'https://rawadventure.world/confidentialite/',
+                    'https://rawadventure.world/politique-confidentialite/',
                   ).catch(() => {})
                 }
                 accessibilityRole="link"

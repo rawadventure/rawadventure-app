@@ -214,7 +214,7 @@ export default function ProfilTabScreen() {
               variant="ghost"
               onPress={() =>
                 Linking.openURL(
-                  'https://rawadventure.world/confidentialite/',
+                  'https://rawadventure.world/politique-confidentialite/',
                 ).catch(() => {})
               }
               fullWidth

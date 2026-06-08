@@ -315,7 +315,7 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
                   style={styles.link}
                   onPress={() =>
                     Linking.openURL(
-                      'https://rawadventure.world/confidentialite/',
+                      'https://rawadventure.world/politique-confidentialite/',
                     ).catch(() => {})
                   }
                   accessibilityRole="link"
