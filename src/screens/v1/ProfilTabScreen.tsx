@@ -11,8 +11,9 @@
  * Référence IA : IA-70. Pattern : G.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import * as WebBrowser from 'expo-web-browser';
 import {
   cancelAllNotifications,
   requestNotificationPermission,
@@ -23,10 +24,11 @@ import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { PillarHeader, StreakBubble } from '../../components/compositions';
 import { Button, Card } from '../../components/primitives';
-import { brandColors, interTextStyle, neutralColors, space } from '../../theme';
+import { brandColors, interTextStyle, neutralColors, pillarColors, space } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
+import { supabase } from '../../lib/supabase';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
 
 type Nav = NativeStackNavigationProp<ProfilStackParamList>;
@@ -39,7 +41,74 @@ export default function ProfilTabScreen() {
     isActive: subscriptionActive,
     setMockSubscriptionState,
     resetSubscription,
+    reload: reloadSubscription,
   } = useSubscription();
+  const [portalLoading, setPortalLoading] = useState(false);
+
+  /**
+   * Ouvre le Stripe Customer Portal pour ce user.
+   *
+   * Flow :
+   *  1. Call Edge Function `stripe-portal` avec JWT Authorization
+   *  2. Reçoit URL Stripe portal session
+   *  3. Ouvre via SFSafariViewController (iOS) / Custom Tabs (Android)
+   *  4. User gère son abonnement (cancel, change plan, payment method, factures)
+   *  5. Stripe redirect rawadventure.world/account-returned au close
+   *  6. App détecte close manuel → reload SubscriptionContext
+   *     (webhook customer.subscription.updated aura déjà MAJ row Supabase)
+   */
+  const handleManageSubscription = async () => {
+    setPortalLoading(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        Alert.alert('Erreur', 'Tu dois être connecté pour gérer ton abonnement.');
+        return;
+      }
+
+      const supabaseUrl = (supabase as any).supabaseUrl ?? '';
+      const response = await fetch(`${supabaseUrl}/functions/v1/stripe-portal`, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        Alert.alert(
+          'Impossible d\'ouvrir le portail',
+          data.message ?? data.error ?? 'Réessaie dans un instant.',
+        );
+        return;
+      }
+
+      if (!data.url) {
+        Alert.alert('Erreur', 'Pas d\'URL retournée par le serveur.');
+        return;
+      }
+
+      const result = await WebBrowser.openBrowserAsync(data.url, {
+        toolbarColor: pillarColors.phase0.bg,
+        controlsColor: pillarColors.phase0.text,
+        dismissButtonStyle: 'close',
+      });
+
+      // Au close manuel, reload state (webhook a probablement firé entre-temps).
+      if (result.type === 'cancel' || result.type === 'dismiss') {
+        await reloadSubscription();
+      }
+    } catch (e: any) {
+      Alert.alert(
+        'Erreur',
+        e.message ?? 'Impossible d\'ouvrir le portail. Vérifie ta connexion.',
+      );
+    } finally {
+      setPortalLoading(false);
+    }
+  };
   const {
     currentDay,
     currentPhase,
@@ -98,6 +167,19 @@ export default function ProfilTabScreen() {
                   {new Date(subscriptionState.renewsAt).toLocaleDateString('fr-FR')}
                 </Text>
               </View>
+            )}
+            {/* Bouton portail Stripe — visible seulement si user a un abonnement
+                (status != 'free'). En 'free', user n'a pas encore de
+                stripe_customer_id → l'Edge Function renverrait 404. */}
+            {subscriptionState.status !== 'free' && (
+              <Button
+                label="Gérer mon abonnement"
+                variant="secondary"
+                onPress={handleManageSubscription}
+                loading={portalLoading}
+                fullWidth
+                style={{ marginTop: space[3] }}
+              />
             )}
           </Card>
 
