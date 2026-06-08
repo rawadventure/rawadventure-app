@@ -1,0 +1,32 @@
+# Fichiers ignorés lors de l'upload du source vers EAS Build cloud.
+# Réduit la taille du tarball (bonne pratique : < 100 Mo).
+
+# Dossiers docs / kanban / contenu — pas nécessaires au build
+docs/
+kanban/
+.claude/
+
+# Site légal — repo séparé (deployment GitHub Pages)
+legal-site/
+
+# Screenshots store — pas nécessaires au build app
+assets/store-screenshots/
+
+# Backups + tests E2E lourds
+*.bak
+*.dump
+
+# Logs locaux
+*.log
+
+# Cache outils dev
+.expo/
+.metro-cache/
+
+# Fichiers macOS
+.DS_Store
+
+# Note : node_modules est déjà ignoré par EAS Build par défaut.
+# .gitignore reste source de vérité pour ce qui n'est jamais versionné
+# (.env, .p8, credentials JSON). .easignore = un cran additionnel
+# spécifique au build cloud.
