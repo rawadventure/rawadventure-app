@@ -12,7 +12,7 @@
  */
 
 import React, { useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
 import * as WebBrowser from 'expo-web-browser';
 import {
   cancelAllNotifications,
@@ -193,6 +193,41 @@ export default function ProfilTabScreen() {
               onPress={() => navigation.navigate('PaliersGallery')}
               fullWidth
               style={{ marginTop: space[3] }}
+            />
+          </Card>
+
+          {/* Card "Légal" — accès permanent aux docs hébergés sur
+              rawadventure.world. Requis App Store §5.1.1 (politique de
+              confidentialité accessible depuis l'app) + §3.1.2(a)
+              (conditions d'abonnement). */}
+          <Card title="Légal" subtitle="Documents publics">
+            <Button
+              label="Conditions générales"
+              variant="ghost"
+              onPress={() =>
+                Linking.openURL('https://rawadventure.world/cgu/').catch(() => {})
+              }
+              fullWidth
+            />
+            <Button
+              label="Politique de confidentialité"
+              variant="ghost"
+              onPress={() =>
+                Linking.openURL(
+                  'https://rawadventure.world/confidentialite/',
+                ).catch(() => {})
+              }
+              fullWidth
+            />
+            <Button
+              label="Mentions légales"
+              variant="ghost"
+              onPress={() =>
+                Linking.openURL(
+                  'https://rawadventure.world/mentions-legales/',
+                ).catch(() => {})
+              }
+              fullWidth
             />
           </Card>
 

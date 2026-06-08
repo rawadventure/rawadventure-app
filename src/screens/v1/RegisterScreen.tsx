@@ -21,6 +21,7 @@ import React, { useState } from 'react';
 import {
   Alert,
   KeyboardAvoidingView,
+  Linking,
   Platform,
   StyleSheet,
   Text,
@@ -299,8 +300,29 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
             )}
             {isRegister && (
               <Text style={styles.fine}>
-                En créant ton compte, tu acceptes nos CGU et notre politique de
-                confidentialité. [copy à valider]
+                En créant ton compte, tu acceptes nos{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() =>
+                    Linking.openURL('https://rawadventure.world/cgu/').catch(() => {})
+                  }
+                  accessibilityRole="link"
+                >
+                  conditions générales
+                </Text>
+                {' '}et notre{' '}
+                <Text
+                  style={styles.link}
+                  onPress={() =>
+                    Linking.openURL(
+                      'https://rawadventure.world/confidentialite/',
+                    ).catch(() => {})
+                  }
+                  accessibilityRole="link"
+                >
+                  politique de confidentialité
+                </Text>
+                .
               </Text>
             )}
           </View>
@@ -354,6 +376,10 @@ const styles = StyleSheet.create({
     color: pillarColors.phase0.text,
     opacity: 0.7,
     textAlign: 'center',
+  },
+  link: {
+    textDecorationLine: 'underline',
+    fontWeight: '600',
   },
   expiredBanner: {
     backgroundColor: neutralColors.surfaceElevated,
