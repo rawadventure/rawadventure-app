@@ -38,7 +38,7 @@ import {
   View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../lib/openExternal';
 import { ArrowRight, ExternalLink } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import {
@@ -78,8 +78,8 @@ export default function PaywallScreen() {
       // vers rawadventure.world/checkout-success qui a un deep link
       // rawadventure://subscription-success → ferme automatiquement le browser
       // et déclenche notre handler dans App.tsx.
-      const result = await WebBrowser.openBrowserAsync(url, {
-        // Match brand colors
+      const result = await openExternal(url, {
+        // Match brand colors (ignoré sur web)
         toolbarColor: pillarColors.phase0.bg,
         controlsColor: pillarColors.phase0.text,
         // Permet le close manuel via le bouton "Done" iOS / X Android

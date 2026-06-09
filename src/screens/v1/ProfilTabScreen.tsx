@@ -13,7 +13,7 @@
 
 import React, { useState } from 'react';
 import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { openExternal } from '../../lib/openExternal';
 import {
   cancelAllNotifications,
   requestNotificationPermission,
@@ -90,13 +90,15 @@ export default function ProfilTabScreen() {
         return;
       }
 
-      const result = await WebBrowser.openBrowserAsync(data.url, {
+      const result = await openExternal(data.url, {
         toolbarColor: pillarColors.phase0.bg,
         controlsColor: pillarColors.phase0.text,
         dismissButtonStyle: 'close',
       });
 
-      // Au close manuel, reload state (webhook a probablement firé entre-temps).
+      // Au close manuel (native iOS/Android), reload state. Sur web, le redirect
+      // a quitté l'écran — pas de reload nécessaire ici, le browser back
+      // re-mount tout.
       if (result.type === 'cancel' || result.type === 'dismiss') {
         await reloadSubscription();
       }
