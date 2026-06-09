@@ -235,7 +235,7 @@ export default function ProfilTabScreen() {
 
           <View style={styles.actions}>
             <Button label="Se déconnecter" variant="secondary" onPress={signOut} fullWidth />
-            {__DEV__ && (
+            {(__DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true') && (
               <>
                 <Button
                   label="(DEV) Aller au jour 3"
