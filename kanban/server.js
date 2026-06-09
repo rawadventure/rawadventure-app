@@ -348,8 +348,10 @@ function buildReleaseBlocks(prev) {
       sessionId: null,
       updatedAt: now
     };
-    const prio = auditPriority(clean);
-    if (prio) task.priority = prio;
+    // Priorité : colonne explicite `Prio` (3e colonne) uniquement. Vide = pas de badge
+    // (typiquement une tâche déjà faite). Plus de fallback mots-clés depuis le 9 juin.
+    const prioCell = (cells[3] || '').toLowerCase().trim();
+    if (/^(bloquant|important|polish|hors-scope)$/.test(prioCell)) task.priority = prioCell;
 
     const p = prev[task.id];
     if (p) {

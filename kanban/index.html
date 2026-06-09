@@ -157,6 +157,23 @@
       pointer-events: none;
     }
     .toast.show { opacity: 1; }
+
+    /* --- Onglets de vue --- */
+    .view-tabs button {
+      font-size: 13px;
+      padding: 6px 14px;
+      border: 1px solid var(--line);
+      background: var(--panel);
+      color: var(--muted);
+      border-radius: 6px;
+      cursor: pointer;
+    }
+    .view-tabs button.active {
+      background: var(--accent);
+      color: #11140f;
+      font-weight: 600;
+      border-color: var(--accent);
+    }
   </style>
 </head>
 <body>
@@ -173,6 +190,10 @@
       <div class="bar"><span id="global-bar"></span></div>
     </div>
     <div class="blocks-progress" id="blocks-progress"></div>
+    <div class="view-tabs" id="view-tabs" style="display:flex;gap:8px;margin-top:14px">
+      <button data-view="main" class="active">Vue principale</button>
+      <button data-view="finition">Finition Phase 0 (reste à faire)</button>
+    </div>
   </header>
 
   <div class="board" id="board">
@@ -204,6 +225,14 @@
     const prioRank = (p) => (PRIO[p] ? PRIO[p].rank : 3);
 
     let roadmap = { blocks: [] };
+
+    // Vue active : 'main' (tout) | 'finition' (reste à faire pour finir Phase 0 :
+    // on masque le Fait et le Hors-scope, il ne reste que le travail actionnable).
+    let viewMode = localStorage.getItem('viewMode') === 'finition' ? 'finition' : 'main';
+    function inView(entry) {
+      if (viewMode === 'main') return true;
+      return entry.task.status !== 'done' && entry.task.priority !== 'hors-scope';
+    }
 
     // Récupère et redessine l'état.
     async function refresh() {
@@ -237,6 +266,7 @@
       // la colonne « À faire » se lise comme la liste priorisée de l'audit.
       const buckets = { todo: [], doing: [], review: [], done: [], blocked: [] };
       for (const entry of allTasks()) {
+        if (!inView(entry)) continue;
         const st = statuses.includes(entry.task.status) ? entry.task.status : 'todo';
         buckets[st].push(entry);
       }
@@ -423,6 +453,23 @@
       setDoneCollapsed(!doneCol.classList.contains('collapsed')));
     // Repliée par défaut (sauf si l'utilisateur l'a déjà dépliée).
     setDoneCollapsed(localStorage.getItem('doneCollapsed') !== '0');
+
+    // --- Onglets de vue (Principale / Finition Phase 0) ---
+    const viewTabs = document.getElementById('view-tabs');
+    function applyViewTabs() {
+      viewTabs.querySelectorAll('button').forEach((b) =>
+        b.classList.toggle('active', b.dataset.view === viewMode));
+      // En vue Finition, le Fait est filtré : on déplie la colonne (vide) pour cohérence.
+      if (viewMode === 'finition') setDoneCollapsed(false);
+    }
+    viewTabs.querySelectorAll('button').forEach((b) =>
+      b.addEventListener('click', () => {
+        viewMode = b.dataset.view;
+        localStorage.setItem('viewMode', viewMode);
+        applyViewTabs();
+        render();
+      }));
+    applyViewTabs();
 
     // Démarrage + auto-refresh 5s.
     refresh();

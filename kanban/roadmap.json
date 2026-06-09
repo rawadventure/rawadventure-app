@@ -98,42 +98,34 @@
         },
         {
           "id": "R1-14",
-          "label": "Vidéo bienvenue J1 (IA-12)",
-          "status": "doing",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
-        },
-        {
-          "id": "R1-15",
           "label": "Streak + joker hebdomadaire",
           "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
-          "id": "R1-16",
+          "id": "R1-15",
           "label": "6 paliers (TierReachedModal)",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "R1-17",
+          "id": "R1-16",
           "label": "D29 cassure palier (1er vs suivants)",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "R1-18",
+          "id": "R1-17",
           "label": "D30 collision palier vs charnière",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
-          "id": "R1-19",
+          "id": "R1-18",
           "label": "Reset complet DEV",
           "status": "done",
           "sessionId": null,
@@ -184,50 +176,44 @@
         {
           "id": "R2-6",
           "label": "Écran d’abonnement en fin de Phase 0 (J14)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-7",
           "label": "Base de données : table des abonnements",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-8",
-          "label": "Mémoire de l’abonnement dans l’app (SubscriptionContext)",
-          "status": "todo",
+          "label": "Mémoire de l'abonnement dans l'app (SubscriptionContext + Realtime)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-9",
-          "label": "Brancher Stripe à l’app : confirmer les paiements (webhook)",
-          "status": "todo",
+          "label": "Brancher Stripe : confirmer les paiements (webhook)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-10",
-          "label": "Retour dans l’app après paiement réussi (deep link)",
-          "status": "todo",
+          "label": "Retour dans l'app après paiement (deep link + JS fallback)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-11",
-          "label": "Écran « gérer mon abonnement » (Profil, IA-71)",
-          "status": "todo",
+          "label": "Écran « gérer mon abonnement » (Stripe Customer Portal, IA-71)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R2-12",
@@ -235,6 +221,37 @@
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R2-13",
+          "label": "E2E paywall testé iOS simu",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R2-14",
+          "label": "Stripe LIVE setup (product + prices + pricing table + webhook + portal)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R2-15",
+          "label": "Fix Stripe Customer Portal URL Privacy",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R2-16",
+          "label": "Durcir le webhook (retry, logs, alertes)",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
         }
       ]
     },
@@ -252,7 +269,7 @@
         },
         {
           "id": "R3-2",
-          "label": "Plage silence 22h-8h (D32)",
+          "label": "Plage silence 22h-7h (D32)",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
@@ -262,8 +279,7 @@
           "label": "28 notifs Phase 0 schedulées",
           "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
           "id": "R3-4",
@@ -274,26 +290,18 @@
         },
         {
           "id": "R3-5",
-          "label": "Demander l’autorisation des notifications au bon moment (J1)",
-          "status": "review",
+          "label": "Demander l'autorisation des notifications au bon moment (J1)",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-06-09T07:12:11.359Z",
           "priority": "important"
         },
         {
           "id": "R3-6",
-          "label": "Copy 28 notifs",
-          "status": "review",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
-        },
-        {
-          "id": "R3-7",
           "label": "Test device permission denied",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         }
       ]
     },
@@ -346,24 +354,25 @@
         },
         {
           "id": "R4-7",
-          "label": "Reset password email template",
-          "status": "review",
+          "label": "28 notifications Phase 0",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R4-8",
-          "label": "Email signup confirmation template",
+          "label": "Copy paywall final",
           "status": "review",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "bloquant"
         },
         {
           "id": "R4-9",
-          "label": "Copy paywall fin Phase 0",
-          "status": "todo",
+          "label": "Description App Store (Reader App) FR + EN",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-06-09T07:12:11.359Z",
           "priority": "bloquant"
         },
         {
@@ -371,23 +380,24 @@
           "label": "Copy bandeaux lapse / past_due",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "priority": "important"
         },
         {
           "id": "R4-11",
-          "label": "28 notifications Phase 0",
+          "label": "Email templates Supabase (reset + signup confirm)",
           "status": "review",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "priority": "important"
         },
         {
           "id": "R4-12",
-          "label": "Description de l’app pour les stores",
-          "status": "todo",
+          "label": "Métriques V1 mapping 112 cases diagnostic × pilier",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
         }
       ]
     },
@@ -398,42 +408,56 @@
       "tasks": [
         {
           "id": "R5-1",
-          "label": "Vidéo IA-12 bienvenue J1",
+          "label": "6 vidéos paliers streak (Session 1)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R5-2",
+          "label": "4 vidéos intros piliers Phase 1 (S2/S3/S6/S8)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R5-3",
+          "label": "Brief Session 1 + 2 + 3 + 4",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R5-4",
+          "label": "Vidéo IA-12 bienvenue J1 (Session 4)",
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
           "priority": "important"
         },
         {
-          "id": "R5-2",
-          "label": "Vidéo IA-20 S0.1 célébration",
-          "status": "todo",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
-        },
-        {
-          "id": "R5-3",
-          "label": "Vidéo IA-21 S0.2 roadmap",
-          "status": "todo",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
-        },
-        {
-          "id": "R5-4",
-          "label": "6 vidéos paliers streak",
-          "status": "todo",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
-        },
-        {
           "id": "R5-5",
-          "label": "Brief Session 1 + 2 + 3 + 4",
-          "status": "done",
+          "label": "2 vidéos S0 (S0.1 célébration + S0.2 roadmap) (Session 2)",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R5-6",
+          "label": "4 vidéos piliers manquantes (S1/S4/S5/S7) (Session 3)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R5-7",
+          "label": "Vidéo IA-22 Sortie S8 (Session 4)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
         }
       ]
     },
@@ -445,10 +469,9 @@
         {
           "id": "R6-1",
           "label": "Repo GitHub privé (D22)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-2",
@@ -459,11 +482,10 @@
         },
         {
           "id": "R6-3",
-          "label": "Configurer la fabrication des apps (EAS Build)",
-          "status": "todo",
+          "label": "EAS Build config + projet créé",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-4",
@@ -474,82 +496,195 @@
         },
         {
           "id": "R6-5",
-          "label": "App icon",
-          "status": "todo",
+          "label": "App icon + splash screen",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-6",
-          "label": "Splash screen",
-          "status": "todo",
+          "label": "Compte Stripe + Pricing Table TEST",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-7",
-          "label": "Compte Apple Developer (DUNS à demander)",
-          "status": "doing",
+          "label": "Webhook Stripe → Supabase",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-8",
-          "label": "Compte Google Play",
-          "status": "todo",
+          "label": "Edge Function stripe-portal",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-9",
-          "label": "Compte Stripe",
-          "status": "todo",
+          "label": "Domaine rawadventure.world",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-10",
-          "label": "Domaine rawadventure.world",
+          "label": "Compte démo Supabase + screenshots store",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
           "id": "R6-11",
-          "label": "Email support@rawadventure.world",
-          "status": "todo",
+          "label": "JS fallback bouton « Retourner dans l'app »",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-12",
-          "label": "Pages Wix CGU/Privacy/Mentions",
-          "status": "todo",
+          "label": "Sentry crash reporting installé",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R6-13",
-          "label": "Détection des plantages (Sentry)",
-          "status": "todo",
+          "label": "DUNS HK demandé",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
         },
         {
           "id": "R6-14",
+          "label": "Débloquer Apple ID anti-fraud (admin@)",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-15",
+          "label": "Compte Apple Developer (DUNS à demander)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-16",
+          "label": "Compte Google Play",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-17",
+          "label": "Build prod iOS + submit TestFlight",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-18",
+          "label": "Build prod Android + submit Play Console",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-19",
+          "label": "Apple Team ID + remplir AASA file",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-20",
+          "label": "SHA256 Android + remplir assetlinks.json",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-21",
+          "label": "Email support@rawadventure.world",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R6-22",
+          "label": "Universal Links iOS / App Links Android (prep)",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-23",
+          "label": "Sentry compte + DSN + premier crash test prod",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-24",
+          "label": "Sentry user context (setUser dans AuthContext)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-25",
+          "label": "Sentry sourcemaps upload EAS hook",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
+        },
+        {
+          "id": "R6-26",
           "label": "Statistiques d’usage (analytics)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-06-09T07:12:11.359Z",
           "priority": "important"
+        },
+        {
+          "id": "R6-27",
+          "label": "Stripe Tax activation",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R6-28",
+          "label": "Migration Apple Dev Individual → Organization",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R6-29",
+          "label": "PWA app.rawadventure.world",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
         }
       ]
     },
@@ -588,37 +723,35 @@
         },
         {
           "id": "R7-5",
-          "label": "Médiation Option B (amiable)",
+          "label": "Site légal rawadventure.world LIVE",
           "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
+          "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
           "id": "R7-6",
-          "label": "Directeur publication",
-          "status": "todo",
+          "label": "Câblage liens légaux in-app",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R7-7",
-          "label": "Capital social Raw Adventure Limited",
-          "status": "todo",
+          "label": "Médiation Option B (amiable)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R7-8",
-          "label": "URLs hébergement finales",
-          "status": "todo",
+          "label": "Directeur publication + capital social",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R7-9",
-          "label": "Validation avocat",
+          "label": "Validation avocat docs légaux",
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
@@ -626,10 +759,11 @@
         },
         {
           "id": "R7-10",
-          "label": "Case CGU acceptation in-app",
-          "status": "doing",
+          "label": "Adhésion médiateur conso FR (Option A)",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
         }
       ]
     },
@@ -647,62 +781,69 @@
         },
         {
           "id": "R8-2",
-          "label": "Tables V1 (profiles, progress, etc.)",
+          "label": "Tables V1 (profiles, progress, subscriptions, etc.)",
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
         },
         {
           "id": "R8-3",
-          "label": "Règles de sécurité d’accès aux données (RLS)",
-          "status": "review",
+          "label": "Email confirmation activée + redirect URLs",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R8-4",
-          "label": "Email confirmation activée",
-          "status": "review",
+          "label": "Auth password min length 6",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R8-5",
-          "label": "Autoriser les liens de retour dans l’app (Supabase)",
-          "status": "review",
+          "label": "Edge Function stripe-webhook + idempotency",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R8-6",
-          "label": "Email templates FR (reset + signup confirm)",
-          "status": "review",
+          "label": "Realtime postgres_changes + trigger handle_new_user",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R8-7",
-          "label": "Espace de stockage des vidéos (Supabase)",
-          "status": "todo",
+          "label": "Email templates FR (reset + signup confirm)",
+          "status": "review",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
         },
         {
           "id": "R8-8",
-          "label": "Auth → Settings : password min length 6",
-          "status": "done",
+          "label": "Audit RLS policies complet",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "important"
         },
         {
           "id": "R8-9",
+          "label": "Storage buckets vidéos additionnelles",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R8-10",
           "label": "Auth → Rate limiting",
           "status": "review",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         }
       ]
     },
@@ -720,67 +861,96 @@
         },
         {
           "id": "R9-2",
-          "label": "Test E2E onboarding → J1 device réel",
-          "status": "todo",
+          "label": "Test E2E paywall J14 → Stripe → Phase 1",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R9-3",
-          "label": "Test E2E J1 → J14 + paliers",
-          "status": "todo",
+          "label": "Test E2E Stripe Customer Portal + cancel",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R9-4",
-          "label": "Test signup + email confirm flow",
-          "status": "doing",
+          "label": "Test idempotency webhook (dedup retries)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R9-5",
-          "label": "Test reset password flow",
-          "status": "doing",
+          "label": "Test JS fallback bouton « Retourner dans l'app »",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R9-6",
-          "label": "Test notifications iOS device",
-          "status": "todo",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
-        },
-        {
-          "id": "R9-7",
-          "label": "Test notifications Android",
-          "status": "todo",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "polish"
-        },
-        {
-          "id": "R9-8",
-          "label": "Test edge cases (joker, charnière, cassure streak)",
-          "status": "review",
-          "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
-        },
-        {
-          "id": "R9-9",
           "label": "Test reset complet",
           "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-7",
+          "label": "Test E2E onboarding → J1 device réel",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-8",
+          "label": "Test E2E J1 → J14 + paliers",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-9",
+          "label": "Test signup + email confirm flow",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
         },
         {
           "id": "R9-10",
+          "label": "Test reset password flow",
+          "status": "doing",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-11",
+          "label": "Test edge cases (joker, charnière, cassure streak)",
+          "status": "review",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-12",
+          "label": "Test notifications iOS device",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z"
+        },
+        {
+          "id": "R9-13",
+          "label": "Test Android device complet",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "polish"
+        },
+        {
+          "id": "R9-14",
           "label": "TestFlight beta (5-10 testeurs)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
         }
       ]
     },
