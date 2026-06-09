@@ -24,6 +24,7 @@
 
 import React from 'react';
 import { Image, StyleSheet, Text, View } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
 import { Sparkle } from 'lucide-react-native';
 import { Modal } from '../primitives/Modal';
 import { Button } from '../primitives/Button';
@@ -57,6 +58,25 @@ const TIER_COLOR: Record<TierId, string> = {
   60: pillarColors.s5.headerBg,
   100: pillarColors.s6.headerBg,
   365: brandColors.deep,
+};
+
+/**
+ * URLs vidéos paliers — Supabase Storage public bucket `phase0-videos`.
+ * Tournage Brief contenu Session 1 (Mimi & Jacky).
+ * Format : MP4 H.264, ~30s, portrait 1080×1920, ~18 Mo chacune.
+ *
+ * Si vidéo absente (null) → fallback placeholder texte (cf. composant ci-dessous).
+ */
+const SUPABASE_VIDEOS_BASE =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
+
+const TIER_VIDEO_URL: Record<TierId, string | null> = {
+  7: `${SUPABASE_VIDEOS_BASE}/palier-7j.mp4`,
+  15: `${SUPABASE_VIDEOS_BASE}/palier-15j.mp4`,
+  30: `${SUPABASE_VIDEOS_BASE}/palier-30j.mp4`,
+  60: `${SUPABASE_VIDEOS_BASE}/palier-60j.mp4`,
+  100: `${SUPABASE_VIDEOS_BASE}/palier-100j.mp4`,
+  365: `${SUPABASE_VIDEOS_BASE}/palier-365j.mp4`,
 };
 
 /** Message court de premier franchissement par palier (placeholders V1). */
@@ -125,13 +145,29 @@ export function TierReachedModal({
             </View>
           </View>
 
-          {/* Placeholder vidéo Mimi & Jacky (tournage Brief contenu Session 1) */}
-          <View style={styles.videoPlaceholder}>
-            <LogoRawAdventure variant="filigrane" size={48} opacity={0.18} color={brandColors.deep} />
-            <Text style={styles.videoText}>
-              Vidéo Mimi & Jacky — à venir.{'\n'}(Brief contenu Session 1)
-            </Text>
-          </View>
+          {/* Vidéo Mimi & Jacky — Supabase Storage. Fallback placeholder texte
+              si URL absente (palier dont la vidéo n'est pas encore tournée).
+              Le player utilise expo-av Video : auto-play sur ouverture modale,
+              controls visibles pour pause/replay manuel, looping désactivé. */}
+          {TIER_VIDEO_URL[tierId] ? (
+            <View style={styles.videoWrap}>
+              <Video
+                source={{ uri: TIER_VIDEO_URL[tierId]! }}
+                style={styles.videoPlayer}
+                useNativeControls
+                resizeMode={ResizeMode.COVER}
+                shouldPlay
+                isLooping={false}
+              />
+            </View>
+          ) : (
+            <View style={styles.videoPlaceholder}>
+              <LogoRawAdventure variant="filigrane" size={48} opacity={0.18} color={brandColors.deep} />
+              <Text style={styles.videoText}>
+                Vidéo Mimi & Jacky — à venir.{'\n'}(Brief contenu Session 1)
+              </Text>
+            </View>
+          )}
 
           <View style={styles.actionsFull}>
             {onViewGallery && (
@@ -221,6 +257,21 @@ const styles = StyleSheet.create({
     gap: space[3],
     borderWidth: 1.5,
     borderColor: brandColors.deep + '22',
+  },
+  videoWrap: {
+    borderRadius: radiusV1.xl,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    // Ratio portrait 9:16 — la vidéo source est 1080×1920.
+    aspectRatio: 9 / 16,
+    // Limite hauteur pour pas envahir l'écran (modale fullscreen contient
+    // déjà titre + badge + actions + texte).
+    maxHeight: 320,
+    alignSelf: 'center',
+  },
+  videoPlayer: {
+    width: '100%',
+    height: '100%',
   },
   videoText: {
     ...interTextStyle('bodySmall'),
