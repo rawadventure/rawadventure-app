@@ -18,7 +18,7 @@
  * Référence IA : IA-42. Pattern : F (liste/galerie).
  */
 
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -29,7 +29,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { ChevronLeft, Circle, CheckCircle2 } from 'lucide-react-native';
+import { Video, ResizeMode } from 'expo-av';
+import { ChevronLeft, Circle, CheckCircle2, Play } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import { LogoRawAdventure } from '../../components/illustrations';
 import {
@@ -59,6 +60,28 @@ const ENGAGEMENT_LABEL: Record<EngagementLevel, string> = {
   immersion: 'Immersion',
 };
 
+/**
+ * URLs vidéos intro pilier — Supabase Storage public bucket `phase0-videos`.
+ * Tournage Brief contenu Session 3 (Mimi & Jacky), 60-90s par pilier.
+ * 8 vidéos prévues, intégrées au fur et à mesure de la livraison.
+ * Format : MP4 H.264, portrait 1080×1920.
+ *
+ * Mapping par pillarId (D39 ordre canonique). null → placeholder texte.
+ */
+const SUPABASE_VIDEOS_BASE =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
+
+const PILLAR_INTRO_VIDEO_URL: Record<string, string | null> = {
+  S1: null, // Respiration — pas encore tourné
+  S2: `${SUPABASE_VIDEOS_BASE}/pilier-s2-activite-physique.mp4`,
+  S3: `${SUPABASE_VIDEOS_BASE}/pilier-s3-alimentation.mp4`,
+  S4: null, // Connexion vivant — pas encore tourné
+  S5: null, // Repos régénération — pas encore tourné
+  S6: `${SUPABASE_VIDEOS_BASE}/pilier-s6-passion.mp4`,
+  S7: null, // Mindset — pas encore tourné
+  S8: `${SUPABASE_VIDEOS_BASE}/pilier-s8-elimination-detox.mp4`,
+};
+
 export default function PillarOverviewScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
@@ -80,6 +103,19 @@ export default function PillarOverviewScreen() {
   const [engagement, setEngagement] = useState<EngagementLevel>('essentiel');
   const [sessionsByDay, setSessionsByDay] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
+
+  // Ref pour le player vidéo intro pilier — utilisé pour ouvrir le player
+  // natif fullscreen au tap sur la preview.
+  const videoRef = useRef<Video | null>(null);
+  const introVideoUrl = PILLAR_INTRO_VIDEO_URL[pillarId] ?? null;
+  const openVideoFullscreen = async () => {
+    try {
+      await videoRef.current?.presentFullscreenPlayer();
+      await videoRef.current?.playAsync();
+    } catch (e) {
+      console.warn('PillarOverview — fullscreen launch failed', e);
+    }
+  };
 
   // Charge engagement + comptage sessions par jour de la semaine
   const fetchData = useCallback(async () => {
@@ -172,14 +208,42 @@ export default function PillarOverviewScreen() {
               </View>
             )}
 
-            {/* Placeholder vidéo intro pilier (Brief contenu Session 3) */}
-            <View style={styles.videoPlaceholder}>
-              <LogoRawAdventure variant="filigrane" size={48} opacity={0.22} color={brandColors.deep} />
-              <Text style={styles.videoText}>
-                Vidéo Mimi & Jacky — intro pilier {meta.name}{'\n'}
-                (Brief contenu Session 3, 60-90s)
-              </Text>
-            </View>
+            {/* Vidéo intro pilier — Brief contenu Session 3. URL Supabase
+                Storage si tournée, fallback placeholder texte sinon.
+                UX : preview 16:9 cliquable → fullscreen iOS natif portrait. */}
+            {introVideoUrl ? (
+              <Pressable
+                onPress={openVideoFullscreen}
+                style={styles.videoPreview}
+                accessibilityRole="button"
+                accessibilityLabel={`Lire la vidéo d'intro du pilier ${meta.name}`}
+              >
+                <Video
+                  ref={(r) => {
+                    videoRef.current = r;
+                  }}
+                  source={{ uri: introVideoUrl }}
+                  style={StyleSheet.absoluteFill}
+                  resizeMode={ResizeMode.COVER}
+                  isLooping={false}
+                  shouldPlay={false}
+                  positionMillis={1000}
+                />
+                <View style={styles.videoPlayOverlay} pointerEvents="none">
+                  <View style={styles.videoPlayCircle}>
+                    <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+                  </View>
+                </View>
+              </Pressable>
+            ) : (
+              <View style={styles.videoPlaceholder}>
+                <LogoRawAdventure variant="filigrane" size={48} opacity={0.22} color={brandColors.deep} />
+                <Text style={styles.videoText}>
+                  Vidéo Mimi & Jacky — intro pilier {meta.name}{'\n'}
+                  (Brief contenu Session 3, 60-90s)
+                </Text>
+              </View>
+            )}
 
             {/* Liste 7 jours */}
             <View style={styles.programSection}>
@@ -359,6 +423,30 @@ const makeStyles = (palette: Palette) =>
       color: brandColors.deep,
       textAlign: 'center',
       opacity: 0.75,
+    },
+    videoPreview: {
+      borderRadius: radiusV1.xl,
+      overflow: 'hidden',
+      backgroundColor: '#000',
+      width: '100%',
+      aspectRatio: 16 / 9,
+      alignSelf: 'center',
+      position: 'relative',
+    },
+    videoPlayOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: 'rgba(0, 0, 0, 0.25)',
+    },
+    videoPlayCircle: {
+      width: 64,
+      height: 64,
+      borderRadius: 32,
+      backgroundColor: 'rgba(0, 0, 0, 0.55)',
+      alignItems: 'center',
+      justifyContent: 'center',
+      paddingLeft: 4,
     },
     programSection: { gap: space[2] },
     sectionTitle: {
