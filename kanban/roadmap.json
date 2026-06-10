@@ -552,11 +552,10 @@
         },
         {
           "id": "R6-13",
-          "label": "DUNS HK demandé",
-          "status": "doing",
+          "label": "DUNS HK approuvé",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "updatedAt": "2026-06-10T06:57:38.365Z"
         },
         {
           "id": "R6-14",
@@ -680,11 +679,10 @@
         },
         {
           "id": "R6-29",
-          "label": "PWA app.rawadventure.world",
-          "status": "todo",
+          "label": "PWA app.rawadventure.world LIVE",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "updatedAt": "2026-06-10T06:57:38.365Z"
         }
       ]
     },
