@@ -26,9 +26,10 @@
  * Référence IA : IA-20. Pattern : A (écran narratif plein).
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Sparkle } from 'lucide-react-native';
+import React, { useRef } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
+import { Play, Sparkle } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import { Toile, makeMockScores } from '../../components/toile';
@@ -49,11 +50,28 @@ export type S01ScreenProps = {
   onContinue: () => void;
 };
 
+/**
+ * URL vidéo S0.1 célébration — Supabase Storage public bucket `phase0-videos`.
+ * Brief contenu Session 2 (Mimi & Jacky), ~60-90s, portrait 1080×1920.
+ */
+const VIDEO_URL =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-1-celebration.mp4';
+
 export default function S01Screen({ visible, streak, onContinue }: S01ScreenProps) {
   // Mock scores level1 — l'utilisateur n'a pas encore fait d'évaluation initiale.
   // À remplacer par l'état réel quand le mapping profil dynamique → niveau
   // de départ par pilier (D15) sera implémenté en Sprint 8+.
   const scores = makeMockScores('level1');
+
+  const videoRef = useRef<Video | null>(null);
+  const openVideoFullscreen = async () => {
+    try {
+      await videoRef.current?.presentFullscreenPlayer();
+      await videoRef.current?.playAsync();
+    } catch (e) {
+      console.warn('S01Screen — fullscreen launch failed', e);
+    }
+  };
 
   return (
     <Modal visible={visible} onClose={() => {}} variant="fullscreen" context="neutral" dismissable={false}>
@@ -70,14 +88,30 @@ export default function S01Screen({ visible, streak, onContinue }: S01ScreenProp
           </Text>
         </View>
 
-        {/* Placeholder vidéo Mimi & Jacky 60-90s (Brief contenu Session 2) */}
-        <View style={styles.videoPlaceholder}>
-          <LogoRawAdventure variant="filigrane" size={56} opacity={0.22} color={brandColors.deep} />
-          <Text style={styles.videoText}>
-            Vidéo Mimi & Jacky — célébration 14 jours{'\n'}
-            (Brief contenu Session 2, 60-90s)
-          </Text>
-        </View>
+        {/* Vidéo Mimi & Jacky célébration 14 jours — preview 16:9 + tap fullscreen */}
+        <Pressable
+          onPress={openVideoFullscreen}
+          style={styles.videoPreview}
+          accessibilityRole="button"
+          accessibilityLabel="Lire la vidéo de célébration 14 jours"
+        >
+          <Video
+            ref={(r) => {
+              videoRef.current = r;
+            }}
+            source={{ uri: VIDEO_URL }}
+            style={StyleSheet.absoluteFill}
+            resizeMode={ResizeMode.COVER}
+            isLooping={false}
+            shouldPlay={false}
+            positionMillis={1000}
+          />
+          <View style={styles.videoPlayOverlay} pointerEvents="none">
+            <View style={styles.videoPlayCircle}>
+              <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+            </View>
+          </View>
+        </Pressable>
 
         <View style={styles.toileSection}>
           <Text style={styles.toileLabel}>Ta toile de vitalité</Text>
@@ -142,6 +176,30 @@ const styles = StyleSheet.create({
     color: brandColors.deep,
     textAlign: 'center',
     opacity: 0.7,
+  },
+  videoPreview: {
+    borderRadius: radiusV1.xl,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    width: '100%',
+    aspectRatio: 16 / 9,
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  videoPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
+  videoPlayCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 4,
   },
   toileSection: { gap: space[2] },
   toileLabel: {
