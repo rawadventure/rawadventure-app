@@ -1,7 +1,7 @@
 # Phase 0 — Audit Release Readiness
 
 **Date initiale** : 3 juin 2026
-**Dernière mise à jour** : 9 juin 2026
+**Dernière mise à jour** : 10 juin 2026 (DUNS HK approuvé + PWA Vercel LIVE)
 **Cible** : TestFlight beta puis App Store / Play Store launch
 **Périmètre** : 14 premiers jours de l'expérience utilisateur (onboarding + Phase 0) + paywall fin Phase 0
 
@@ -131,10 +131,10 @@
 | Compte démo Supabase + screenshots store | ✅ |  | demo@rawadventure.world + 10 captures iPhone 6.9", leak email perso éliminé |
 | JS fallback bouton « Retourner dans l'app » | ✅ |  | checkout-success + account-returned, contourne SFSafariViewController |
 | Sentry crash reporting installé | ✅ |  | @sentry/react-native + plugin + init guard DSN + Sentry.wrap |
-| DUNS HK demandé | 🔶 | bloquant | Standard application submitted via D&B HK 8 juin, queue ~14j |
+| DUNS HK approuvé | ✅ |  | **10 juin 2026 : identity verification approved by D&B HK** (submitted 8 juin). DUNS Number à recevoir incessamment, débloque Apple Dev + Google Play |
 | Débloquer Apple ID anti-fraud (admin@) | 🔶 | bloquant | admin@rawadventure.world bloqué anti-fraud, attente 24-48h |
-| Compte Apple Developer Organization | ❌ | bloquant | Bloqué DUNS HK (~14j) |
-| Compte Google Play Console | ❌ | bloquant | Bloqué DUNS HK (politique nov 2025) |
+| Compte Apple Developer Organization | ❌ | bloquant | Inscription possible dès réception DUNS Number (suite à approbation) |
+| Compte Google Play Console | ❌ | bloquant | Idem, inscription possible dès réception DUNS Number |
 | Build prod iOS + submit TestFlight | ❌ | bloquant | Post-Apple Dev. Team ID + ASC App ID requis |
 | Build prod Android + submit Play Console | ❌ | bloquant | Post-Play. Service Account Google Play requis |
 | Apple Team ID + remplir AASA file | ❌ | bloquant | Active Universal Links iOS, post-Apple Dev |
@@ -147,7 +147,7 @@
 | Analytics (Mixpanel / PostHog) | ❌ | important | Pas intégré |
 | Stripe Tax activation | ❌ | polish | Post-LIVE |
 | Migration Apple Dev Individual → Organization | ❌ | polish | Si départ Individual d'abord pour gagner temps |
-| PWA app.rawadventure.world | ❌ | polish | Distribution alternative pré-stores |
+| **PWA app.rawadventure.world LIVE** | ✅ |  | **10 juin** : Vercel Hobby tier + domaine custom OVH CNAME + HTTPS Let's Encrypt + redirect 308 vercel.app → app.rawadventure.world. PWA install Safari iPhone OK avec icône Mimi+Jacky portraits. EXPO_PUBLIC_ENABLE_DEV_PANEL=true pour démo Mimi/Jacky |
 
 ---
 
@@ -271,7 +271,7 @@
 | **Total dev Claude restant** | **~4 h** | |
 | **Total Stéphane** | ~1 h + délais admin | |
 
-**Bloqueur dominant** : DUNS HK (~14j). Tout le dev restant peut tenir en parallèle.
+**Bloqueur dominant débloqué** : DUNS HK identity verification **approuvé 10 juin 2026** par D&B HK. DUNS Number à recevoir incessamment. Une fois reçu → inscription Apple Developer Organization + Google Play Console possibles immédiatement.
 
 ---
 
@@ -281,6 +281,13 @@
 - **6 juin 2026** : Paywall + table subscriptions + SubscriptionContext + webhook Stripe + Edge Function déployés et **E2E validé en simu iOS**. Legal site rawadventure.world LIVE. Stripe TEST mode 1 product 3 prices. 10 screenshots store. Notifications validées Mimi. App icon + splash intégrés. DUNS HK demandé, Apple ID anti-fraud bloqué.
 - **8 juin 2026** (grosse session) : repo GitHub privé pushé ; rebuild iOS + retest paywall E2E ; compte démo + screenshot profil ; Stripe Customer Portal câblé (stripe-portal + UI + page account-returned) ; EAS Build init (projet + projectId + .easignore) ; webhook idempotency (table stripe_webhook_events) ; Sentry installé ; câblage links légal in-app ; bug fixes webhook (timestamps, cancel detect, URL privacy) ; DUNS HK Standard submitted.
 - **9 juin 2026** : refonte de l'audit en source de vérité kanban — ajout colonne `Prio` explicite, promotion en lignes distinctes des cartes Stripe LIVE / builds prod / Team ID+AASA / SHA256+assetlinks / Sentry user context+sourcemaps / Stripe Tax / migration Apple Dev / PWA, correction statuts vidéos (paliers + intros piliers = faits).
+- **10 juin 2026** (grosse session PWA + DUNS débloqué) :
+  - **DUNS HK** : identity verification **approuvée par D&B HK** (email reçu) — débloque inscription Apple Dev Organization + Google Play Console
+  - **PWA Vercel LIVE** : projet Vercel Hobby créé, repo connecté GitHub, env vars Supabase + Sentry + DEV panel, deploy auto sur push main
+  - **PWA fixes web compat** : helper `openExternal.ts` (web → window.location vs native WebBrowser), patch checkout-success + account-returned (détection mobile/desktop), DEV panel feature flag (`EXPO_PUBLIC_ENABLE_DEV_PANEL`)
+  - **Domaine custom** : `app.rawadventure.world` via OVH CNAME → Vercel, HTTPS Let's Encrypt auto, redirect 308 vercel.app → app.rawadventure.world
+  - **PWA manifest + icônes** : web.name + shortName + themeColor + display standalone + apple-touch-icon 180×180 + icon-192/512 (portraits Mimi+Jacky), public/ folder copié vers dist via vercel.json
+  - Distribution Mimi/Jacky possible immédiatement : Safari iPhone → app.rawadventure.world → "Sur l'écran d'accueil" → icône native
 
 ---
 
