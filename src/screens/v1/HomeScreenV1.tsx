@@ -121,7 +121,13 @@ export default function HomeScreenV1() {
     pendingTierReach,
     setPendingTier,
     clearPendingTier,
+    advanceToNextDay,
   } = useProgress();
+
+  // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
+  // bouton "(DEV) Valider + jour suivant" dans la modale IA-15.
+  const devPanelEnabled =
+    __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true';
 
   // Branche post-S8 (mode consolidation libre, IA-23 + D13). Prime sur Phase 1.
   if (currentPhase === 'post_s8') {
@@ -355,6 +361,23 @@ export default function HomeScreenV1() {
     }
   };
 
+  /**
+   * DEV uniquement : valide la journée normalement puis décale
+   * accountCreatedAt -1j pour passer au lendemain immédiatement.
+   *
+   * Préserve toute la cascade narrative (charnière, palier, S0.x) — on
+   * passe vraiment par handleConfirmValidation. Après le résultat ET la
+   * fermeture des éventuelles modales (palier différé géré par useEffect),
+   * advanceToNextDay shift le calendrier interne.
+   *
+   * Gated par devPanelEnabled dans le render — si false, la fonction
+   * n'est jamais appelée car le bouton n'apparaît pas.
+   */
+  const handleConfirmAndAdvance = async () => {
+    await handleConfirmValidation();
+    await advanceToNextDay();
+  };
+
   // Marqueur dynamique pour le header — placeholder Sprint 5, à enrichir
   // copy V1 quand le brief contenu sera produit.
   // Label adapté selon phase : Phase 0 (J1-J14), S0.1 (J15), S0.2 (J16),
@@ -497,6 +520,9 @@ export default function HomeScreenV1() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onConfirm={handleConfirmValidation}
+        onConfirmAndAdvance={
+          devPanelEnabled ? handleConfirmAndAdvance : undefined
+        }
         actionsCount={checkedCount}
         phase={currentPhase}
         loading={validating}

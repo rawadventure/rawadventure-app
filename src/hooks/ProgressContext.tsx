@@ -109,6 +109,10 @@ interface ProgressContextType {
    * Clear streak_history / joker_consumptions / tier_reaches existants.
    */
   seedDevStreak: (targetDay: number) => Promise<void>;
+  /** DEV uniquement : décale accountCreatedAt -1j sans toucher au state.
+   *  Permet de tester la progression naturelle (charnières, paliers, S0)
+   *  sans attendre 24h calendaires. À utiliser après validateDay() succès. */
+  advanceToNextDay: () => Promise<void>;
   /** Enregistre une évaluation 12 questions (IA-40 initiale ou IA-46 finale).
    *  Réf Feature Spec S1 §2.5 + Schéma de données V1.1 §2.4. */
   savePillarEvaluation: (args: SavePillarEvaluationArgs) => Promise<void>;
@@ -605,6 +609,42 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     },
     [user],
   );
+
+  /**
+   * DEV uniquement : décale accountCreatedAt de -1 jour pour avancer
+   * d'un cran calendaire SANS toucher au reste du state (streak_history,
+   * narrative_flags, joker, etc.).
+   *
+   * Utilisation : after validateDay(today) succès → advanceToNextDay()
+   * pour passer au lendemain. Préserve la progression naturelle —
+   * l'écran suivant (charnière, palier, S0) se déclenche normalement
+   * via les useEffect existants quand currentDay change.
+   *
+   * Gated UI côté caller (`__DEV__ || EXPO_PUBLIC_ENABLE_DEV_PANEL`).
+   */
+  const advanceToNextDay = useCallback(async () => {
+    if (!accountCreatedAt) {
+      console.warn('[advanceToNextDay] accountCreatedAt absent — abort');
+      return;
+    }
+    const current = new Date(accountCreatedAt);
+    const newCreatedAt = new Date(current.getTime() - 24 * 60 * 60 * 1000);
+    const newCreatedAtIso = newCreatedAt.toISOString();
+
+    setAccountCreatedAtState(newCreatedAtIso);
+
+    if (user) {
+      await supabase
+        .from('profiles')
+        .update({ account_created_at: newCreatedAtIso })
+        .eq('id', user.id);
+    } else {
+      await AsyncStorage.setItem(
+        LOCAL_KEYS.accountCreatedAt,
+        JSON.stringify(newCreatedAtIso),
+      );
+    }
+  }, [accountCreatedAt, user]);
 
   // ── Calculs dérivés ───────────────────────────────────────────────────────
 
@@ -1187,6 +1227,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         narrativeFlags,
         markNarrativeSeen,
         seedDevStreak,
+        advanceToNextDay,
         savePillarEvaluation,
         startPillarWeek,
         savePillarSession,
