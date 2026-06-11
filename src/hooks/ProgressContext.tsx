@@ -566,12 +566,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // charnières vues, S0.x déjà affichés) pour éviter qu'ils re-fire
       // à chaque "Valider + jour suivant". Si seed à day >= 2 et
       // welcome_video pas encore posé, on l'ajoute (skip Welcome J1).
+      //
+      // Exception : quand on cible J15 ou J16 (= moments S0.1/S0.2), on
+      // clean le flag correspondant car le user re-traverse la timeline
+      // et veut RE-voir l'écran narratif. Sinon, s0_x_screen posé lors
+      // d'une session précédente (ex. PillarRecapScreen → startPillarWeek
+      // qui marque s0_2_screen) bloquerait l'affichage.
       // Pour vraiment tout reset → resetAll() depuis Profil.
       const seedFlags: Partial<Record<NarrativeEventId, string>> = {
         ...narrativeFlags,
       };
       if (targetDay >= 2 && !seedFlags.welcome_video) {
         seedFlags.welcome_video = new Date().toISOString();
+      }
+      if (targetDay === 15) {
+        delete seedFlags.s0_1_screen;
+      }
+      if (targetDay === 16) {
+        delete seedFlags.s0_2_screen;
       }
       setNarrativeFlags(seedFlags);
 
