@@ -558,7 +558,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setStreakHistory(entries);
       setJokerConsumptions([]);
       setTierReaches([]);
-      setNarrativeFlags({});
+      // DEV : si on seed à day >= 2, on saute le Welcome J1 (déjà vu en flow
+      // normal). Sinon le useEffect HomeScreenV1 ouvre Welcome J1 par-dessus
+      // l'écran narratif S0.1/S0.2 qu'on veut voir.
+      const seedFlags: Partial<Record<NarrativeEventId, string>> =
+        targetDay >= 2 ? { welcome_video: new Date().toISOString() } : {};
+      setNarrativeFlags(seedFlags);
 
       if (user) {
         // Reset distant
@@ -592,7 +597,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           [LOCAL_KEYS.streakHistory, JSON.stringify(entries)],
           [LOCAL_KEYS.jokerConsumptions, JSON.stringify([])],
           [LOCAL_KEYS.tierReaches, JSON.stringify([])],
-          [LOCAL_KEYS.narrativeFlags, JSON.stringify({})],
+          [LOCAL_KEYS.narrativeFlags, JSON.stringify(seedFlags)],
         ]);
       }
       // Reset les coches en cours du jour courant
