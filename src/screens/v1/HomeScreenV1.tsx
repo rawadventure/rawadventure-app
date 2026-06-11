@@ -121,7 +121,7 @@ export default function HomeScreenV1() {
     pendingTierReach,
     setPendingTier,
     clearPendingTier,
-    advanceToNextDay,
+    seedDevStreak,
   } = useProgress();
 
   // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
@@ -362,20 +362,38 @@ export default function HomeScreenV1() {
   };
 
   /**
-   * DEV uniquement : valide la journée normalement puis décale
-   * accountCreatedAt -1j pour passer au lendemain immédiatement.
+   * DEV uniquement : avance directement au jour suivant via seedDevStreak.
    *
-   * Préserve toute la cascade narrative (charnière, palier, S0.x) — on
-   * passe vraiment par handleConfirmValidation. Après le résultat ET la
-   * fermeture des éventuelles modales (palier différé géré par useEffect),
-   * advanceToNextDay shift le calendrier interne.
+   * Pourquoi pas validateDay + advanceToNextDay : le calendar date (today)
+   * et currentDay sont découplés (currentDay dérivé de accountCreatedAt).
+   * validateDay écrit dans streak_history avec local_date = today, puis
+   * shift accountCreatedAt rend l'historique incohérent (today devient
+   * day N+1 mais a une entry pour day N). Résultat : actions grisées car
+   * le système pense "jour déjà validé".
    *
-   * Gated par devPanelEnabled dans le render — si false, la fonction
-   * n'est jamais appelée car le bouton n'apparaît pas.
+   * seedDevStreak(N+1) reconstruit un état cohérent : 14 entries valides
+   * pour days 1..N, today = day N+1. État coherent, écrans narratifs
+   * (S0.1 à J15, S0.2 à J16, charnières J3/J7/J11/J14, paliers via streak)
+   * se déclenchent normalement via useEffect.
+   *
+   * Tradeoff : skip la cascade modale (tier modal, charniere modal qui
+   * pop juste après validateDay). Ces écrans se déclenchent quand même
+   * au prochain render via useEffect car narrative_flags reset.
    */
   const handleConfirmAndAdvance = async () => {
-    await handleConfirmValidation();
-    await advanceToNextDay();
+    setValidating(true);
+    try {
+      const next = Math.min((currentDay || 0) + 1, 16);
+      await seedDevStreak(next);
+      setModalVisible(false);
+      // Reset les coches locales pour que le jour suivant démarre frais.
+      await AsyncStorage.removeItem(STORAGE_KEY(today));
+      setChecks(EMPTY_CHECKS);
+    } catch (e: any) {
+      Alert.alert('Erreur', e.message ?? 'Avancement échoué');
+    } finally {
+      setValidating(false);
+    }
   };
 
   // Marqueur dynamique pour le header — placeholder Sprint 5, à enrichir

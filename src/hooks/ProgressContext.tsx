@@ -1227,7 +1227,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         narrativeFlags,
         markNarrativeSeen,
         seedDevStreak,
-        advanceToNextDay,
+        advanceToNextDay, // DEV — exposé mais usage HomeScreenV1 préfère seedDevStreak (cf doc)
         savePillarEvaluation,
         startPillarWeek,
         savePillarSession,
