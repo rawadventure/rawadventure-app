@@ -238,6 +238,15 @@ export default function ProfilTabScreen() {
             {(__DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true') && (
               <>
                 <Button
+                  label="(DEV) Avancer +1 jour"
+                  variant="ghost"
+                  onPress={() => {
+                    const next = Math.min((currentDay || 0) + 1, 16);
+                    void seedDevStreak(next);
+                  }}
+                  fullWidth
+                />
+                <Button
                   label="(DEV) Aller au jour 3"
                   variant="ghost"
                   onPress={() => seedDevStreak(3)}
