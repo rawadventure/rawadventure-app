@@ -157,6 +157,15 @@ export default function HomeScreenV1() {
   // "Valider + jour suivant" qui skip validateDay → tier_reaches pas
   // updaté). Évite re-trigger au prochain render avec même streak.
   const [devShownTiers, setDevShownTiers] = useState<Set<TierId>>(new Set());
+
+  // Clear devShownTiers quand accountCreatedAt redevient null = resetAll
+  // utilisé. Sans ça, le Set persiste entre reset et re-test → palier déjà
+  // shown ne re-fire pas en DEV.
+  useEffect(() => {
+    if (!accountCreatedAt) {
+      setDevShownTiers(new Set());
+    }
+  }, [accountCreatedAt]);
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);

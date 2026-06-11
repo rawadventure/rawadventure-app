@@ -1166,6 +1166,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // ── Reset complet (DEV / __DEV__ uniquement) ──────────────────────────────
 
   const resetAll = useCallback(async () => {
+    // 1) Reset tout le state local React
     setOnboardingDone(false);
     setOnboardingData({});
     setProfileDynamicId(null);
@@ -1179,16 +1180,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setS8FinalCompleted(false);
     setPendingTierReachState(null);
     setPendingMigrationState(null);
-    await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
-    await AsyncStorage.removeItem(LOCAL_KEYS.pendingMigration);
-    if (user) {
-      await AsyncStorage.multiRemove([
-        LOCAL_KEYS.narrativeFlags,
-        LOCAL_KEYS.currentPillarId,
-        LOCAL_KEYS.pillarStartedAt,
-      ]);
+
+    // 2) Clear TOUT AsyncStorage (mode connecté OU anonyme) — couvre les
+    // 12 clés LOCAL_KEYS sans exception. Évite que de la stale data
+    // (onboardingDone, accountCreatedAt, streakHistory, etc.) survive
+    // au reset en mode connecté.
+    await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
+
+    // 3) Clear toutes les clés daily_check_actions.<date> (coches en cours
+    // de plusieurs jours potentiels). Pas dans LOCAL_KEYS car clé dynamique.
+    const allKeys = await AsyncStorage.getAllKeys();
+    const dailyCheckKeys = allKeys.filter((k) =>
+      k.startsWith('daily_check_actions.'),
+    );
+    if (dailyCheckKeys.length > 0) {
+      await AsyncStorage.multiRemove(dailyCheckKeys);
     }
 
+    // 4) Reset Supabase tables si connecté
     if (user) {
       await Promise.all([
         supabase
@@ -1208,8 +1217,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         supabase.from('pillar_sessions').delete().eq('user_id', user.id),
         supabase.from('level_adaptive_choices').delete().eq('user_id', user.id),
       ]);
-    } else {
-      await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
     }
   }, [user]);
 
