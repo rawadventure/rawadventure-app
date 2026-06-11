@@ -404,18 +404,20 @@ export default function HomeScreenV1() {
    * au prochain render via useEffect car narrative_flags reset.
    */
   const handleConfirmAndAdvance = async () => {
-    setValidating(true);
+    // Ferme la modale IA-15 d'abord pour éviter empilement de modales
+    // fullscreen (IA-15 standard + charnière fullscreen ouvertes en même
+    // temps bloquent l'interaction). Puis seedDevStreak qui peut
+    // déclencher charnière/S0.x via useEffect proprement.
+    setModalVisible(false);
+    // Reset les coches locales pour que le jour suivant démarre frais.
+    await AsyncStorage.removeItem(STORAGE_KEY(today));
+    setChecks(EMPTY_CHECKS);
+
     try {
       const next = Math.min((currentDay || 0) + 1, 16);
       await seedDevStreak(next);
-      setModalVisible(false);
-      // Reset les coches locales pour que le jour suivant démarre frais.
-      await AsyncStorage.removeItem(STORAGE_KEY(today));
-      setChecks(EMPTY_CHECKS);
     } catch (e: any) {
       Alert.alert('Erreur', e.message ?? 'Avancement échoué');
-    } finally {
-      setValidating(false);
     }
   };
 
