@@ -78,6 +78,11 @@ export type S02ScreenProps = {
   /** Tap "Démarrer l'évaluation Respiration" → ferme la couche + navigation IA-40
    *  (à câbler Sprint 8 quand IA-40 existera). En Sprint 7 c'est juste un close. */
   onStartEvaluation: () => void;
+  /** Optionnel : bouton "Plus tard" secondaire qui ferme S0.2 sans démarrer
+   *  l'évaluation. Permet au participant de voir le hub J16 et de valider
+   *  ses actions du jour avant de lancer l'évaluation S1. Le CTA "Démarrer
+   *  évaluation" reste accessible depuis le hub J16. */
+  onLater?: () => void;
 };
 
 /**
@@ -87,7 +92,7 @@ export type S02ScreenProps = {
 const VIDEO_URL =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-2-roadmap.mp4';
 
-export default function S02Screen({ visible, onStartEvaluation }: S02ScreenProps) {
+export default function S02Screen({ visible, onStartEvaluation, onLater }: S02ScreenProps) {
   const videoRef = useRef<Video | null>(null);
   const openVideoFullscreen = async () => {
     try {
@@ -183,6 +188,16 @@ export default function S02Screen({ visible, onStartEvaluation }: S02ScreenProps
           size="large"
           context="s1"
         />
+        {onLater && (
+          <Button
+            label="Plus tard"
+            onPress={onLater}
+            variant="ghost"
+            fullWidth
+            context="s1"
+            style={{ marginTop: space[2] }}
+          />
+        )}
       </View>
     </Modal>
   );

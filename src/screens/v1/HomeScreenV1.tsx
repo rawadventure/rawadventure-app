@@ -609,6 +609,27 @@ export default function HomeScreenV1() {
               />
             )}
 
+            {/* CTA Phase 1 — accessible quand user est à J16 (S0.2) et a
+                fermé la modale S0.2 via "Plus tard". Permet de lancer
+                l'évaluation Respiration depuis le hub sans devoir re-ouvrir
+                S0.2. Visible uniquement à J16 (pas avant car éval initiale
+                S1 est gated par S0.2). */}
+            {currentDay === 16 && !showS02 && (
+              <Button
+                label="Démarrer l'évaluation Respiration"
+                onPress={() => {
+                  navigation.navigate('PillarEvaluation', {
+                    pillarId: 'S1',
+                    evaluationType: 'initial',
+                  });
+                }}
+                fullWidth
+                size="large"
+                context="s1"
+                style={styles.validateBtn}
+              />
+            )}
+
             <Text style={styles.hint}>
               {alreadyValidatedToday
                 ? 'Tap sur une action pour revoir le détail.'
@@ -681,6 +702,7 @@ export default function HomeScreenV1() {
             evaluationType: 'initial',
           });
         }}
+        onLater={() => setShowS02(false)}
       />
     </View>
   );
