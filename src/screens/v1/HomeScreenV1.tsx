@@ -195,27 +195,31 @@ export default function HomeScreenV1() {
     if (!narrativeFlags.welcome_video && !showWelcomeVideo) {
       setShowWelcomeVideo(true);
       void markNarrativeSeen('welcome_video');
+    } else if (
+      // Charnières J3/J11/J14 — basé sur `streak` (cohérent PROD :
+      // handleConfirmValidation utilise result.newStreak après validateDay).
+      // Placée AVANT S0.1/S0.2 pour qu'à J15 (currentDay=15, streak=14
+      // post-validation), charnière J14 fire d'abord puis S0.1 au render
+      // suivant après close charnière.
+      //
+      // En flow prod normal : validateDay marque le flag dans la cascade
+      // avant que ce useEffect ne run → condition `!flag` skip.
+      // J7 charnière est fusionnée avec palier 7j (Sprint 31) — pas dans
+      // CHARNIERE_BY_STREAK.
+      streak > 0 &&
+      CHARNIERE_BY_STREAK[streak] &&
+      !narrativeFlags[CHARNIERE_BY_STREAK[streak].flag] &&
+      !charniereDay
+    ) {
+      const c = CHARNIERE_BY_STREAK[streak];
+      setCharniereDay(c.day);
+      void markNarrativeSeen(c.flag);
     } else if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
       setShowS01(true);
       void markNarrativeSeen('s0_1_screen');
     } else if (currentDay === 16 && !narrativeFlags.s0_2_screen && !showS02) {
       setShowS02(true);
       void markNarrativeSeen('s0_2_screen');
-    } else if (
-      // Charnières J3/J11/J14 — normalement triggered dans handleConfirmValidation
-      // après validateDay. Mais en flow DEV "Valider + jour suivant" qui utilise
-      // seedDevStreak, validateDay n'est pas appelée → on bascule sur trigger
-      // par currentDay ici. En flow prod normal, validateDay marque le flag
-      // avant que ce useEffect ne run → condition `!narrativeFlags[flag]` skip.
-      // J7 charnière est fusionnée avec palier 7j (Sprint 31) — pas gérée ici.
-      currentDay > 0 &&
-      CHARNIERE_BY_STREAK[currentDay] &&
-      !narrativeFlags[CHARNIERE_BY_STREAK[currentDay].flag] &&
-      !charniereDay
-    ) {
-      const c = CHARNIERE_BY_STREAK[currentDay];
-      setCharniereDay(c.day);
-      void markNarrativeSeen(c.flag);
     } else {
       // Paliers de streak (7, 15, 30, 60, 100, 365) — normalement triggered
       // dans handleConfirmValidation via result.tierReached. En flow DEV
