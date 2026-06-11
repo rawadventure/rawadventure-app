@@ -562,11 +562,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setStreakHistory(entries);
       setJokerConsumptions([]);
       setTierReaches([]);
-      // DEV : si on seed à day >= 2, on saute le Welcome J1 (déjà vu en flow
-      // normal). Sinon le useEffect HomeScreenV1 ouvre Welcome J1 par-dessus
-      // l'écran narratif S0.1/S0.2 qu'on veut voir.
-      const seedFlags: Partial<Record<NarrativeEventId, string>> =
-        targetDay >= 2 ? { welcome_video: new Date().toISOString() } : {};
+      // DEV : préserve les narrative flags déjà posés (welcome_video,
+      // charnières vues, S0.x déjà affichés) pour éviter qu'ils re-fire
+      // à chaque "Valider + jour suivant". Si seed à day >= 2 et
+      // welcome_video pas encore posé, on l'ajoute (skip Welcome J1).
+      // Pour vraiment tout reset → resetAll() depuis Profil.
+      const seedFlags: Partial<Record<NarrativeEventId, string>> = {
+        ...narrativeFlags,
+      };
+      if (targetDay >= 2 && !seedFlags.welcome_video) {
+        seedFlags.welcome_video = new Date().toISOString();
+      }
       setNarrativeFlags(seedFlags);
 
       if (user) {
@@ -595,6 +601,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             })),
           );
         }
+        // Persiste narrativeFlags localement (V1 : flags AsyncStorage-only,
+        // pas synchronisés Supabase). Garde cohérence après seedDevStreak.
+        await AsyncStorage.setItem(
+          LOCAL_KEYS.narrativeFlags,
+          JSON.stringify(seedFlags),
+        );
       } else {
         await AsyncStorage.multiSet([
           [LOCAL_KEYS.accountCreatedAt, JSON.stringify(newCreatedAtIso)],
