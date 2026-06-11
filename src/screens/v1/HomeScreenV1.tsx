@@ -196,8 +196,31 @@ export default function HomeScreenV1() {
     } else if (currentDay === 16 && !narrativeFlags.s0_2_screen && !showS02) {
       setShowS02(true);
       void markNarrativeSeen('s0_2_screen');
+    } else if (
+      // Charnières J3/J11/J14 — normalement triggered dans handleConfirmValidation
+      // après validateDay. Mais en flow DEV "Valider + jour suivant" qui utilise
+      // seedDevStreak, validateDay n'est pas appelée → on bascule sur trigger
+      // par currentDay ici. En flow prod normal, validateDay marque le flag
+      // avant que ce useEffect ne run → condition `!narrativeFlags[flag]` skip.
+      // J7 charnière est fusionnée avec palier 7j (Sprint 31) — pas gérée ici.
+      currentDay > 0 &&
+      CHARNIERE_BY_STREAK[currentDay] &&
+      !narrativeFlags[CHARNIERE_BY_STREAK[currentDay].flag] &&
+      !charniereDay
+    ) {
+      const c = CHARNIERE_BY_STREAK[currentDay];
+      setCharniereDay(c.day);
+      void markNarrativeSeen(c.flag);
     }
-  }, [currentDay, narrativeFlags, markNarrativeSeen, showS01, showS02, showWelcomeVideo]);
+  }, [
+    currentDay,
+    narrativeFlags,
+    markNarrativeSeen,
+    showS01,
+    showS02,
+    showWelcomeVideo,
+    charniereDay,
+  ]);
 
   // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
   // le flag pour ne pas redemander. Si granted, replanifie les notifs Phase 0
