@@ -51,7 +51,7 @@ import S02Screen from './S02Screen';
 import WelcomeVideoScreen from './WelcomeVideoScreen';
 import Phase1HomeScreen from './Phase1HomeScreen';
 import ConsolidationHomeScreen from './ConsolidationHomeScreen';
-import type { TierId } from '../../lib/streak';
+import { TIER_THRESHOLDS, type TierId } from '../../lib/streak';
 import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
   brandColors,
@@ -122,6 +122,7 @@ export default function HomeScreenV1() {
     setPendingTier,
     clearPendingTier,
     seedDevStreak,
+    tierReaches,
   } = useProgress();
 
   // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
@@ -152,6 +153,10 @@ export default function HomeScreenV1() {
   // Sprint 30 — option A : si palier ET charnière sur même streak (J7),
   // afficher la charnière APRÈS fermeture de la modale palier.
   const [pendingCharniere, setPendingCharniere] = useState<CharniereDay | null>(null);
+  // DEV uniquement : track paliers déjà montrés via le useEffect (flow
+  // "Valider + jour suivant" qui skip validateDay → tier_reaches pas
+  // updaté). Évite re-trigger au prochain render avec même streak.
+  const [devShownTiers, setDevShownTiers] = useState<Set<TierId>>(new Set());
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
@@ -211,6 +216,42 @@ export default function HomeScreenV1() {
       const c = CHARNIERE_BY_STREAK[currentDay];
       setCharniereDay(c.day);
       void markNarrativeSeen(c.flag);
+    } else {
+      // Paliers de streak (7, 15, 30, 60, 100, 365) — normalement triggered
+      // dans handleConfirmValidation via result.tierReached. En flow DEV
+      // seedDevStreak skip validateDay → palier jamais déclenché. Trigger
+      // ici basé sur streak courant + tierReaches existants.
+      // En flow prod, validateDay insère dans tier_reaches AVANT que ce
+      // useEffect run → condition `!alreadyReached` skip. Pas de double
+      // trigger.
+      for (const tier of TIER_THRESHOLDS) {
+        if (streak >= tier) {
+          const alreadyReached = tierReaches.some((r) => r.tier_id === tier);
+          const alreadyShownDev = devShownTiers.has(tier);
+          if (
+            !alreadyReached &&
+            !alreadyShownDev &&
+            !tierModal &&
+            !pendingTierReach
+          ) {
+            // Coordination D30 : si on est sur J15/J16 (S0.1/S0.2 priorité),
+            // ne pas afficher le palier maintenant. Sera repêché plus tard
+            // via le flow normal (pendingTierReach).
+            if (currentDay === 15 || currentDay === 16) {
+              break;
+            }
+            setTierModal({
+              tierId: tier,
+              isFirstReach: true,
+              streakValue: streak,
+            });
+            // Track local-only : seedDevStreak reset tier_reaches DB →
+            // sans ce Set on re-trigger à chaque render.
+            setDevShownTiers((prev) => new Set(prev).add(tier));
+            break;
+          }
+        }
+      }
     }
   }, [
     currentDay,
@@ -220,6 +261,11 @@ export default function HomeScreenV1() {
     showS02,
     showWelcomeVideo,
     charniereDay,
+    streak,
+    tierReaches,
+    tierModal,
+    pendingTierReach,
+    devShownTiers,
   ]);
 
   // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
