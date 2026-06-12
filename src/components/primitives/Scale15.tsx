@@ -74,6 +74,7 @@ export function Scale15({
             onPress={() => !disabled && onChange(n)}
             disabled={disabled}
             textColor={theme.text}
+            selectedBg={theme.text}
           />
         ))}
       </View>
@@ -102,9 +103,10 @@ type ScaleCircleProps = {
   onPress: () => void;
   disabled: boolean;
   textColor: string;
+  selectedBg: string;
 };
 
-function ScaleCircle({ value, selected, onPress, disabled, textColor }: ScaleCircleProps) {
+function ScaleCircle({ value, selected, onPress, disabled, textColor, selectedBg }: ScaleCircleProps) {
   const scale = useSharedValue(1);
 
   useEffect(() => {
@@ -125,7 +127,7 @@ function ScaleCircle({ value, selected, onPress, disabled, textColor }: ScaleCir
     width: CIRCLE_SIZE,
     height: CIRCLE_SIZE,
     borderRadius: CIRCLE_SIZE / 2,
-    backgroundColor: selected ? brandColors.alive : 'transparent',
+    backgroundColor: selected ? selectedBg : 'transparent',
     borderWidth: selected ? 0 : 1.5,
     borderColor: textColor,
     alignItems: 'center',

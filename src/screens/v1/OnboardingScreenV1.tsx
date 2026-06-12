@@ -185,7 +185,7 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
         <ProgressIndicator current={index + 1} total={TOTAL_SLIDES + 1} />
 
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
-          <Animated.View style={slideAnimStyle}>
+          <Animated.View style={[slideAnimStyle, styles.flex]}>
           {index === 0 && <SlideWelcome />}
           {index === 1 && <SlideText title="Le constat" body={"Fatigue. Brouillard mental. Corps lourds.\n\nOn a fini par croire que c'était normal.\nÇa ne l'est pas."} />}
           {index === 2 && <SlideText title="La promesse" body={"En 14 jours, ton corps change de vitesse.\nSommeil plus dense. Digestion qui se calme. Tête qui s'allège.\n\nPas de la magie — de la physiologie.\nTu fais. Tu ressens. Tu vois."} />}
@@ -340,7 +340,7 @@ function SlideQuestionnaireP1({
         />
       </View>
 
-      <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
+      <Text style={[styles.slideTitle, styles.center, { marginTop: space[7] }]}>
         Ton corps, il se sent :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
@@ -366,7 +366,7 @@ function SlideQuestionnaireP2({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.questionLabel, styles.center]}>En ce moment, ta tête elle est :</Text>
+      <Text style={[styles.slideTitle, styles.center]}>En ce moment, ta tête elle est :</Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {MENTAL_OPTIONS.map((opt) => (
           <ChoiceChip
@@ -378,7 +378,7 @@ function SlideQuestionnaireP2({
         ))}
       </View>
 
-      <Text style={[styles.questionLabel, styles.center, { marginTop: space[7] }]}>
+      <Text style={[styles.slideTitle, styles.center, { marginTop: space[7] }]}>
         Tu es prêt à t'engager :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
@@ -526,12 +526,11 @@ const styles = StyleSheet.create({
   // Slides text / questionnaire
   slideWrap: {
     flex: 1,
-    paddingTop: space[3],
     gap: space[3],
+    justifyContent: 'center',
   },
   slideWrapCenter: {
     flex: 1,
-    paddingTop: space[3],
     gap: space[3],
     justifyContent: 'center',
   },
