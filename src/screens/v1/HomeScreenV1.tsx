@@ -123,7 +123,25 @@ export default function HomeScreenV1() {
     clearPendingTier,
     seedDevStreak,
     tierReaches,
+    startPillarWeek,
+    seedDevPillarDay,
   } = useProgress();
+
+  // J17 auto-start S1 — bascule Phase 1 automatique. Si user a complété
+  // l'éval Respiration en J16 (flag s0_2_screen + currentPillarId resté null
+  // car handleStart sur J16 ne fait pas startPillarWeek), à J17 currentPhase
+  // passe à 'phase_1' et ce useEffect pose currentPillarId + pillarStartedAt
+  // → re-render → Phase1HomeScreen affiché. Cas absence longue D25 traité
+  // pareil (J17+ direct).
+  useEffect(() => {
+    if (
+      currentPhase === 'phase_1' &&
+      !currentPillarId &&
+      narrativeFlags.s0_2_screen
+    ) {
+      void startPillarWeek('S1');
+    }
+  }, [currentPhase, currentPillarId, narrativeFlags.s0_2_screen, startPillarWeek]);
 
   // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
   // bouton "(DEV) Valider + jour suivant" dans la modale IA-15.
@@ -522,6 +540,31 @@ export default function HomeScreenV1() {
                   </Text>
                 </View>
               </View>
+            )}
+
+            {/* DEV : raccourci "Passer au jour suivant" — visible sur hub
+                quand journée déjà validée (sinon utiliser bouton dans modale
+                IA-15). Gated devPanelEnabled (invisible build prod).
+                Recompute via seedDevStreak pour cohérence streak/accountCreatedAt. */}
+            {devPanelEnabled && alreadyValidatedToday && (
+              <Button
+                label="(DEV) Passer au jour suivant"
+                onPress={() => {
+                  // J1-J15 → seedDevStreak (Phase 0 + S0). J16 → bascule
+                  // Phase 1 via seedDevPillarDay('S1', 1) qui pose
+                  // accountCreatedAt à J17 + flags s0_1/s0_2 vus. À partir
+                  // de Phase 1, ce bouton n'est plus rendu — Phase1HomeScreen
+                  // a son propre DEV.
+                  if (currentDay < 16) {
+                    void seedDevStreak(currentDay + 1);
+                  } else if (currentDay === 16) {
+                    void seedDevPillarDay('S1', 1);
+                  }
+                }}
+                variant="ghost"
+                fullWidth
+                context="phase0"
+              />
             )}
 
             <Text style={styles.message}>{messageDuJour}</Text>

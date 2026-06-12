@@ -14,6 +14,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreenV1 from '../screens/v1/HomeScreenV1';
+import { useProgress } from '../hooks/ProgressContext';
 import Phase0ActionDetailScreen from '../screens/v1/Phase0ActionDetailScreen';
 import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
@@ -36,10 +37,28 @@ export type Phase0StackParamList = {
 
 const Stack = createNativeStackNavigator<Phase0StackParamList>();
 
+/**
+ * Wrapper qui force le remount de HomeScreenV1 quand la phase change
+ * (phase_0 ↔ phase_1 ↔ post_s8) ou quand `currentPillarId` apparaît/disparaît.
+ *
+ * Rationale : HomeScreenV1 a des early returns vers Phase1HomeScreen /
+ * ConsolidationHomeScreen APRÈS des `useState` / `useEffect` plus bas dans
+ * le composant. Une transition in-place de phase_0 → phase_1 (par exemple
+ * via le bouton DEV "Passer au jour suivant" ou via le useEffect auto-start
+ * S1) provoque un mismatch de hook count entre renders ("Rendered fewer
+ * hooks than expected"). Forcer un remount via `key` règle ça sans refactor
+ * lourd (extraction de Phase 0 hub en sous-composant).
+ */
+function HomeV1Mount() {
+  const { currentPhase, currentPillarId } = useProgress();
+  const renderKey = `${currentPhase}_${currentPillarId ?? 'none'}`;
+  return <HomeScreenV1 key={renderKey} />;
+}
+
 export default function HomeStack() {
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="HomeV1" component={HomeScreenV1} />
+      <Stack.Screen name="HomeV1" component={HomeV1Mount} />
       <Stack.Screen name="Phase0ActionDetail" component={Phase0ActionDetailScreen} />
       <Stack.Screen name="PillarEvaluation" component={PillarEvaluationScreen} />
       <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />

@@ -73,7 +73,7 @@ export default function PillarRecapScreen() {
   const styles = React.useMemo(() => makeStyles(palette), [palette]);
 
   const { user } = useAuth();
-  const { savePillarEvaluation, markNarrativeSeen, startPillarWeek } = useProgress();
+  const { savePillarEvaluation, markNarrativeSeen, startPillarWeek, currentDay } = useProgress();
 
   const [loading, setLoading] = useState(true);
   const [diagnostic, setDiagnostic] = useState<DiagnosticLevel | null>(null);
@@ -151,10 +151,15 @@ export default function PillarRecapScreen() {
   };
 
   const handleStart = async () => {
-    // Sprint 9 : démarre la semaine du pilier — pose currentPillarId et
-    // pillarStartedAt → HomeScreenV1 bascule sur Phase1HomeScreen automatiquement.
+    // S0.2 marqué vu (post-éval = équivalent "modale fermée").
     await markNarrativeSeen('s0_2_screen');
-    await startPillarWeek(pillarId);
+    // Si user encore en S0 (J15-J16 = phase_0) : ne PAS démarrer la semaine
+    // pilier maintenant — Phase 1 commence J17. HomeScreenV1 auto-déclenche
+    // startPillarWeek à J17 via useEffect (cf. HomeScreenV1 §Phase1 auto-start).
+    // Si déjà J17+ : démarrage immédiat (cas absence prolongée D25).
+    if (currentDay >= 17) {
+      await startPillarWeek(pillarId);
+    }
     navigation.popToTop();
   };
 

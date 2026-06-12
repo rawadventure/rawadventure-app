@@ -541,11 +541,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         Date.now() - (targetDay - 1) * 24 * 60 * 60 * 1000,
       ).toISOString();
 
-      // 1) Construit les entrées streak_history valides. Cappé à 14 entrées
-      // Phase 0 max (day_id 1..14). Pour targetDay 15/16 (S0), on garde
-      // 14 entrées validées — la transition S0 n'incrémente pas le streak
-      // en V1 jusqu'à validation Phase 1 (cf. Feature Spec V1 §2.5).
-      const numEntries = Math.min(targetDay - 1, 14);
+      // 1) Construit les entrées streak_history valides. Streak continu
+      // Phase 0 → S0 (J15-J16) — décision Stéphane 2026-06-12 : les
+      // validations S0 comptent dans le streak (cohérent avec ressenti
+      // utilisateur, évite frustration de "streak qui stagne"). Tous les
+      // jours antérieurs à targetDay sont marqués validés (S0 conservé en
+      // phase='phase_0' car D17 / CLAUDE.md §2 : S0 reste gratuit).
+      const numEntries = targetDay - 1;
       const entries: StreakEntry[] = [];
       for (let i = 1; i <= numEntries; i++) {
         entries.push({
@@ -706,15 +708,46 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const pillarOffsetMs = (targetDay - 1) * 24 * 60 * 60 * 1000;
       const startedAt = new Date(Date.now() - pillarOffsetMs).toISOString();
 
-      // Pour que currentPhase soit 'phase_1', il faut currentDay > 14.
-      // On pose accountCreatedAt = (14 + targetDay) jours dans le passé →
-      // currentDay = 15 + targetDay > 14, donc phase_1.
-      const accountOffsetMs = (14 + targetDay) * 24 * 60 * 60 * 1000;
+      // Pour que currentPhase soit 'phase_1', il faut currentDay >= 17
+      // (J15-J16 = S0 toujours phase_0, paywall gate libre).
+      // On pose accountCreatedAt = (16 + targetDay) jours dans le passé →
+      // currentDay = 17 + (targetDay-1) >= 17, donc phase_1.
+      const accountOffsetMs = (16 + targetDay) * 24 * 60 * 60 * 1000;
       const accountIso = new Date(Date.now() - accountOffsetMs).toISOString();
 
       setCurrentPillarId(pillarId);
       setPillarStartedAt(startedAt);
       setAccountCreatedAtState(accountIso);
+
+      // Génère streakHistory J1-J16 (Phase 0 + S0) — streak continu
+      // décision Stéphane 2026-06-12. Sans ça, le hub Phase 1 afficherait
+      // un streak incohérent (entries seulement de l'ancien seedDevStreak,
+      // ou 0 si reset). On stamp tous les jours antérieurs comme validés.
+      const today = todayLocalDate();
+      const totalPastDays = 16 + (targetDay - 1); // J1..J(16+targetDay-1)
+      const phase0Entries: StreakEntry[] = [];
+      for (let i = 1; i <= 16; i++) {
+        phase0Entries.push({
+          local_date: addDays(today, -(totalPastDays - i + 1)),
+          validation_status: 'valid_above_threshold',
+          phase: 'phase_0',
+          streak_value_after: i,
+          joker_used: false,
+        });
+      }
+      // Jours Phase 1 antérieurs au jour cible (si targetDay > 1)
+      const phase1Entries: StreakEntry[] = [];
+      for (let i = 1; i < targetDay; i++) {
+        phase1Entries.push({
+          local_date: addDays(today, -(targetDay - i)),
+          validation_status: 'valid_above_threshold',
+          phase: 'phase_1',
+          streak_value_after: 16 + i,
+          joker_used: false,
+        });
+      }
+      const allEntries = [...phase0Entries, ...phase1Entries];
+      setStreakHistory(allEntries);
 
       // Marque les écrans narratifs S0 comme déjà vus pour éviter qu'ils
       // pop par-dessus le HomeScreen Phase 1.
@@ -740,6 +773,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           .from('profiles')
           .update({ account_created_at: accountIso })
           .eq('id', user.id);
+
+        // Resync streak_history distant pour rester cohérent avec les
+        // entries locales générées au-dessus.
+        await supabase.from('streak_history').delete().eq('user_id', user.id);
+        if (allEntries.length > 0) {
+          await supabase.from('streak_history').insert(
+            allEntries.map((e) => ({ user_id: user.id, ...e })),
+          );
+        }
 
         // Upsert éval initiale neutre (diagnostic 3 = milieu, engagement
         // recommandé Essentiel). Idempotent via onConflict, ne réécrit pas
@@ -826,11 +868,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     // Post-S8 prime dès qu'une éval finale S8 a été enregistrée — bascule
     // permanente vers mode consolidation libre (IA-23 + D13).
     if (s8FinalCompleted) return 'post_s8';
-    // Phase 0 = J1 à J14, plus l'état initial (currentDay = 0, accountCreatedAt
-    // null ou futur). Au-delà de J14 on bascule en S0 puis Phase 1 — pour
-    // l'instant tout > 14 est traité comme Phase 1 côté streak. La nuance S0
-    // (jours 15-16) sera distinguée quand IA-20 / IA-21 seront codés.
-    return currentDay <= 14 ? 'phase_0' : 'phase_1';
+    // Phase 0 = J1 à J14 (parcours d'amorçage) + S0 = J15-J16 (transition
+    // gratuite, D17 + CLAUDE.md §2). Au-delà de J16 → Phase 1 payante.
+    // S0.1 (J15) et S0.2 (J16) restent dans `phase_0` côté type — pas de
+    // valeur dédiée s0_1/s0_2 — la distinction se fait via `currentDay`
+    // dans les écrans qui en ont besoin (HomeScreenV1, narratif).
+    // Conséquence : paywall gate du RootNavigator laisse passer J15-J16.
+    return currentDay <= 16 ? 'phase_0' : 'phase_1';
   }, [currentDay, s8FinalCompleted]);
 
   const streak = useMemo(
