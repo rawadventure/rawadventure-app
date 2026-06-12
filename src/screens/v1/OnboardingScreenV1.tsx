@@ -25,6 +25,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {
+  Image,
   KeyboardAvoidingView,
   Platform,
   Pressable,
@@ -297,9 +298,12 @@ function SlideWelcome() {
   return (
     <View style={styles.welcomeWrap}>
       <Animated.View style={[styles.logoHero, logoStyle]}>
-        <LogoRawAdventure variant="hero" size={380} color={brandColors.deep} />
+        <Image
+          source={require('../../../assets/splash-icon.png')}
+          style={styles.heroImage}
+          resizeMode="contain"
+        />
       </Animated.View>
-      <Animated.Text style={[styles.heroTitle, textStyle]}>RAW ADVENTURE</Animated.Text>
       <Animated.Text style={[styles.heroSubtitle, textStyle]}>
         14 jours offerts pour relancer ta machine.{'\n'}Pas de théorie. Du concret. Dès aujourd'hui.
       </Animated.Text>
@@ -493,13 +497,17 @@ const styles = StyleSheet.create({
   welcomeWrap: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: space[4],
-    paddingVertical: space[8],
+    justifyContent: 'flex-start',
+    paddingTop: 0,
+    paddingBottom: 200,
   },
   logoHero: {
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  heroImage: {
+    width: 640,
+    height: 640,
   },
   heroTitle: {
     fontFamily: getInterFamily('800'),
@@ -513,6 +521,7 @@ const styles = StyleSheet.create({
     ...interTextStyle('bodyLarge'),
     color: pillarColors.phase0.text,
     textAlign: 'center',
+    marginTop: -40,
   },
   // Slides text / questionnaire
   slideWrap: {
