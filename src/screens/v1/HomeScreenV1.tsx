@@ -222,25 +222,6 @@ export default function HomeScreenV1() {
     if (!narrativeFlags.welcome_video && !showWelcomeVideo) {
       setShowWelcomeVideo(true);
       void markNarrativeSeen('welcome_video');
-    } else if (
-      // Charnières J3/J11/J14 — basé sur `streak` (cohérent PROD :
-      // handleConfirmValidation utilise result.newStreak après validateDay).
-      // Placée AVANT S0.1/S0.2 pour qu'à J15 (currentDay=15, streak=14
-      // post-validation), charnière J14 fire d'abord puis S0.1 au render
-      // suivant après close charnière.
-      //
-      // En flow prod normal : validateDay marque le flag dans la cascade
-      // avant que ce useEffect ne run → condition `!flag` skip.
-      // J7 charnière est fusionnée avec palier 7j (Sprint 31) — pas dans
-      // CHARNIERE_BY_STREAK.
-      streak > 0 &&
-      CHARNIERE_BY_STREAK[streak] &&
-      !narrativeFlags[CHARNIERE_BY_STREAK[streak].flag] &&
-      !charniereDay
-    ) {
-      const c = CHARNIERE_BY_STREAK[streak];
-      setCharniereDay(c.day);
-      void markNarrativeSeen(c.flag);
     } else if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
       setShowS01(true);
       void markNarrativeSeen('s0_1_screen');
@@ -415,6 +396,8 @@ export default function HomeScreenV1() {
       const narrativeCollision =
         result.tierReached != null && (currentDay === 15 || currentDay === 16);
 
+
+
       if (result.tierReached && narrativeCollision) {
         // Différer le palier — narratif structurant prime.
         await setPendingTier({
@@ -437,6 +420,8 @@ export default function HomeScreenV1() {
           await markNarrativeSeen(charniere.flag);
         }
       } else if (charniere && !narrativeFlags[charniere.flag]) {
+        // Pas de setTimeout — setCharniereDay synchronous après setModalVisible(false)
+        // marche bien (testé). Le timeout introduisait race condition avec useEffect.
         setCharniereDay(charniere.day);
         await markNarrativeSeen(charniere.flag);
       } else if (pendingTierReach) {

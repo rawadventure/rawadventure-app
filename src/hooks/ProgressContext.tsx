@@ -633,7 +633,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // Reset les coches en cours du jour courant
       await AsyncStorage.removeItem(`daily_check_actions.${today}`);
     },
-    [user],
+    [user, narrativeFlags],
   );
 
   /**
