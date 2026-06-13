@@ -145,5 +145,8 @@ function App() {
 
 // Wrap App avec Sentry pour capturer automatiquement les erreurs React
 // (ErrorBoundary global) + le tracking performance (TransactionRouter).
-// Si DSN absent (env var pas set), wrap reste passthrough no-op.
-export default Sentry.wrap(App);
+// Si DSN absent (env var pas set), Sentry.init est skip — donc Sentry.wrap
+// déclencherait un warning "App Start Span could not be finished. Sentry.wrap
+// was called before Sentry.init". On évite ça en ne wrappant que quand DSN
+// configuré.
+export default SENTRY_DSN ? Sentry.wrap(App) : App;
