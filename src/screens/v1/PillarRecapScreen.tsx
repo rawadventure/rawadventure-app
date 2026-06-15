@@ -160,6 +160,9 @@ export default function PillarRecapScreen() {
     if (currentDay >= 17) {
       await startPillarWeek(pillarId);
     }
+    // popToTop : Phase1HomeScreen utilise navigate (pas replace), donc le
+    // stack est [HomeV1, PillarEvaluation, PillarRecap]. popToTop → HomeV1.
+    // Pareil pour Profil DEV : [ProfilMain, PillarEvaluation, PillarRecap].
     navigation.popToTop();
   };
 

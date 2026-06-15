@@ -9,7 +9,7 @@
  *   - **Premier franchissement** (`reach_count === 1`) : modale plein écran,
  *     vidéo 30s placeholder (en attendant tournage Mimi & Jacky — Brief
  *     contenu Session 1), badge 120px, message personnalisé long, deux boutons
- *     "Voir ma galerie" et "Continuer".
+ *     "Voir mes paliers" et "Continuer".
  *
  *   - **Redéclenchements** (`reach_count > 1`, palier déjà atteint puis cassé
  *     puis reconstruit) : modale standard simplifiée, badge 80px, message
@@ -45,7 +45,7 @@ export type TierReachedModalProps = {
   isFirstReach: boolean;
   streakValue: number;
   onClose: () => void;
-  /** Si fourni et `isFirstReach=true`, ajoute un bouton "Voir ma galerie" qui
+  /** Si fourni et `isFirstReach=true`, ajoute un bouton "Voir mes paliers" qui
    *  navigue vers IA-51. Réservé Sprint 7+ (galerie pas encore codée). */
   onViewGallery?: () => void;
 };
@@ -206,7 +206,7 @@ export function TierReachedModal({
           <View style={styles.actionsFull}>
             {onViewGallery && (
               <Button
-                label="Voir ma galerie"
+                label="Voir mes paliers"
                 variant="secondary"
                 onPress={onViewGallery}
                 fullWidth

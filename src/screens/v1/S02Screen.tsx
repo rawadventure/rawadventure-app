@@ -75,14 +75,16 @@ const ROADMAP: RoadmapPillar[] = [
 
 export type S02ScreenProps = {
   visible: boolean;
-  /** Tap "Démarrer l'évaluation Respiration" → ferme la couche + navigation IA-40
-   *  (à câbler Sprint 8 quand IA-40 existera). En Sprint 7 c'est juste un close. */
+  /** Tap "Continuer" → ferme la modale. L'éval initiale S1 est désormais
+   *  déclenchée auto à J17 (Phase 1 J1) via Phase1HomeScreen redirect. */
   onStartEvaluation: () => void;
-  /** Optionnel : bouton "Plus tard" secondaire qui ferme S0.2 sans démarrer
-   *  l'évaluation. Permet au participant de voir le hub J16 et de valider
-   *  ses actions du jour avant de lancer l'évaluation S1. Le CTA "Démarrer
-   *  évaluation" reste accessible depuis le hub J16. */
+  /** Optionnel : bouton "Plus tard" secondaire qui ferme S0.2. Hérité de la
+   *  Phase D1 (Phase A a fusionné le rôle dans onStartEvaluation). */
   onLater?: () => void;
+  /** Optionnel : Phase D2 — bouton ghost "Découvrir l'abonnement" qui ouvre
+   *  Stripe directement (openExternal). Injecté par HomeScreenV1 quand user
+   *  n'est pas abonné. */
+  onDiscoverSubscription?: () => void;
 };
 
 /**
@@ -92,7 +94,7 @@ export type S02ScreenProps = {
 const VIDEO_URL =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-2-roadmap.mp4';
 
-export default function S02Screen({ visible, onStartEvaluation, onLater }: S02ScreenProps) {
+export default function S02Screen({ visible, onStartEvaluation, onLater, onDiscoverSubscription }: S02ScreenProps) {
   const videoRef = useRef<Video | null>(null);
   const openVideoFullscreen = async () => {
     try {
@@ -181,21 +183,36 @@ export default function S02Screen({ visible, onStartEvaluation, onLater }: S02Sc
         </Text>
       </ScrollView>
       <View style={styles.footer}>
-        <Button
-          label="Démarrer l'évaluation Respiration"
-          onPress={onStartEvaluation}
-          fullWidth
-          size="large"
-          context="s1"
-        />
-        {onLater && (
+        {/* Phase D2 — CTA paywall en primary dans la modale S0.2 : on est en
+            fin de période de test (J16), Phase 1 payante dans 1 jour →
+            "Découvrir l'abonnement" devient l'action principale. "Continuer"
+            (fermer modale et revenir hub) passe en secondary. */}
+        {onDiscoverSubscription ? (
+          <>
+            <Button
+              label="Découvrir l'abonnement"
+              onPress={onDiscoverSubscription}
+              fullWidth
+              size="large"
+              context="s1"
+            />
+            <Button
+              label="Continuer"
+              onPress={onStartEvaluation}
+              variant="secondary"
+              fullWidth
+              context="s1"
+              style={{ marginTop: space[2] }}
+            />
+          </>
+        ) : (
+          // User déjà abonné — pas de CTA paywall, juste Continuer en primary.
           <Button
-            label="Plus tard"
-            onPress={onLater}
-            variant="ghost"
+            label="Continuer"
+            onPress={onStartEvaluation}
             fullWidth
+            size="large"
             context="s1"
-            style={{ marginTop: space[2] }}
           />
         )}
       </View>

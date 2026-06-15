@@ -71,11 +71,12 @@ export default function Phase1HomeScreen() {
 
   const [validatedSessions, setValidatedSessions] = useState<Set<SessionIndex>>(new Set());
   const [hasFinalEval, setHasFinalEval] = useState(false);
+  const [hasInitialEval, setHasInitialEval] = useState<boolean | null>(null);
 
   const fetchTodaySessions = useCallback(async () => {
     if (!user) return;
     const today = todayLocalDate();
-    const [{ data: sessions }, { data: finalEval }] = await Promise.all([
+    const [{ data: sessions }, { data: finalEval }, { data: initialEval }] = await Promise.all([
       supabase
         .from('pillar_sessions')
         .select('session_index')
@@ -89,12 +90,35 @@ export default function Phase1HomeScreen() {
         .eq('pillar_id', pillarId)
         .eq('evaluation_type', 'final')
         .maybeSingle(),
+      supabase
+        .from('pillar_evaluations')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('pillar_id', pillarId)
+        .eq('evaluation_type', 'initial')
+        .maybeSingle(),
     ]);
     if (sessions) {
       setValidatedSessions(new Set(sessions.map((r: any) => r.session_index as SessionIndex)));
     }
     setHasFinalEval(!!finalEval);
+    setHasInitialEval(!!initialEval);
   }, [user, pillarId]);
+
+  // Phase A — éval initiale mandatoire à J17 (Phase 1 J1). Si user arrive
+  // ici sans éval (cas normal : S0.2 modale ne déclenche plus l'éval,
+  // démarrage Phase 1 force le questionnaire). Redirect direct vers IA-40,
+  // pas de bypass possible. hasInitialEval=null = chargement → on attend.
+  useEffect(() => {
+    if (hasInitialEval === false) {
+      // navigate (pas replace) — garde Phase1HomeScreen dans le stack pour
+      // que PillarRecap.handleStart puisse popToTop proprement après éval.
+      navigation.navigate('PillarEvaluation', {
+        pillarId,
+        evaluationType: 'initial',
+      });
+    }
+  }, [hasInitialEval, navigation, pillarId]);
 
   useEffect(() => {
     void fetchTodaySessions();

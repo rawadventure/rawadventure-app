@@ -13,6 +13,9 @@ import ProfilTabScreen from '../screens/v1/ProfilTabScreen';
 import PaliersGalleryScreen from '../screens/v1/PaliersGalleryScreen';
 import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
+import PaywallScreen from '../screens/v1/PaywallScreen';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 
 export type ProfilStackParamList = {
   ProfilMain: undefined;
@@ -20,7 +23,14 @@ export type ProfilStackParamList = {
   // DEV — permet de lancer IA-40 éval initiale depuis Profil (tests Phase 1).
   PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
+  Paywall: undefined;
 };
+
+/** Wrapper PaywallScreen accessible depuis Profil. Injecte `onBack`. */
+function PaywallSoftScreen() {
+  const nav = useNavigation<NativeStackNavigationProp<ProfilStackParamList>>();
+  return <PaywallScreen onBack={() => nav.goBack()} />;
+}
 
 const Stack = createNativeStackNavigator<ProfilStackParamList>();
 
@@ -31,6 +41,7 @@ export default function ProfilStack() {
       <Stack.Screen name="PaliersGallery" component={PaliersGalleryScreen} />
       <Stack.Screen name="PillarEvaluation" component={PillarEvaluationScreen} />
       <Stack.Screen name="PillarRecap" component={PillarRecapScreen} />
+      <Stack.Screen name="Paywall" component={PaywallSoftScreen} />
     </Stack.Navigator>
   );
 }

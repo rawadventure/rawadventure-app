@@ -63,6 +63,7 @@ import {
 } from '../../theme';
 import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
+import { useSubscription } from '../../hooks/SubscriptionContext';
 import { todayLocalDate } from '../../lib/calendar';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
@@ -126,6 +127,7 @@ export default function HomeScreenV1() {
     startPillarWeek,
     seedDevPillarDay,
   } = useProgress();
+  const { isActive: subscriptionActive } = useSubscription();
 
   // J17 auto-start S1 — bascule Phase 1 automatique. Si user a complété
   // l'éval Respiration en J16 (flag s0_2_screen + currentPillarId resté null
@@ -236,6 +238,14 @@ export default function HomeScreenV1() {
       // En flow prod, validateDay insère dans tier_reaches AVANT que ce
       // useEffect run → condition `!alreadyReached` skip. Pas de double
       // trigger.
+      // Skip si validation en cours — handleConfirmValidation gère le tier
+      // modal après validateDay. Sans ce check, useEffect fire AVANT que
+      // validateDay's persistTierReach + setTierReaches async ne complète
+      // (Supabase race) → double trigger + iOS Modal stacking → freeze.
+      // Le branch ici reste utile pour DEV seedDevStreak (skip validateDay).
+      if (validating) {
+        return;
+      }
       for (const tier of TIER_THRESHOLDS) {
         if (streak >= tier) {
           const alreadyReached = tierReaches.some((r) => r.tier_id === tier);
@@ -278,6 +288,7 @@ export default function HomeScreenV1() {
     tierModal,
     pendingTierReach,
     devShownTiers,
+    validating,
   ]);
 
   // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
@@ -413,6 +424,10 @@ export default function HomeScreenV1() {
           isFirstReach: result.tierIsFirstReach,
           streakValue: result.newStreak,
         });
+        // Track DEV-side aussi : si user enchaîne sur "(DEV) Passer au jour
+        // suivant" après le palier, seedDevStreak vide tier_reaches → sans
+        // ce tracking, useEffect re-trigger le même palier.
+        setDevShownTiers((prev) => new Set(prev).add(result.tierReached!));
         // Sprint 30 option A : si collision palier × charnière (typique J7),
         // stocke la charnière pour l'ouvrir après fermeture modale palier.
         if (charniere && !narrativeFlags[charniere.flag]) {
@@ -432,6 +447,7 @@ export default function HomeScreenV1() {
           isFirstReach: pendingTierReach.isFirstReach,
           streakValue: pendingTierReach.streakValue,
         });
+        setDevShownTiers((prev) => new Set(prev).add(pendingTierReach.tierId));
         await clearPendingTier();
       } else if (result.jokerUsed) {
         Alert.alert(
@@ -637,23 +653,20 @@ export default function HomeScreenV1() {
               />
             )}
 
-            {/* CTA Phase 1 — accessible quand user est à J16 (S0.2) et a
-                fermé la modale S0.2 via "Plus tard". Permet de lancer
-                l'évaluation Respiration depuis le hub sans devoir re-ouvrir
-                S0.2. Visible uniquement à J16 (pas avant car éval initiale
-                S1 est gated par S0.2). */}
-            {currentDay === 16 && !showS02 && (
+            {/* Phase A — CTA "Démarrer évaluation Respiration" retiré du hub.
+                L'éval initiale S1 est désormais déclenchée automatiquement
+                à J17 (Phase 1 J1) via redirect Phase1HomeScreen → IA-40. */}
+
+            {/* Phase D2 — CTA paywall soft sur fin Phase 0 + S0.
+                Visible J14/15/16 si pas abonné. Tap → PaywallScreen avec back. */}
+            {currentDay >= 14 && currentDay <= 16 && !subscriptionActive && (
               <Button
-                label="Démarrer l'évaluation Respiration"
-                onPress={() => {
-                  navigation.navigate('PillarEvaluation', {
-                    pillarId: 'S1',
-                    evaluationType: 'initial',
-                  });
-                }}
+                label="Découvrir l'abonnement"
+                onPress={() => navigation.navigate('Paywall')}
+                variant="secondary"
                 fullWidth
                 size="large"
-                context="s1"
+                context="phase0"
                 style={styles.validateBtn}
               />
             )}
@@ -706,7 +719,19 @@ export default function HomeScreenV1() {
         visible={charniereDay != null}
         day={charniereDay}
         streak={streak}
-        onClose={() => setCharniereDay(null)}
+        onClose={() => {
+          // J14 charnière "Voir la suite" → ouverture paywall soft (Phase D).
+          // Autres charnières J3/J11 → ferme simplement vers hub.
+          const wasJ14 = charniereDay === 14;
+          setCharniereDay(null);
+          if (wasJ14) {
+            navigation.navigate('Paywall');
+          }
+        }}
+        onViewGallery={() => {
+          setCharniereDay(null);
+          navigation.navigate('PaliersGallery');
+        }}
       />
 
       <WelcomeVideoScreen
@@ -722,15 +747,19 @@ export default function HomeScreenV1() {
 
       <S02Screen
         visible={showS02}
-        onStartEvaluation={() => {
-          setShowS02(false);
-          // Sprint 8 : navigation vers IA-40 (évaluation initiale S1).
-          navigation.navigate('PillarEvaluation', {
-            pillarId: 'S1',
-            evaluationType: 'initial',
-          });
-        }}
-        onLater={() => setShowS02(false)}
+        // Phase A — "Continuer" ferme simplement la modale. L'éval initiale
+        // S1 est déclenchée auto à J17 via Phase1HomeScreen redirect.
+        onStartEvaluation={() => setShowS02(false)}
+        // Phase D2 — bouton ghost paywall visible si pas abonné.
+        // Ouvre PaywallScreen soft (back possible) via navigation.
+        onDiscoverSubscription={
+          !subscriptionActive
+            ? () => {
+                setShowS02(false);
+                navigation.navigate('Paywall');
+              }
+            : undefined
+        }
       />
     </View>
   );

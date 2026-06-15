@@ -32,6 +32,7 @@ import {
   Alert,
   Linking,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -39,7 +40,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { openExternal } from '../../lib/openExternal';
-import { ArrowRight, ExternalLink } from 'lucide-react-native';
+import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import {
   brandColors,
@@ -53,7 +54,13 @@ import { useSubscription } from '../../hooks/SubscriptionContext';
 
 const SUBSCRIBE_BASE_URL = 'https://rawadventure.world/abonnement/';
 
-export default function PaywallScreen() {
+export type PaywallScreenProps = {
+  /** Si fourni → variant soft (back button + "Plus tard" ferme l'écran).
+   *  Sinon → variant gate (RootNavigator, pas de back, Plus tard = ferme app). */
+  onBack?: () => void;
+};
+
+export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const { user } = useAuth();
   const { reload } = useSubscription();
   const [loading, setLoading] = useState(false);
@@ -103,6 +110,11 @@ export default function PaywallScreen() {
   };
 
   const handleLater = () => {
+    if (onBack) {
+      // Variant soft — retour à l'écran précédent (hub J14/J15/J16).
+      onBack();
+      return;
+    }
     Alert.alert(
       'Plus tard',
       'Tu peux fermer l\'app. Tu reprendras où tu en es à la prochaine ouverture.',
@@ -111,6 +123,21 @@ export default function PaywallScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      {/* Header back button — soft variant uniquement (depuis hub J14/15/16
+          via navigation.navigate). En mode gate (RootNavigator), pas de back. */}
+      {onBack && (
+        <View style={styles.headerBack}>
+          <Pressable
+            onPress={onBack}
+            accessibilityRole="button"
+            accessibilityLabel="Retour"
+            hitSlop={12}
+            style={styles.backButton}
+          >
+            <ArrowLeft size={24} color={brandColors.deep} />
+          </Pressable>
+        </View>
+      )}
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.body}>
           <View>
@@ -182,6 +209,16 @@ export default function PaywallScreen() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: pillarColors.phase0.bg },
   scroll: { flexGrow: 1 },
+  headerBack: {
+    paddingHorizontal: layout.screen.marginHorizontalWide,
+    paddingTop: space[2],
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+  },
   body: {
     flex: 1,
     minHeight: 600,

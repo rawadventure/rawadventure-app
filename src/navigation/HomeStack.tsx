@@ -14,7 +14,10 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HomeScreenV1 from '../screens/v1/HomeScreenV1';
+import PaywallScreen from '../screens/v1/PaywallScreen';
 import { useProgress } from '../hooks/ProgressContext';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import Phase0ActionDetailScreen from '../screens/v1/Phase0ActionDetailScreen';
 import PillarEvaluationScreen from '../screens/v1/PillarEvaluationScreen';
 import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
@@ -33,7 +36,15 @@ export type Phase0StackParamList = {
   PillarOverview: { pillarId?: string } | undefined;
   Session: { sessionIndex: 1 | 2 | 3; pillarId?: string };
   PaliersGallery: undefined;
+  Paywall: undefined;
 };
+
+/** Wrapper PaywallScreen accessible depuis hub J14/15/16 via navigation.
+ *  Injecte `onBack` → bouton retour visible, "Plus tard" referme l'écran. */
+function PaywallSoftScreen() {
+  const nav = useNavigation<NativeStackNavigationProp<Phase0StackParamList>>();
+  return <PaywallScreen onBack={() => nav.goBack()} />;
+}
 
 const Stack = createNativeStackNavigator<Phase0StackParamList>();
 
@@ -66,6 +77,7 @@ export default function HomeStack() {
       <Stack.Screen name="PillarOverview" component={PillarOverviewScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
       <Stack.Screen name="PaliersGallery" component={PaliersGalleryScreen} />
+      <Stack.Screen name="Paywall" component={PaywallSoftScreen} />
     </Stack.Navigator>
   );
 }

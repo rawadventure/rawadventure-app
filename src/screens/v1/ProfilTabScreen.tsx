@@ -183,6 +183,16 @@ export default function ProfilTabScreen() {
                 style={{ marginTop: space[3] }}
               />
             )}
+            {/* Phase D2 — CTA paywall soft accessible dès J3 (D3) si pas abonné.
+                User peut découvrir l'offre tôt sans hard-sell. */}
+            {!subscriptionActive && (currentDay ?? 0) >= 3 && (
+              <Button
+                label="Découvrir l'abonnement"
+                onPress={() => navigation.navigate('Paywall' as never)}
+                fullWidth
+                style={{ marginTop: space[3] }}
+              />
+            )}
           </Card>
 
           <Card title="Streak" subtitle={`Joker hebdo : ${jokerAvailable ? 'disponible' : 'consommé'}`}>

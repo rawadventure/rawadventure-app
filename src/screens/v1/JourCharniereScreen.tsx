@@ -19,15 +19,17 @@
  * Référence IA : IA-14. Pattern : A (écran narratif plein).
  */
 
-import React from 'react';
-import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Sparkle } from 'lucide-react-native';
+import React, { useRef } from 'react';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Video, ResizeMode } from 'expo-av';
+import { Play, Sparkle } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import {
   brandColors,
   interTextStyle,
   pillarColors,
+  radiusV1,
   space,
 } from '../../theme';
 import { getInterFamily } from '../../theme';
@@ -41,7 +43,21 @@ export type JourCharniereScreenProps = {
   /** Streak courant — affiché dans le pied de l'écran. */
   streak: number;
   onClose: () => void;
+  /** Optionnel : navigation vers la galerie des paliers (J14 uniquement,
+   *  variante riche style palier 7j). */
+  onViewGallery?: () => void;
 };
+
+/** Vidéo Mimi & Jacky "Fin de Phase 0" pour J14 — à shooter (brief contenu
+ *  Session 1 étendu). URL Supabase placeholder en attendant. Le fichier peut
+ *  ne pas exister tant que tournage pas fait → fallback gracieux côté Video
+ *  component. */
+const J14_VIDEO_URL =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/charniere-j14-fin-phase-0.mp4';
+
+/** Couleur badge J14 — `brandColors.sun` (jaune doré, même que palier 7j)
+ *  pour cohérence visuelle "fin de cycle Phase 0" + ton célébration positif. */
+const J14_BADGE_COLOR = brandColors.sun;
 
 type CharniereCopy = { marker: string; title: string; body: string; cta: string };
 
@@ -83,9 +99,83 @@ export default function JourCharniereScreen({
   day,
   streak,
   onClose,
+  onViewGallery,
 }: JourCharniereScreenProps) {
+  const videoRef = useRef<Video | null>(null);
+  const openVideoFullscreen = async () => {
+    try {
+      await videoRef.current?.presentFullscreenPlayer();
+      await videoRef.current?.playAsync();
+    } catch (e) {
+      console.warn('JourCharniere — fullscreen launch failed', e);
+    }
+  };
   if (!day) return null;
   const copy = COPY[day];
+
+  // Variant riche pour J14 — style palier 7j (badge cercle + vidéo +
+  // "Voir mes paliers"). Décision Stéphane 2026-06-12 : J14 = fin de Phase 0
+  // = moment célébration équivalent palier streak. J3/J11 restent text-only.
+  if (day === 14) {
+    return (
+      <Modal visible={visible} onClose={onClose} variant="fullscreen" context="neutral" dismissable={false}>
+        <ScrollView contentContainerStyle={styles.scrollRich}>
+          <View>
+            <View style={styles.markerRow}>
+              <Sparkle size={16} color={brandColors.deep} fill={brandColors.deep} />
+              <Text style={styles.markerRich}>{copy.marker}</Text>
+            </View>
+            <Text style={styles.titleRich}>{copy.title}</Text>
+            <Text style={styles.bodyRich}>{copy.body}</Text>
+          </View>
+
+          {/* Badge cercle "14 JOURS" — couleur sun (cohérence palier 7j). */}
+          <View style={styles.badgeWrap}>
+            <View style={[styles.badgeLarge, { backgroundColor: J14_BADGE_COLOR }]}>
+              <Text style={styles.badgeNumber}>14</Text>
+              <Text style={styles.badgeLabel}>JOURS</Text>
+            </View>
+          </View>
+
+          {/* Vidéo Mimi & Jacky "Fin de Phase 0" — preview 16:9 + tap fullscreen. */}
+          <Pressable
+            onPress={openVideoFullscreen}
+            style={styles.videoPreview}
+            accessibilityRole="button"
+            accessibilityLabel="Lire la vidéo de fin de Phase 0"
+          >
+            <Video
+              ref={(r) => {
+                videoRef.current = r;
+              }}
+              source={{ uri: J14_VIDEO_URL }}
+              style={StyleSheet.absoluteFill}
+              resizeMode={ResizeMode.COVER}
+              isLooping={false}
+              shouldPlay={false}
+              positionMillis={1000}
+            />
+            <View style={styles.videoPlayOverlay} pointerEvents="none">
+              <View style={styles.videoPlayCircle}>
+                <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+              </View>
+            </View>
+          </Pressable>
+        </ScrollView>
+        <View style={styles.footerRich}>
+          {onViewGallery && (
+            <Button
+              label="Voir mes paliers"
+              variant="secondary"
+              onPress={onViewGallery}
+              fullWidth
+            />
+          )}
+          <Button label={copy.cta} onPress={onClose} fullWidth size="large" />
+        </View>
+      </Modal>
+    );
+  }
 
   return (
     <Modal visible={visible} onClose={onClose} variant="fullscreen" context="phase0" dismissable={false}>
@@ -174,6 +264,78 @@ const styles = StyleSheet.create({
   },
   footer: {
     padding: space[6],
+  },
+  // ── Variant riche J14 (style palier 7j) ─────────────────────────────────
+  scrollRich: {
+    flexGrow: 1,
+    padding: space[6],
+    gap: space[5],
+    justifyContent: 'space-between',
+  },
+  markerRich: {
+    ...interTextStyle('caption'),
+    color: brandColors.deep,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  titleRich: {
+    ...interTextStyle('display'),
+    color: brandColors.deep,
+    marginTop: space[2],
+    marginBottom: space[3],
+  },
+  bodyRich: {
+    ...interTextStyle('bodyLarge'),
+    color: brandColors.deep,
+  },
+  badgeWrap: { alignItems: 'center', marginVertical: space[3] },
+  badgeLarge: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  badgeNumber: {
+    fontFamily: getInterFamily('800'),
+    fontSize: 36,
+    color: '#FFFFFF',
+    lineHeight: 40,
+  },
+  badgeLabel: {
+    fontFamily: getInterFamily('700'),
+    fontSize: 11,
+    color: '#FFFFFF',
+    letterSpacing: 1.2,
+    marginTop: 2,
+  },
+  videoPreview: {
+    borderRadius: radiusV1.xl,
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    width: '100%',
+    aspectRatio: 16 / 9,
+    alignSelf: 'center',
+    position: 'relative',
+  },
+  videoPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
+  videoPlayCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 4,
+  },
+  footerRich: {
+    padding: space[6],
+    gap: space[2],
   },
 });
 

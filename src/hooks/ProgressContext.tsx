@@ -48,6 +48,7 @@ import {
   determineValidationStatus,
   isJokerAvailable,
   THRESHOLD_PHASE_0_TOTAL,
+  TIER_THRESHOLDS,
   tierJustReached,
   type JokerConsumption,
   type Phase,
@@ -563,7 +564,22 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setAccountCreatedAtState(newCreatedAtIso);
       setStreakHistory(entries);
       setJokerConsumptions([]);
-      setTierReaches([]);
+      // Pré-remplit tier_reaches avec tous les paliers déjà atteints au
+      // streak cible — évite que les modales palier (IA-50) re-pop en boucle
+      // chaque fois que useEffect tier branche fire pendant DEV skip de jours.
+      // Pour tester un palier précis, l'utilisateur doit utiliser le flow
+      // normal "Valider ma journée" sur le jour exact de franchissement.
+      const newStreakValue = entries.length > 0 ? entries[entries.length - 1].streak_value_after : 0;
+      const nowIso = new Date().toISOString();
+      const seededTierReaches: TierReach[] = TIER_THRESHOLDS
+        .filter((tier) => newStreakValue >= tier)
+        .map((tier) => ({
+          tier_id: tier,
+          first_reached_at: nowIso,
+          last_reached_at: nowIso,
+          reach_count: 1,
+        }));
+      setTierReaches(seededTierReaches);
       // DEV : préserve les narrative flags déjà posés (welcome_video,
       // charnières vues, S0.x déjà affichés) pour éviter qu'ils re-fire
       // à chaque "Valider + jour suivant". Si seed à day >= 2 et
@@ -613,6 +629,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
               is_minimum: false,
               actions_count: 7,
             })),
+          );
+        }
+        // Insert les paliers déjà atteints (sync avec local seededTierReaches).
+        if (seededTierReaches.length > 0) {
+          await supabase.from('tier_reaches').insert(
+            seededTierReaches.map((t) => ({ user_id: user.id, ...t })),
           );
         }
         // Persiste narrativeFlags localement (V1 : flags AsyncStorage-only,
@@ -749,6 +771,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const allEntries = [...phase0Entries, ...phase1Entries];
       setStreakHistory(allEntries);
 
+      // Pré-remplit tier_reaches avec tous les paliers déjà atteints à ce
+      // streak cible (skip silencieux des modales palier en DEV — même
+      // logique que seedDevStreak).
+      const finalStreak = 16 + (targetDay - 1);
+      const nowIsoTiers = new Date().toISOString();
+      const seededTierReaches: TierReach[] = TIER_THRESHOLDS
+        .filter((tier) => finalStreak >= tier)
+        .map((tier) => ({
+          tier_id: tier,
+          first_reached_at: nowIsoTiers,
+          last_reached_at: nowIsoTiers,
+          reach_count: 1,
+        }));
+      setTierReaches(seededTierReaches);
+
       // Marque les écrans narratifs S0 comme déjà vus pour éviter qu'ils
       // pop par-dessus le HomeScreen Phase 1.
       const flags = {
@@ -783,33 +820,19 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           );
         }
 
-        // Upsert éval initiale neutre (diagnostic 3 = milieu, engagement
-        // recommandé Essentiel). Idempotent via onConflict, ne réécrit pas
-        // si l'utilisateur a déjà fait l'éval initiale réelle pour ce pilier.
-        const { data: existing } = await supabase
-          .from('pillar_evaluations')
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('pillar_id', pillarId)
-          .eq('evaluation_type', 'initial')
-          .maybeSingle();
-        if (!existing) {
-          await supabase.from('pillar_evaluations').insert({
-            user_id: user.id,
-            pillar_id: pillarId,
-            evaluation_type: 'initial',
-            responses: Array.from({ length: 12 }, (_, i) => ({
-              question_id: i + 1,
-              value: 3,
-            })),
-            raw_score: 36,
-            normalized_score: 50,
-            diagnostic_level: 3,
-            engagement_level_recommended: 'essentiel',
-            engagement_level_chosen: 'essentiel',
-            completed_at: new Date().toISOString(),
-          });
+        // Resync tier_reaches distant pour cohérence DEV skip.
+        await supabase.from('tier_reaches').delete().eq('user_id', user.id);
+        if (seededTierReaches.length > 0) {
+          await supabase.from('tier_reaches').insert(
+            seededTierReaches.map((t) => ({ user_id: user.id, ...t })),
+          );
         }
+
+        // PLUS de placeholder eval initiale — décision Phase A 2026-06-13 :
+        // l'éval initiale est obligatoire à J17 (Phase 1 J1). Si elle manque,
+        // Phase1HomeScreen redirige automatiquement vers IA-40 PillarEvaluation.
+        // Pas de bypass possible en flow normal. Le placeholder neutre faussait
+        // ce check et permettait au DEV de skipper l'éval — supprimé.
       }
     },
     [user, narrativeFlags],
