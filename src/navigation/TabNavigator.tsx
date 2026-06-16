@@ -23,7 +23,7 @@ import ProfilStack from './ProfilStack';
 import { useProgress } from '../hooks/ProgressContext';
 
 export default function TabNavigator() {
-  const { currentPhase } = useProgress();
+  const { currentPhase, tabBarHidden } = useProgress();
   const [active, setActive] = useState<TabId>('home');
 
   // Onglet Toile masqué en Phase 0 (D5 + D18) — apparaît au S0.1 (≥ J15 / phase_1).
@@ -42,7 +42,9 @@ export default function TabNavigator() {
         {active === 'toile' && showToileTab && <ToileStack />}
         {active === 'profil' && <ProfilStack />}
       </View>
-      <TabBar active={active} onChange={setActive} showToileTab={showToileTab} />
+      {!tabBarHidden && (
+        <TabBar active={active} onChange={setActive} showToileTab={showToileTab} />
+      )}
     </View>
   );
 }

@@ -93,12 +93,18 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
         dismissButtonStyle: 'close',
       });
 
-      // Si user a fermé manuellement le browser (cancel, ou retour app),
-      // on recharge le state SubscriptionContext au cas où le webhook
-      // aurait déjà été déclenché en parallèle.
-      if (result.type === 'cancel' || result.type === 'dismiss') {
-        await reload();
-      }
+      // Reload SubscriptionContext quel que soit le mode de fermeture du
+      // browser :
+      //  - 'cancel' / 'dismiss' : user a fermé manuellement → check si
+      //    webhook Stripe a propagé en parallèle
+      //  - 'success' : deep link rawadventure://subscription-success a
+      //    fermé le browser → user a payé, faut reload pour basculer
+      //    isActive=true (sinon RootNavigator garde PaywallScreen, user
+      //    coincé en boucle même après paiement réussi).
+      // Sécurité ceinture+bretelles : couvre aussi le cas Expo Go où
+      // le scheme custom ne fire pas correctement (deep link tomb̀e à plat
+      // → user close browser manuellement, on retombe sur 'cancel').
+      await reload();
     } catch (e: any) {
       Alert.alert(
         'Impossible d\'ouvrir le navigateur',

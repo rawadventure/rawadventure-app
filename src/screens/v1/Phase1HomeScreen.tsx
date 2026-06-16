@@ -46,7 +46,7 @@ import { useProgress } from '../../hooks/ProgressContext';
 import { supabase } from '../../lib/supabase';
 import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
 import { getPillarMeta } from '../../data/pillar-registry';
-import { todayLocalDate } from '../../lib/calendar';
+import { currentDayInParcours, todayLocalDate } from '../../lib/calendar';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
@@ -60,7 +60,47 @@ const SESSION_ICONS: Record<SessionIndex, React.ComponentType<{ size?: number; c
 export default function Phase1HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, streak } = useProgress();
+  const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, seedDevPillarDay } = useProgress();
+
+  // DEV gate — bouton skip jour suivant accessible uniquement en mode DEV.
+  const devPanelEnabled =
+    __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true';
+
+  const handleDevNextDay = async () => {
+    const PILLAR_ORDER = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
+    const currentPid = currentPillarId ?? 'S1';
+    const day = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
+
+    // J7 + pas d'éval finale → redirect IA-46 obligatoire (mandatory pour
+    // mise à jour branche toile). PillarFinalRecap qui suit gère la
+    // transition vers le pilier suivant (Alert + startPillarWeek + IA-40).
+    if (day === 7 && !hasFinalEval) {
+      navigation.navigate('PillarEvaluation', {
+        pillarId: currentPid,
+        evaluationType: 'final',
+      });
+      return;
+    }
+
+    if (day < 7) {
+      await seedDevPillarDay(currentPid, day + 1);
+    } else {
+      // day === 7 && hasFinalEval = true → bascule pilier suivant via DEV.
+      const idx = PILLAR_ORDER.indexOf(currentPid);
+      if (idx < 0 || idx >= PILLAR_ORDER.length - 1) {
+        console.warn('[DEV] S8 J7 atteint — bascule post-S8 non implémentée');
+        return;
+      }
+      const nextPid = PILLAR_ORDER[idx + 1];
+      await seedDevPillarDay(nextPid, 1);
+    }
+    // Reset local state UI : seedDevPillarDay nettoie Supabase pillar_sessions
+    // mais validatedSessions local state n'est pas re-fetched automatiquement.
+    setValidatedSessions(new Set());
+    setHasFinalEval(false);
+    // Re-fetch frais (au cas où pilier changé → check eval initiale du nouveau).
+    void fetchTodaySessions();
+  };
   const pillarId = currentPillarId ?? 'S1';
   const dayId = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
   const meta = getPillarMeta(pillarId) ?? getPillarMeta('S1')!;
@@ -119,6 +159,27 @@ export default function Phase1HomeScreen() {
       });
     }
   }, [hasInitialEval, navigation, pillarId]);
+
+  // Phase A — éval finale mandatoire au LENDEMAIN calendaire de J7 du pilier.
+  // Décision Stéphane 2026-06-13 : pendant J7 calendaire, user fait ses
+  // sessions tranquille. Le lendemain (rawDay > 7), si éval pas faite →
+  // force redirect IA-46. Sans ça, user pourrait skip éval et faire S2
+  // sans branche toile S1 updated.
+  const rawDayInPillarWeek = pillarStartedAt
+    ? currentDayInParcours(pillarStartedAt)
+    : 0;
+  useEffect(() => {
+    if (
+      rawDayInPillarWeek > 7 &&
+      hasInitialEval === true &&
+      hasFinalEval === false
+    ) {
+      navigation.navigate('PillarEvaluation', {
+        pillarId,
+        evaluationType: 'final',
+      });
+    }
+  }, [rawDayInPillarWeek, hasInitialEval, hasFinalEval, navigation, pillarId]);
 
   useEffect(() => {
     void fetchTodaySessions();
@@ -276,6 +337,21 @@ export default function Phase1HomeScreen() {
               1 session sur 3 suffit pour valider ta journée. Les 3 sessions
               renforcent davantage la pratique. [copy à valider]
             </Text>
+
+            {/* DEV : skip jour suivant. Avance dans pilier (day+1) ou
+                bascule au pilier suivant (S1→S2, etc.) à day 7. Permet
+                tester progression Phase 1 sans faire toutes les sessions.
+                Gated devPanelEnabled — invisible build prod. */}
+            {devPanelEnabled && (
+              <Button
+                label="(DEV) Passer au jour suivant"
+                onPress={handleDevNextDay}
+                variant="ghost"
+                fullWidth
+                context={pillarKey}
+                style={{ marginTop: space[3] }}
+              />
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>

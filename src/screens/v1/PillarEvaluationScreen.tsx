@@ -23,7 +23,7 @@
  * Référence IA : IA-40 (S1). Pattern : D.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
@@ -55,11 +55,21 @@ export default function PillarEvaluationScreen() {
   const pillarId = route.params.pillarId; // 'S1' pour Sprint 8
   const evaluationType = route.params.evaluationType ?? 'initial';
 
-  const { savePillarEvaluation } = useProgress();
+  const { savePillarEvaluation, setTabBarHidden } = useProgress();
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, Scale15Value>>({});
   const [saving, setSaving] = useState(false);
+
+  // Cache tab bar pendant l'évaluation (mandatory — user ne peut sortir
+  // qu'en complétant ou en quittant l'app). TabNavigator est custom
+  // (pas @react-navigation/bottom-tabs) → on passe par un flag global
+  // dans ProgressContext que TabNavigator lit pour conditionnellement
+  // rendre la TabBar.
+  useEffect(() => {
+    setTabBarHidden(true);
+    return () => setTabBarHidden(false);
+  }, [setTabBarHidden]);
 
   // Lookup via registry pillar (Sprint 11). Fallback S1 si pillarId inconnu.
   const meta = getPillarMeta(pillarId);

@@ -157,6 +157,11 @@ interface ProgressContextType {
   setPendingTier: (pending: PendingTierReach) => Promise<void>;
   /** D30 — vide le palier différé après affichage. */
   clearPendingTier: () => Promise<void>;
+
+  /** UI : cache la TabBar globale. Utilisé par PillarEvaluationScreen pour
+   *  forcer l'éval (mandatory — pas de sortie via tabs Accueil/Toile/Profil). */
+  tabBarHidden: boolean;
+  setTabBarHidden: (hidden: boolean) => void;
 }
 
 export type PendingMigration = {
@@ -308,6 +313,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Sprint B email confirm — userId/accountCreatedAt en attente de migration
   // (signup fait, email confirmation en attente). Restauré au load.
   const [pendingMigration, setPendingMigrationState] = useState<PendingMigration | null>(null);
+  const [tabBarHidden, setTabBarHidden] = useState(false);
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -726,15 +732,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         console.warn('[seedDevPillarDay] targetDay doit être entre 1 et 7');
         return;
       }
+      // Compute pillarIndex pour cohérence multi-pilier en DEV.
+      // pillarId='S1' → 0, 'S2' → 1, ..., 'S8' → 7. Permet de calculer
+      // le jour global Phase 1 = 7*pillarIndex + targetDay.
+      const pillarMatch = pillarId.match(/^[Ss](\d)$/);
+      const pillarIndex = pillarMatch ? parseInt(pillarMatch[1], 10) - 1 : 0;
+      const phase1DayGlobal = 7 * pillarIndex + targetDay;
+
       // Pillar started (targetDay - 1) days ago.
       const pillarOffsetMs = (targetDay - 1) * 24 * 60 * 60 * 1000;
       const startedAt = new Date(Date.now() - pillarOffsetMs).toISOString();
 
       // Pour que currentPhase soit 'phase_1', il faut currentDay >= 17
       // (J15-J16 = S0 toujours phase_0, paywall gate libre).
-      // On pose accountCreatedAt = (16 + targetDay) jours dans le passé →
-      // currentDay = 17 + (targetDay-1) >= 17, donc phase_1.
-      const accountOffsetMs = (16 + targetDay) * 24 * 60 * 60 * 1000;
+      // On pose accountCreatedAt = (16 + phase1DayGlobal) jours dans le
+      // passé → currentDay = 17 + (phase1DayGlobal-1). Pour S1 J1 :
+      // currentDay=17. Pour S2 J1 : currentDay=24. Pour S8 J7 : currentDay=72.
+      const accountOffsetMs = (16 + phase1DayGlobal) * 24 * 60 * 60 * 1000;
       const accountIso = new Date(Date.now() - accountOffsetMs).toISOString();
 
       setCurrentPillarId(pillarId);
@@ -746,7 +760,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // un streak incohérent (entries seulement de l'ancien seedDevStreak,
       // ou 0 si reset). On stamp tous les jours antérieurs comme validés.
       const today = todayLocalDate();
-      const totalPastDays = 16 + (targetDay - 1); // J1..J(16+targetDay-1)
+      const totalPastDays = 16 + (phase1DayGlobal - 1); // J1..J(16+phase1DayGlobal-1)
       const phase0Entries: StreakEntry[] = [];
       for (let i = 1; i <= 16; i++) {
         phase0Entries.push({
@@ -757,11 +771,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           joker_used: false,
         });
       }
-      // Jours Phase 1 antérieurs au jour cible (si targetDay > 1)
+      // Jours Phase 1 antérieurs au jour cible (si phase1DayGlobal > 1)
       const phase1Entries: StreakEntry[] = [];
-      for (let i = 1; i < targetDay; i++) {
+      for (let i = 1; i < phase1DayGlobal; i++) {
         phase1Entries.push({
-          local_date: addDays(today, -(targetDay - i)),
+          local_date: addDays(today, -(phase1DayGlobal - i)),
           validation_status: 'valid_above_threshold',
           phase: 'phase_1',
           streak_value_after: 16 + i,
@@ -774,7 +788,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // Pré-remplit tier_reaches avec tous les paliers déjà atteints à ce
       // streak cible (skip silencieux des modales palier en DEV — même
       // logique que seedDevStreak).
-      const finalStreak = 16 + (targetDay - 1);
+      const finalStreak = 16 + (phase1DayGlobal - 1);
       const nowIsoTiers = new Date().toISOString();
       const seededTierReaches: TierReach[] = TIER_THRESHOLDS
         .filter((tier) => finalStreak >= tier)
@@ -827,6 +841,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             seededTierReaches.map((t) => ({ user_id: user.id, ...t })),
           );
         }
+
+        // Clear pillar_sessions du jour courant (real today) : sinon les
+        // sessions validées avant le DEV skip apparaissent comme cochées
+        // sur le nouveau jour (Phase1HomeScreen filtre par local_date=today).
+        await supabase
+          .from('pillar_sessions')
+          .delete()
+          .eq('user_id', user.id)
+          .eq('local_date', today);
 
         // PLUS de placeholder eval initiale — décision Phase A 2026-06-13 :
         // l'éval initiale est obligatoire à J17 (Phase 1 J1). Si elle manque,
@@ -1342,6 +1365,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         markPendingMigration,
         pendingMigration,
         clearPendingMigration,
+        tabBarHidden,
+        setTabBarHidden,
       }}
     >
       {children}
