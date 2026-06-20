@@ -50,6 +50,7 @@ import {
   THRESHOLD_PHASE_0_TOTAL,
   TIER_THRESHOLDS,
   tierJustReached,
+  validatedDaysCount,
   type JokerConsumption,
   type Phase,
   type StreakEntry,
@@ -110,9 +111,11 @@ interface ProgressContextType {
    * Clear streak_history / joker_consumptions / tier_reaches existants.
    */
   seedDevStreak: (targetDay: number) => Promise<void>;
-  /** DEV uniquement : décale accountCreatedAt -1j sans toucher au state.
-   *  Permet de tester la progression naturelle (charnières, paliers, S0)
-   *  sans attendre 24h calendaires. À utiliser après validateDay() succès. */
+  /** DEV uniquement : avance `currentDay` d'1 cran via ajout d'1 entrée
+   *  validation (D38). Phase auto (phase_0 <16 entries p0, phase_1 ensuite).
+   *  Pas de cascade narrative. À utiliser pour tester progression sans attendre
+   *  24h calendaires. Ne dédoublonne pas une `validateDay(today)` antérieure :
+   *  pose l'entrée au prochain jour calendaire libre si today déjà occupé. */
   advanceToNextDay: () => Promise<void>;
   /** Enregistre une évaluation 12 questions (IA-40 initiale ou IA-46 finale).
    *  Réf Feature Spec S1 §2.5 + Schéma de données V1.1 §2.4. */
@@ -272,6 +275,39 @@ export type NarrativeEventId =
   | 'consolidation_intro_seen' // IA-23
   | 'mentorat_proposal_seen'   // IA-60
   | 'notif_permission_prompted'; // Sprint notifications — prompt natif déclenché J1
+
+// ─── Constantes piliers + placeholders DEV ────────────────────────────────────
+
+const PILLAR_ORDER = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'] as const;
+
+const PLACEHOLDER_INITIAL_RESPONSES = Array.from({ length: 12 }, (_, i) => ({
+  question_id: i + 1,
+  value: 3 as 1 | 2 | 3 | 4 | 5,
+}));
+const PLACEHOLDER_FINAL_RESPONSES = Array.from({ length: 12 }, (_, i) => ({
+  question_id: i + 1,
+  value: 4 as 1 | 2 | 3 | 4 | 5,
+}));
+
+/** Construit une ligne `pillar_evaluations` placeholder pour DEV jump.
+ *  Initial : raw 36/60, normalized 50, diagnostic 3, engagement Progression.
+ *  Final   : raw 48/60, normalized 75, diagnostic 4, engagement Progression.
+ *  Permet à la toile d'araignée d'avoir une branche peuplée par pilier
+ *  complété + au flow Phase1HomeScreen de ne pas bloquer sur eval manquante. */
+function buildPlaceholderEvalRow(pillarId: string, type: 'initial' | 'final') {
+  const isInitial = type === 'initial';
+  return {
+    pillar_id: pillarId,
+    evaluation_type: type,
+    responses: isInitial ? PLACEHOLDER_INITIAL_RESPONSES : PLACEHOLDER_FINAL_RESPONSES,
+    raw_score: isInitial ? 36 : 48,
+    normalized_score: isInitial ? 50 : 75,
+    diagnostic_level: isInitial ? 3 : 4,
+    engagement_level_recommended: 'progression' as const,
+    engagement_level_chosen: 'progression' as const,
+    completed_at: new Date().toISOString(),
+  };
+}
 
 // ─── Provider ────────────────────────────────────────────────────────────────
 
@@ -566,15 +602,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         });
       }
 
-      // 2) Reset local state + persist
+      // 2) Reset local state + wipe Phase 1 state (DEV jump backward Phase 0)
+      // Streak parfait Phase 0/S0 cible : user n'a JAMAIS commencé Phase 1.
       setAccountCreatedAtState(newCreatedAtIso);
       setStreakHistory(entries);
       setJokerConsumptions([]);
-      // Pré-remplit tier_reaches avec tous les paliers déjà atteints au
-      // streak cible — évite que les modales palier (IA-50) re-pop en boucle
-      // chaque fois que useEffect tier branche fire pendant DEV skip de jours.
-      // Pour tester un palier précis, l'utilisateur doit utiliser le flow
-      // normal "Valider ma journée" sur le jour exact de franchissement.
+      setCurrentPillarId(null);
+      setPillarStartedAt(null);
+      setS8FinalCompleted(false);
+
       const newStreakValue = entries.length > 0 ? entries[entries.length - 1].streak_value_after : 0;
       const nowIso = new Date().toISOString();
       const seededTierReaches: TierReach[] = TIER_THRESHOLDS
@@ -586,33 +622,39 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           reach_count: 1,
         }));
       setTierReaches(seededTierReaches);
-      // DEV : préserve les narrative flags déjà posés (welcome_video,
-      // charnières vues, S0.x déjà affichés) pour éviter qu'ils re-fire
-      // à chaque "Valider + jour suivant". Si seed à day >= 2 et
-      // welcome_video pas encore posé, on l'ajoute (skip Welcome J1).
-      //
-      // Exception : quand on cible J15 ou J16 (= moments S0.1/S0.2), on
-      // clean le flag correspondant car le user re-traverse la timeline
-      // et veut RE-voir l'écran narratif. Sinon, s0_x_screen posé lors
-      // d'une session précédente (ex. PillarRecapScreen → startPillarWeek
-      // qui marque s0_2_screen) bloquerait l'affichage.
-      // Pour vraiment tout reset → resetAll() depuis Profil.
+
+      // Narrative flags cohérents avec target (comme si user réel à JN).
+      // welcome_video posé dès N>=2. Charnières passées (validation J3/J11/J14
+      // = entry sur jour 3/11/14 dans streak_history) → flag posé.
+      // J3 validé = streakHistory contient entry streak_value_after=3, i.e.
+      // targetDay >= 4 (validation J3 = user MAINTENANT sur J4 fresh).
+      // S0.1 fires à J15 fresh. À target >= 16 → S0.1 déjà passée.
+      // S0.2 fires à J16 fresh. Jamais "passée" via seedDevStreak (max=16).
       const seedFlags: Partial<Record<NarrativeEventId, string>> = {
         ...narrativeFlags,
       };
-      if (targetDay >= 2 && !seedFlags.welcome_video) {
-        seedFlags.welcome_video = new Date().toISOString();
-      }
-      if (targetDay === 15) {
-        delete seedFlags.s0_1_screen;
-      }
-      if (targetDay === 16) {
-        delete seedFlags.s0_2_screen;
-      }
+      delete seedFlags.s0_1_screen;
+      delete seedFlags.s0_2_screen;
+      delete seedFlags.j3_charniere;
+      delete seedFlags.j11_charniere;
+      delete seedFlags.j14_charniere;
+      delete seedFlags.welcome_video;
+
+      if (targetDay >= 2) seedFlags.welcome_video = nowIso;
+      if (targetDay >= 4) seedFlags.j3_charniere = nowIso;
+      if (targetDay >= 12) seedFlags.j11_charniere = nowIso;
+      if (targetDay >= 15) seedFlags.j14_charniere = nowIso;
+      if (targetDay >= 16) seedFlags.s0_1_screen = nowIso;
       setNarrativeFlags(seedFlags);
 
+      await AsyncStorage.multiRemove([
+        LOCAL_KEYS.currentPillarId,
+        LOCAL_KEYS.pillarStartedAt,
+      ]);
+
       if (user) {
-        // Reset distant
+        // Reset distant — y compris TOUT Phase 1 state (évals, sessions,
+        // adaptive choices) car DEV jump Phase 0 = wipe pilier en cours.
         await Promise.all([
           supabase
             .from('profiles')
@@ -622,8 +664,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           supabase.from('streak_history').delete().eq('user_id', user.id),
           supabase.from('joker_consumptions').delete().eq('user_id', user.id),
           supabase.from('tier_reaches').delete().eq('user_id', user.id),
+          supabase.from('pillar_evaluations').delete().eq('user_id', user.id),
+          supabase.from('pillar_sessions').delete().eq('user_id', user.id),
+          supabase.from('level_adaptive_choices').delete().eq('user_id', user.id),
         ]);
-        // Insert les nouvelles entrées
         if (entries.length > 0) {
           await supabase.from('streak_history').insert(
             entries.map((e) => ({ user_id: user.id, ...e })),
@@ -637,14 +681,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             })),
           );
         }
-        // Insert les paliers déjà atteints (sync avec local seededTierReaches).
         if (seededTierReaches.length > 0) {
           await supabase.from('tier_reaches').insert(
             seededTierReaches.map((t) => ({ user_id: user.id, ...t })),
           );
         }
-        // Persiste narrativeFlags localement (V1 : flags AsyncStorage-only,
-        // pas synchronisés Supabase). Garde cohérence après seedDevStreak.
         await AsyncStorage.setItem(
           LOCAL_KEYS.narrativeFlags,
           JSON.stringify(seedFlags),
@@ -665,14 +706,21 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   );
 
   /**
-   * DEV uniquement : décale accountCreatedAt de -1 jour pour avancer
-   * d'un cran calendaire SANS toucher au reste du state (streak_history,
-   * narrative_flags, joker, etc.).
+   * DEV uniquement : simule le passage d'1 jour calendaire pour permettre
+   * une nouvelle validation aujourd'hui sans attendre 24h réelles.
    *
-   * Utilisation : after validateDay(today) succès → advanceToNextDay()
-   * pour passer au lendemain. Préserve la progression naturelle —
-   * l'écran suivant (charnière, palier, S0) se déclenche normalement
-   * via les useEffect existants quand currentDay change.
+   * Sémantique D38 (2026-06-17) :
+   *  - Si pas d'entrée pour `today` : ajoute 1 entrée validée today (avance
+   *    progression de 1) puis shift tout -1 jour calendaire (libère today).
+   *  - Si entrée today existe déjà (validateDay just called) : shift seulement
+   *    (progression déjà avancée, juste libérer today pour prochaine valid).
+   *
+   * Effet net dans les deux cas : currentDay/dayInPillarWeek = N+1 par rapport
+   * au début de la journée, et `alreadyValidatedToday` redevient false.
+   *
+   * Shift cohérent : streak_history.local_date, pillarStartedAt, accountCreatedAt
+   * tous décalés de -1 jour pour préserver le calcul dayInPillarWeek (qui
+   * compte entries phase_1 depuis pillarStartedAt) et le streak calendrier.
    *
    * Gated UI côté caller (`__DEV__ || EXPO_PUBLIC_ENABLE_DEV_PANEL`).
    */
@@ -681,37 +729,129 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       console.warn('[advanceToNextDay] accountCreatedAt absent — abort');
       return;
     }
-    const current = new Date(accountCreatedAt);
-    const newCreatedAt = new Date(current.getTime() - 24 * 60 * 60 * 1000);
-    const newCreatedAtIso = newCreatedAt.toISOString();
 
-    setAccountCreatedAtState(newCreatedAtIso);
+    const today = todayLocalDate();
+    const todayEntryExists = streakHistory.some((e) => e.local_date === today);
+
+    let nextEntries = streakHistory;
+    if (!todayEntryExists) {
+      const p0Count = validatedDaysCount(streakHistory, 'phase_0');
+      const phase: Phase = p0Count < 16 ? 'phase_0' : 'phase_1';
+      const prevStreak =
+        streakHistory.length > 0
+          ? streakHistory[streakHistory.length - 1].streak_value_after
+          : 0;
+      nextEntries = [
+        ...streakHistory,
+        {
+          local_date: today,
+          validation_status: 'valid_above_threshold',
+          phase,
+          streak_value_after: prevStreak + 1,
+          joker_used: false,
+        },
+      ];
+    }
+
+    const shifted: StreakEntry[] = nextEntries.map((e) => ({
+      ...e,
+      local_date: addDays(e.local_date, -1) as LocalDate,
+    }));
+
+    const shiftedPillarStartedAt = pillarStartedAt
+      ? new Date(
+          new Date(pillarStartedAt).getTime() - 24 * 60 * 60 * 1000,
+        ).toISOString()
+      : null;
+
+    const shiftedAccountCreatedAt = new Date(
+      new Date(accountCreatedAt).getTime() - 24 * 60 * 60 * 1000,
+    ).toISOString();
+
+    setStreakHistory(shifted);
+    setAccountCreatedAtState(shiftedAccountCreatedAt);
+    if (shiftedPillarStartedAt) setPillarStartedAt(shiftedPillarStartedAt);
 
     if (user) {
+      await supabase.from('streak_history').delete().eq('user_id', user.id);
+      if (shifted.length > 0) {
+        const { error } = await supabase
+          .from('streak_history')
+          .insert(shifted.map((e) => ({ user_id: user.id, ...e })));
+        if (error) console.warn('[advanceToNextDay] reinsert failed', error);
+      }
       await supabase
         .from('profiles')
-        .update({ account_created_at: newCreatedAtIso })
+        .update({ account_created_at: shiftedAccountCreatedAt })
         .eq('id', user.id);
+
+      // Shift pillar_sessions.local_date -1j pour cohérence DEV — sinon
+      // les sessions validées today restent visibles cochées au prochain
+      // render (fetchTodaySessions filtre par local_date=today).
+      const { data: existingSessions } = await supabase
+        .from('pillar_sessions')
+        .select('user_id, pillar_id, day_in_week, session_index, local_date, completed_at, duration_seconds')
+        .eq('user_id', user.id);
+      if (existingSessions && existingSessions.length > 0) {
+        await supabase.from('pillar_sessions').delete().eq('user_id', user.id);
+        const shiftedSessions = existingSessions.map((s: any) => ({
+          ...s,
+          local_date: addDays(s.local_date as LocalDate, -1),
+        }));
+        const { error: sErr } = await supabase
+          .from('pillar_sessions')
+          .insert(shiftedSessions);
+        if (sErr) console.warn('[advanceToNextDay] sessions reinsert failed', sErr);
+      }
     } else {
-      await AsyncStorage.setItem(
-        LOCAL_KEYS.accountCreatedAt,
-        JSON.stringify(newCreatedAtIso),
-      );
+      await AsyncStorage.multiSet([
+        [LOCAL_KEYS.streakHistory, JSON.stringify(shifted)],
+        [LOCAL_KEYS.accountCreatedAt, JSON.stringify(shiftedAccountCreatedAt)],
+        ...(shiftedPillarStartedAt
+          ? ([[LOCAL_KEYS.pillarStartedAt, JSON.stringify(shiftedPillarStartedAt)]] as [string, string][])
+          : []),
+      ]);
     }
-  }, [accountCreatedAt, user]);
+
+    await AsyncStorage.removeItem(`daily_check_actions.${today}`);
+  }, [accountCreatedAt, pillarStartedAt, streakHistory, user]);
 
   // ── Calculs dérivés ───────────────────────────────────────────────────────
 
+  // D38 (2026-06-17) — découplage progression / streak.
+  // currentDay = jour du programme EN COURS (où je suis aujourd'hui).
+  //  - Si journée today validée : currentDay = nb validations (sur ce jour).
+  //  - Sinon : currentDay = nb validations + 1 (prochain jour à faire).
+  // Passage de N → N+1 = nouveau jour calendaire OU bouton DEV "Passer jour
+  // suivant" (qui shift le calendrier -1j). Validation seule N'avance PAS
+  // currentDay. Absence n'avance pas non plus (streak casse, currentDay reste).
   const currentDay = useMemo(() => {
     if (!accountCreatedAt) return 0;
-    return currentDayInParcours(accountCreatedAt);
-  }, [accountCreatedAt]);
+    const today = todayLocalDate();
+    const alreadyToday = streakHistory.some((e) => e.local_date === today);
+    const p0 = validatedDaysCount(streakHistory, 'phase_0');
+    const p1 = validatedDaysCount(streakHistory, 'phase_1');
+    return p0 + p1 + (alreadyToday ? 0 : 1);
+  }, [accountCreatedAt, streakHistory]);
 
+  // dayInPillarWeek = jour DU PILIER EN COURS où je suis aujourd'hui.
+  // Même logique que currentDay : si une session phase_1 validée today, reste
+  // sur le jour. Sinon prochain jour. Capped 7.
   const dayInPillarWeek = useMemo(() => {
     if (!pillarStartedAt) return 0;
-    const d = currentDayInParcours(pillarStartedAt);
-    return Math.min(d, 7); // borne à 7 jours par pilier
-  }, [pillarStartedAt]);
+    const startedDate = pillarStartedAt.slice(0, 10) as LocalDate;
+    const today = todayLocalDate();
+    const inPillar = streakHistory.filter(
+      (e) =>
+        e.phase === 'phase_1' &&
+        e.local_date >= startedDate &&
+        (e.validation_status === 'valid_above_threshold' ||
+          e.validation_status === 'valid_with_joker'),
+    );
+    const validatedInPillar = inPillar.length;
+    const alreadyTodayInPillar = inPillar.some((e) => e.local_date === today);
+    return Math.min(validatedInPillar + (alreadyTodayInPillar ? 0 : 1), 7);
+  }, [pillarStartedAt, streakHistory]);
 
   const startPillarWeek = useCallback(
     async (pillarId: string) => {
@@ -751,16 +891,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const accountOffsetMs = (16 + phase1DayGlobal) * 24 * 60 * 60 * 1000;
       const accountIso = new Date(Date.now() - accountOffsetMs).toISOString();
 
-      setCurrentPillarId(pillarId);
-      setPillarStartedAt(startedAt);
-      setAccountCreatedAtState(accountIso);
-
-      // Génère streakHistory J1-J16 (Phase 0 + S0) — streak continu
-      // décision Stéphane 2026-06-12. Sans ça, le hub Phase 1 afficherait
-      // un streak incohérent (entries seulement de l'ancien seedDevStreak,
-      // ou 0 si reset). On stamp tous les jours antérieurs comme validés.
+      // BUILD data first (no setState yet) — race fix 2026-06-18.
+      // Supabase ops doivent terminer AVANT setState pour que Phase1HomeScreen
+      // re-render avec données déjà commitées. Sinon fetchTodaySessions
+      // retourne null pendant l'insert pending → hasInitialEval=false →
+      // PillarOverview fire à tort.
       const today = todayLocalDate();
-      const totalPastDays = 16 + (phase1DayGlobal - 1); // J1..J(16+phase1DayGlobal-1)
+      const totalPastDays = 16 + (phase1DayGlobal - 1);
       const phase0Entries: StreakEntry[] = [];
       for (let i = 1; i <= 16; i++) {
         phase0Entries.push({
@@ -771,7 +908,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           joker_used: false,
         });
       }
-      // Jours Phase 1 antérieurs au jour cible (si phase1DayGlobal > 1)
       const phase1Entries: StreakEntry[] = [];
       for (let i = 1; i < phase1DayGlobal; i++) {
         phase1Entries.push({
@@ -783,11 +919,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         });
       }
       const allEntries = [...phase0Entries, ...phase1Entries];
-      setStreakHistory(allEntries);
 
-      // Pré-remplit tier_reaches avec tous les paliers déjà atteints à ce
-      // streak cible (skip silencieux des modales palier en DEV — même
-      // logique que seedDevStreak).
       const finalStreak = 16 + (phase1DayGlobal - 1);
       const nowIsoTiers = new Date().toISOString();
       const seededTierReaches: TierReach[] = TIER_THRESHOLDS
@@ -798,35 +930,25 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           last_reached_at: nowIsoTiers,
           reach_count: 1,
         }));
-      setTierReaches(seededTierReaches);
 
-      // Marque les écrans narratifs S0 comme déjà vus pour éviter qu'ils
-      // pop par-dessus le HomeScreen Phase 1.
+      const flagsIso = new Date().toISOString();
       const flags = {
         ...narrativeFlags,
-        s0_1_screen: new Date().toISOString(),
-        s0_2_screen: new Date().toISOString(),
+        welcome_video: flagsIso,
+        s0_1_screen: flagsIso,
+        s0_2_screen: flagsIso,
+        j3_charniere: flagsIso,
+        j11_charniere: flagsIso,
+        j14_charniere: flagsIso,
       };
-      setNarrativeFlags(flags);
 
-      await AsyncStorage.multiSet([
-        [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
-        [LOCAL_KEYS.pillarStartedAt, JSON.stringify(startedAt)],
-        [LOCAL_KEYS.accountCreatedAt, JSON.stringify(accountIso)],
-        [LOCAL_KEYS.narrativeFlags, JSON.stringify(flags)],
-      ]);
-
-      // Sync accountCreatedAt distant si connecté + génère une éval initiale
-      // placeholder pour le pilier seedé (sinon IA-47 final échoue car aucun
-      // pillar_evaluations 'initial' n'existe pour ce pilier).
       if (user) {
         await supabase
           .from('profiles')
           .update({ account_created_at: accountIso })
           .eq('id', user.id);
 
-        // Resync streak_history distant pour rester cohérent avec les
-        // entries locales générées au-dessus.
+        // Resync streak_history.
         await supabase.from('streak_history').delete().eq('user_id', user.id);
         if (allEntries.length > 0) {
           await supabase.from('streak_history').insert(
@@ -834,7 +956,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           );
         }
 
-        // Resync tier_reaches distant pour cohérence DEV skip.
+        // Resync tier_reaches.
         await supabase.from('tier_reaches').delete().eq('user_id', user.id);
         if (seededTierReaches.length > 0) {
           await supabase.from('tier_reaches').insert(
@@ -842,21 +964,86 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           );
         }
 
-        // Clear pillar_sessions du jour courant (real today) : sinon les
-        // sessions validées avant le DEV skip apparaissent comme cochées
-        // sur le nouveau jour (Phase1HomeScreen filtre par local_date=today).
-        await supabase
-          .from('pillar_sessions')
-          .delete()
-          .eq('user_id', user.id)
-          .eq('local_date', today);
+        // Wipe TOUT Phase 1 state (évals, sessions, adaptive choices) puis
+        // re-prefill état cohérent avec target position. Évite état foireux
+        // d'un jump backward (S2 J3 → S1 J5 garderait S1 final eval) ou
+        // forward (S1 J3 → S3 J1 sans S1+S2 evals prefilled bloquerait flow).
+        await Promise.all([
+          supabase.from('pillar_evaluations').delete().eq('user_id', user.id),
+          supabase.from('pillar_sessions').delete().eq('user_id', user.id),
+          supabase.from('level_adaptive_choices').delete().eq('user_id', user.id),
+        ]);
 
-        // PLUS de placeholder eval initiale — décision Phase A 2026-06-13 :
-        // l'éval initiale est obligatoire à J17 (Phase 1 J1). Si elle manque,
-        // Phase1HomeScreen redirige automatiquement vers IA-40 PillarEvaluation.
-        // Pas de bypass possible en flow normal. Le placeholder neutre faussait
-        // ce check et permettait au DEV de skipper l'éval — supprimé.
+        // Pre-fill piliers complétés S1..S(n-1) : eval init + final + 7
+        // sessions (1 matin par jour, suffit pour seuil Phase 1 D6 = 1/3).
+        const evalRows: any[] = [];
+        const sessionRows: any[] = [];
+        for (let priorIdx = 0; priorIdx < pillarIndex; priorIdx++) {
+          const priorPid = PILLAR_ORDER[priorIdx];
+          evalRows.push({ user_id: user.id, ...buildPlaceholderEvalRow(priorPid, 'initial') });
+          evalRows.push({ user_id: user.id, ...buildPlaceholderEvalRow(priorPid, 'final') });
+          for (let d = 1; d <= 7; d++) {
+            const globalDay = priorIdx * 7 + d;
+            sessionRows.push({
+              user_id: user.id,
+              pillar_id: priorPid,
+              day_in_week: d,
+              session_index: 1,
+              local_date: addDays(today, -(phase1DayGlobal - globalDay)),
+              completed_at: nowIsoTiers,
+              duration_seconds: 300,
+            });
+          }
+        }
+        // Pilier courant Sn : eval init pré-posée UNIQUEMENT si N>1 (mid-pilier
+        // = eval déjà faite à J1). Si N=1, on laisse vide pour que user
+        // traverse le formulaire 12 questions au démarrage (Phase1HomeScreen
+        // redirige hasInitialEval=false → PillarEvaluation initial).
+        // Sessions J1..J(targetDay-1) prefilled, today vierge.
+        if (targetDay > 1) {
+          evalRows.push({ user_id: user.id, ...buildPlaceholderEvalRow(pillarId, 'initial') });
+        }
+        for (let d = 1; d < targetDay; d++) {
+          const globalDay = pillarIndex * 7 + d;
+          sessionRows.push({
+            user_id: user.id,
+            pillar_id: pillarId,
+            day_in_week: d,
+            session_index: 1,
+            local_date: addDays(today, -(phase1DayGlobal - globalDay)),
+            completed_at: nowIsoTiers,
+            duration_seconds: 300,
+          });
+        }
+
+        if (evalRows.length > 0) {
+          const { error: eErr } = await supabase.from('pillar_evaluations').insert(evalRows);
+          if (eErr) console.warn('[seedDevPillarDay] evals insert failed', eErr);
+        }
+        if (sessionRows.length > 0) {
+          const { error: sErr } = await supabase.from('pillar_sessions').insert(sessionRows);
+          if (sErr) console.warn('[seedDevPillarDay] sessions insert failed', sErr);
+        }
       }
+
+      // AsyncStorage local (post-Supabase pour cohérence).
+      await AsyncStorage.multiSet([
+        [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
+        [LOCAL_KEYS.pillarStartedAt, JSON.stringify(startedAt)],
+        [LOCAL_KEYS.accountCreatedAt, JSON.stringify(accountIso)],
+        [LOCAL_KEYS.narrativeFlags, JSON.stringify(flags)],
+      ]);
+
+      // setState EN DERNIER — Supabase a fini, Phase1HomeScreen re-render
+      // verra hasInitialEval=true (prefill commitée) → pas de redirect
+      // PillarOverview à tort.
+      setStreakHistory(allEntries);
+      setTierReaches(seededTierReaches);
+      setNarrativeFlags(flags);
+      setS8FinalCompleted(false);
+      setAccountCreatedAtState(accountIso);
+      setPillarStartedAt(startedAt);
+      setCurrentPillarId(pillarId);
     },
     [user, narrativeFlags],
   );

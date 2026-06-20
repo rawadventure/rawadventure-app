@@ -27,7 +27,7 @@
  * DEV : bouton "Mock active" reste dispo dans ProfilTabScreen pour bypass tests.
  */
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -64,6 +64,14 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const { user } = useAuth();
   const { reload } = useSubscription();
   const [loading, setLoading] = useState(false);
+
+  // Reload subscription au montage — évite boucle si abonnement existe
+  // côté Supabase mais state local stale (webhook tardif, insert manuel
+  // SQL, realtime non propagé). Si row active → isActive true → RootNavigator
+  // sort du paywall au prochain render.
+  useEffect(() => {
+    void reload();
+  }, [reload]);
 
   const handleContinue = async () => {
     setLoading(true);

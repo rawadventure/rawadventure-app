@@ -61,7 +61,7 @@ export default function PillarFinalRecapScreen() {
   const pillarId = route.params.pillarId;
 
   const { user } = useAuth();
-  const { startPillarWeek, streak, markNarrativeSeen, narrativeFlags } = useProgress();
+  const { streak, markNarrativeSeen, narrativeFlags } = useProgress();
   const [showS8Exit, setShowS8Exit] = useState(false);
   const [showConsolidationIntro, setShowConsolidationIntro] = useState(false);
   const [showMentoratProposal, setShowMentoratProposal] = useState(false);
@@ -169,21 +169,11 @@ export default function PillarFinalRecapScreen() {
     const nextMeta = getPillarMeta(nextPillarId);
     Alert.alert(
       `Pilier ${pillarId} terminé`,
-      `Tu enchaînes sur le pilier ${nextPillarId} — ${nextMeta?.name ?? '…'}. Tu vas refaire une évaluation 12 questions pour calibrer cette nouvelle semaine.`,
+      `Sept jours posés autour de ${getPillarMeta(pillarId)?.name ?? 'ce pilier'}. La branche est lue, la toile mise à jour.\n\nDemain, on enchaîne avec ${nextPillarId} — ${nextMeta?.name ?? '…'}. Tu commenceras par une évaluation 12 questions pour calibrer la nouvelle semaine.\n\nÀ demain.`,
       [
-        { text: 'Plus tard', style: 'cancel', onPress: () => navigation.popToTop() },
         {
-          text: 'Démarrer',
-          onPress: async () => {
-            // Démarre la nouvelle semaine pilier (réinitialise pillarStartedAt).
-            await startPillarWeek(nextPillarId);
-            // Pop puis ouvre IA-40 pour le nouveau pilier.
-            navigation.popToTop();
-            navigation.navigate('PillarEvaluation', {
-              pillarId: nextPillarId,
-              evaluationType: 'initial',
-            });
-          },
+          text: 'Continuer',
+          onPress: () => navigation.popToTop(),
         },
       ],
     );

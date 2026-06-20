@@ -499,11 +499,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'flex-start',
     paddingTop: 0,
-    paddingBottom: 200,
+    paddingBottom: 120,
   },
   logoHero: {
     alignItems: 'center',
     justifyContent: 'center',
+    marginTop: -40,
   },
   heroImage: {
     width: 640,
@@ -521,7 +522,7 @@ const styles = StyleSheet.create({
     ...interTextStyle('bodyLarge'),
     color: pillarColors.phase0.text,
     textAlign: 'center',
-    marginTop: -40,
+    marginTop: -80,
   },
   // Slides text / questionnaire
   slideWrap: {

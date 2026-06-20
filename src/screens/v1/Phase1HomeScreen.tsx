@@ -46,7 +46,7 @@ import { useProgress } from '../../hooks/ProgressContext';
 import { supabase } from '../../lib/supabase';
 import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
 import { getPillarMeta } from '../../data/pillar-registry';
-import { currentDayInParcours, todayLocalDate } from '../../lib/calendar';
+import { todayLocalDate } from '../../lib/calendar';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
@@ -60,7 +60,7 @@ const SESSION_ICONS: Record<SessionIndex, React.ComponentType<{ size?: number; c
 export default function Phase1HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, seedDevPillarDay } = useProgress();
+  const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, streakHistory, seedDevPillarDay, advanceToNextDay } = useProgress();
 
   // DEV gate — bouton skip jour suivant accessible uniquement en mode DEV.
   const devPanelEnabled =
@@ -82,8 +82,17 @@ export default function Phase1HomeScreen() {
       return;
     }
 
+    // Reset local state AVANT await — sinon race : advanceToNextDay shift
+    // les entries, dayInPillarWeek passe à 7 au re-render, validatedSessions
+    // pas encore vidé → trigger éval finale fire à tort (bug 2026-06-17).
+    setValidatedSessions(new Set());
+    setHasFinalEval(false);
+
     if (day < 7) {
-      await seedDevPillarDay(currentPid, day + 1);
+      // D38 (2026-06-17) — shift calendrier -1j pour libérer today (la
+      // validation a déjà avancé dayInPillarWeek). Si aucune session validée
+      // today, advanceToNextDay ajoute aussi 1 entry phase_1 puis shift.
+      await advanceToNextDay();
     } else {
       // day === 7 && hasFinalEval = true → bascule pilier suivant via DEV.
       const idx = PILLAR_ORDER.indexOf(currentPid);
@@ -94,10 +103,6 @@ export default function Phase1HomeScreen() {
       const nextPid = PILLAR_ORDER[idx + 1];
       await seedDevPillarDay(nextPid, 1);
     }
-    // Reset local state UI : seedDevPillarDay nettoie Supabase pillar_sessions
-    // mais validatedSessions local state n'est pas re-fetched automatiquement.
-    setValidatedSessions(new Set());
-    setHasFinalEval(false);
     // Re-fetch frais (au cas où pilier changé → check eval initiale du nouveau).
     void fetchTodaySessions();
   };
@@ -138,12 +143,11 @@ export default function Phase1HomeScreen() {
         .eq('evaluation_type', 'initial')
         .maybeSingle(),
     ]);
-    if (sessions) {
-      setValidatedSessions(new Set(sessions.map((r: any) => r.session_index as SessionIndex)));
-    }
+    // Set sessions even si data null/empty pour reset après DEV jump.
+    setValidatedSessions(new Set((sessions ?? []).map((r: any) => r.session_index as SessionIndex)));
     setHasFinalEval(!!finalEval);
     setHasInitialEval(!!initialEval);
-  }, [user, pillarId]);
+  }, [user, pillarId, pillarStartedAt]);
 
   // Phase A — éval initiale mandatoire à J17 (Phase 1 J1). Si user arrive
   // ici sans éval (cas normal : S0.2 modale ne déclenche plus l'éval,
@@ -151,26 +155,39 @@ export default function Phase1HomeScreen() {
   // pas de bypass possible. hasInitialEval=null = chargement → on attend.
   useEffect(() => {
     if (hasInitialEval === false) {
-      // navigate (pas replace) — garde Phase1HomeScreen dans le stack pour
-      // que PillarRecap.handleStart puisse popToTop proprement après éval.
-      navigation.navigate('PillarEvaluation', {
+      // Nouveau flow (2026-06-18) : IA-42 PillarOverview (intro vidéo +
+      // programme) AVANT IA-40 PillarEvaluation. User voit présentation
+      // pilier puis enchaîne sur questionnaire 12 questions.
+      navigation.navigate('PillarOverview', {
         pillarId,
-        evaluationType: 'initial',
+        fromStart: true,
       });
     }
   }, [hasInitialEval, navigation, pillarId]);
 
-  // Phase A — éval finale mandatoire au LENDEMAIN calendaire de J7 du pilier.
-  // Décision Stéphane 2026-06-13 : pendant J7 calendaire, user fait ses
-  // sessions tranquille. Le lendemain (rawDay > 7), si éval pas faite →
-  // force redirect IA-46. Sans ça, user pourrait skip éval et faire S2
-  // sans branche toile S1 updated.
-  const rawDayInPillarWeek = pillarStartedAt
-    ? currentDayInParcours(pillarStartedAt)
-    : 0;
+  // Phase A — éval finale forcée seulement au LENDEMAIN de J7 si pas faite.
+  // D38 (2026-06-17) + clarif 2026-06-18 :
+  //  - J7 fresh ou en cours : éval finale visible en CTA tappable (cf.
+  //    showFinalEvalCta plus bas), pas forcée. User choisit son moment.
+  //  - Lendemain de J7 (>=7 entries phase_1 dans pilier ET aucune entry today)
+  //    et éval pas faite → forcée par navigate. Compromise mode Z.
+  const pillarStartedDate = pillarStartedAt ? (pillarStartedAt.slice(0, 10)) : null;
+  const today = todayLocalDate();
+  const phase1EntriesInPillar = pillarStartedDate
+    ? streakHistory.filter(
+        (e) =>
+          e.phase === 'phase_1' &&
+          e.local_date >= pillarStartedDate &&
+          (e.validation_status === 'valid_above_threshold' ||
+            e.validation_status === 'valid_with_joker'),
+      )
+    : [];
+  const rawDayInPillar = phase1EntriesInPillar.length; // non cappé
+  const hasEntryToday = phase1EntriesInPillar.some((e) => e.local_date === today);
+  const isDayAfterJ7 = rawDayInPillar >= 7 && !hasEntryToday;
   useEffect(() => {
     if (
-      rawDayInPillarWeek > 7 &&
+      isDayAfterJ7 &&
       hasInitialEval === true &&
       hasFinalEval === false
     ) {
@@ -179,7 +196,7 @@ export default function Phase1HomeScreen() {
         evaluationType: 'final',
       });
     }
-  }, [rawDayInPillarWeek, hasInitialEval, hasFinalEval, navigation, pillarId]);
+  }, [isDayAfterJ7, hasInitialEval, hasFinalEval, navigation, pillarId]);
 
   useEffect(() => {
     void fetchTodaySessions();
@@ -195,7 +212,9 @@ export default function Phase1HomeScreen() {
   const allDone = validatedSessions.size === 3;
   const dayValidated = validatedSessions.size >= 1; // Phase 1 D6 : 1/3 suffit
   const isEvaluationDay = dayId >= 7;
-  const showFinalEvalCta = isEvaluationDay && !hasFinalEval;
+  // CTA éval finale visible seulement à J7 ET au moins 1 session J7 validée
+  // (clarif user 2026-06-18 : pas dispo "trop tôt" avant pratique du jour).
+  const showFinalEvalCta = isEvaluationDay && dayValidated && !hasFinalEval;
 
   const openSession = (idx: SessionIndex) => {
     navigation.navigate('Session', { sessionIndex: idx });

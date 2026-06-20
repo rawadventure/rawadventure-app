@@ -305,48 +305,6 @@ export default function ProfilTabScreen() {
                   fullWidth
                 />
                 <Button
-                  label="(DEV) Lancer éval initiale S2"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S2', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S3"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S3', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S4"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S4', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S5"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S5', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S6"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S6', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S7"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S7', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Lancer éval initiale S8"
-                  variant="ghost"
-                  onPress={() => navigation.navigate('PillarEvaluation', { pillarId: 'S8', evaluationType: 'initial' })}
-                  fullWidth
-                />
-                <Button
                   label="(DEV) S2 Activité physique — Jour 1"
                   variant="ghost"
                   onPress={() => seedDevPillarDay('S2', 1)}

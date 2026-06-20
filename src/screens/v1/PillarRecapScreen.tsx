@@ -73,7 +73,7 @@ export default function PillarRecapScreen() {
   const styles = React.useMemo(() => makeStyles(palette), [palette]);
 
   const { user } = useAuth();
-  const { savePillarEvaluation, markNarrativeSeen, startPillarWeek, currentDay } = useProgress();
+  const { savePillarEvaluation, markNarrativeSeen, currentDay } = useProgress();
 
   const [loading, setLoading] = useState(true);
   const [diagnostic, setDiagnostic] = useState<DiagnosticLevel | null>(null);
@@ -153,17 +153,10 @@ export default function PillarRecapScreen() {
   const handleStart = async () => {
     // S0.2 marqué vu (post-éval = équivalent "modale fermée").
     await markNarrativeSeen('s0_2_screen');
-    // Si user encore en S0 (J15-J16 = phase_0) : ne PAS démarrer la semaine
-    // pilier maintenant — Phase 1 commence J17. HomeScreenV1 auto-déclenche
-    // startPillarWeek à J17 via useEffect (cf. HomeScreenV1 §Phase1 auto-start).
-    // Si déjà J17+ : démarrage immédiat (cas absence prolongée D25).
-    if (currentDay >= 17) {
-      await startPillarWeek(pillarId);
-    }
-    // popToTop : Phase1HomeScreen utilise navigate (pas replace), donc le
-    // stack est [HomeV1, PillarEvaluation, PillarRecap]. popToTop → HomeV1.
-    // Pareil pour Profil DEV : [ProfilMain, PillarEvaluation, PillarRecap].
-    navigation.popToTop();
+    // Nouveau flow (2026-06-18) : PillarOverview a été vu AVANT le
+    // questionnaire. startPillarWeek a été appelé en sortie de
+    // PillarEvaluation (au save initial). Ici on retourne juste au hub.
+    navigation.reset({ index: 0, routes: [{ name: 'HomeV1' }] });
   };
 
   if (loading) {
@@ -258,7 +251,7 @@ export default function PillarRecapScreen() {
 
       <View style={styles.footer}>
         <Button
-          label="Démarrer cette semaine"
+          label="Continuer"
           onPress={handleStart}
           fullWidth
           size="large"

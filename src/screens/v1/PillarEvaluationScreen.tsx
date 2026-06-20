@@ -25,6 +25,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -55,11 +56,16 @@ export default function PillarEvaluationScreen() {
   const pillarId = route.params.pillarId; // 'S1' pour Sprint 8
   const evaluationType = route.params.evaluationType ?? 'initial';
 
-  const { savePillarEvaluation, setTabBarHidden } = useProgress();
+  const { savePillarEvaluation, setTabBarHidden, startPillarWeek, pillarStartedAt, currentPillarId } = useProgress();
+
+  // Clé AsyncStorage pour sauvegarder progrès en cours (reprise si user
+  // quitte app pendant questionnaire). Scopée par pilier + type éval.
+  const progressKey = `pillar_eval_progress.${pillarId}.${evaluationType}`;
 
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<number, Scale15Value>>({});
   const [saving, setSaving] = useState(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Cache tab bar pendant l'évaluation (mandatory — user ne peut sortir
   // qu'en complétant ou en quittant l'app). TabNavigator est custom
@@ -71,9 +77,44 @@ export default function PillarEvaluationScreen() {
     return () => setTabBarHidden(false);
   }, [setTabBarHidden]);
 
+  // Restaure progrès sauvegardé au mount (si user a quitté app en cours).
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const raw = await AsyncStorage.getItem(progressKey);
+        if (!cancelled && raw) {
+          const parsed = JSON.parse(raw) as {
+            index: number;
+            answers: Record<number, Scale15Value>;
+          };
+          if (typeof parsed.index === 'number') setIndex(parsed.index);
+          if (parsed.answers) setAnswers(parsed.answers);
+        }
+      } catch {
+        // pas grave, on repart de zéro
+      }
+      if (!cancelled) setHydrated(true);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [progressKey]);
+
+  // Persiste progrès à chaque changement (index ou answers) une fois hydraté.
+  useEffect(() => {
+    if (!hydrated) return;
+    void AsyncStorage.setItem(progressKey, JSON.stringify({ index, answers }));
+  }, [hydrated, index, answers, progressKey]);
+
   // Lookup via registry pillar (Sprint 11). Fallback S1 si pillarId inconnu.
   const meta = getPillarMeta(pillarId);
   const questions = meta?.questions ?? getPillarMeta('S1')!.questions;
+
+  // Couleur fond match palette du pilier.
+  const pillarKey = pillarId.toLowerCase() as 's1' | 's2' | 's3' | 's4' | 's5' | 's6' | 's7' | 's8';
+  const palette = pillarColors[pillarKey] ?? pillarColors.s1;
+  const styles = React.useMemo(() => makeStyles(palette.bg), [palette.bg]);
 
   const current = questions[index];
   const currentValue = answers[current.id] ?? null;
@@ -110,6 +151,16 @@ export default function PillarEvaluationScreen() {
         engagementLevelRecommended: result.recommendedEngagement,
         engagementLevelChosen: result.recommendedEngagement, // défaut = recommandé
       });
+
+      // Clear progrès en cours — éval persistée Supabase, plus besoin du cache.
+      await AsyncStorage.removeItem(progressKey);
+
+      // Démarrage semaine pilier au moment du save initial (avant Recap),
+      // pour que si user quitte sur Recap, pillarStartedAt soit déjà posé
+      // et le hub fonctionne correctement à la prochaine ouverture.
+      if (evaluationType === 'initial' && (currentPillarId !== pillarId || !pillarStartedAt)) {
+        await startPillarWeek(pillarId);
+      }
 
       if (evaluationType === 'final') {
         navigation.replace('PillarFinalRecap', { pillarId });
@@ -179,7 +230,7 @@ export default function PillarEvaluationScreen() {
 /** Indicateur de progression segmenté (12 segments) — design system §5.5. */
 function ProgressIndicator({ current, total }: { current: number; total: number }) {
   return (
-    <View style={styles.progressContainer}>
+    <View style={progressStyles.container}>
       {Array.from({ length: total }, (_, i) => {
         const isReached = i < current;
         const isCurrent = i === current - 1;
@@ -187,9 +238,9 @@ function ProgressIndicator({ current, total }: { current: number; total: number 
           <View
             key={i}
             style={[
-              styles.progressSeg,
-              isReached && styles.progressSegReached,
-              isCurrent && styles.progressSegCurrent,
+              progressStyles.seg,
+              isReached && progressStyles.segReached,
+              isCurrent && progressStyles.segCurrent,
             ]}
           />
         );
@@ -198,8 +249,30 @@ function ProgressIndicator({ current, total }: { current: number; total: number 
   );
 }
 
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: pillarColors.s1.bg },
+const progressStyles = StyleSheet.create({
+  container: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  seg: {
+    flex: 1,
+    height: 4,
+    borderRadius: radiusV1.sm,
+    backgroundColor: neutralColors.borderSubtle,
+  },
+  segReached: {
+    backgroundColor: brandColors.alive,
+    opacity: 0.6,
+  },
+  segCurrent: {
+    backgroundColor: brandColors.alive,
+    opacity: 1,
+  },
+});
+
+function makeStyles(bgColor: string) {
+  return StyleSheet.create({
+  safe: { flex: 1, backgroundColor: bgColor },
   body: {
     flex: 1,
     paddingHorizontal: layout.screen.marginHorizontal,
@@ -252,4 +325,5 @@ const styles = StyleSheet.create({
     paddingVertical: space[4],
   },
   actions: { gap: space[3] },
-});
+  });
+}

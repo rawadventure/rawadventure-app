@@ -72,13 +72,13 @@ const SUPABASE_VIDEOS_BASE =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
 
 const PILLAR_INTRO_VIDEO_URL: Record<string, string | null> = {
-  S1: null, // Respiration — pas encore tourné
+  S1: `${SUPABASE_VIDEOS_BASE}/pilier-s1-respiration.mp4`,
   S2: `${SUPABASE_VIDEOS_BASE}/pilier-s2-activite-physique.mp4`,
   S3: `${SUPABASE_VIDEOS_BASE}/pilier-s3-alimentation.mp4`,
-  S4: null, // Connexion vivant — pas encore tourné
-  S5: null, // Repos régénération — pas encore tourné
+  S4: `${SUPABASE_VIDEOS_BASE}/pilier-s4-connexion-vivant.mp4`,
+  S5: `${SUPABASE_VIDEOS_BASE}/pilier-s5-repos-regeneration.mp4`,
   S6: `${SUPABASE_VIDEOS_BASE}/pilier-s6-passion.mp4`,
-  S7: null, // Mindset — pas encore tourné
+  S7: `${SUPABASE_VIDEOS_BASE}/pilier-s7-mindset.mp4`,
   S8: `${SUPABASE_VIDEOS_BASE}/pilier-s8-elimination-detox.mp4`,
 };
 
@@ -86,7 +86,7 @@ export default function PillarOverviewScreen() {
   const navigation = useNavigation<Nav>();
   const route = useRoute<Route>();
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, currentPhase } = useProgress();
+  const { currentPillarId, dayInPillarWeek, currentPhase, startPillarWeek } = useProgress();
 
   // Sprint 22 : pillarId optionnel via route.params (mode libre post-S8).
   // Sinon, fallback sur currentPillarId du context (flow Phase 1 normal).
@@ -303,14 +303,38 @@ export default function PillarOverviewScreen() {
             style={{ marginBottom: space[2] }}
           />
         )}
-        <Button
-          label="Retour à l'accueil"
-          variant="secondary"
-          onPress={() => navigation.goBack()}
-          fullWidth
-          size="large"
-          context={pillarKey}
-        />
+        {/* Phase A : si user arrive sur PillarOverview depuis PillarRecap
+            (post-éval initiale, route param fromRecap=true), bouton démarre
+            la semaine + reset stack vers hub. Si user accède depuis hub
+            existant → "Retour" classique uniquement. */}
+        {!isLibreMode && route.params?.fromStart ? (
+          // Nouveau flow (2026-06-18) : démarrage semaine = PillarOverview
+          // EN PREMIER, puis questionnaire 12 questions. CTA "Continuer"
+          // navigue vers PillarEvaluation initial. startPillarWeek sera
+          // appelé à la fin du flow par PillarRecap (post-eval).
+          <Button
+            label="Continuer"
+            onPress={() => {
+              navigation.replace('PillarEvaluation', {
+                pillarId,
+                evaluationType: 'initial',
+              });
+            }}
+            fullWidth
+            size="large"
+            context={pillarKey}
+          />
+        ) : (
+          // Consultation depuis hub (ou autre) : seul "Retour à l'accueil".
+          <Button
+            label="Retour à l'accueil"
+            variant="secondary"
+            onPress={() => navigation.goBack()}
+            fullWidth
+            size="large"
+            context={pillarKey}
+          />
+        )}
       </View>
     </View>
   );

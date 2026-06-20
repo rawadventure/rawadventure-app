@@ -122,9 +122,9 @@ export default function HomeScreenV1() {
     pendingTierReach,
     setPendingTier,
     clearPendingTier,
-    seedDevStreak,
     tierReaches,
     startPillarWeek,
+    advanceToNextDay,
     seedDevPillarDay,
   } = useProgress();
   const { isActive: subscriptionActive } = useSubscription();
@@ -199,14 +199,12 @@ export default function HomeScreenV1() {
     [streakHistory, today],
   );
 
-  // Map streak → IA-14 jour-charnière. Le déclenchement se fait à la
-  // VALIDATION du jour (après IA-15), pas à l'arrivée sur le jour, pour
-  // que le copy rétrospectif "Trois jours derrière toi" soit cohérent.
-  // Sprint 31 — fusion J7 charnière dans palier 7j (cf. brief-paliers-v1.md).
-  // Le palier 7j (TierReachedModal) porte maintenant le texte effet miroir
-  // précédemment dans J7 charnière. La charnière J7 ne se déclenche plus.
-  // J3 / J11 / J14 restent des charnières indépendantes (pas de collision palier).
-  const CHARNIERE_BY_STREAK: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
+  // Map currentDay (validation-based, D38) → IA-14 jour-charnière. Déclenchement
+  // à la VALIDATION du jour (après IA-15). currentDay = jour de progression
+  // (compte de validations + 1) — découplé du streak calendaire.
+  // Sprint 31 — J7 charnière fusionnée dans palier 7j (TierReachedModal).
+  // J3 / J11 / J14 restent des charnières indépendantes.
+  const CHARNIERE_BY_DAY: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
     3: { day: 3, flag: 'j3_charniere' },
     11: { day: 11, flag: 'j11_charniere' },
     14: { day: 14, flag: 'j14_charniere' },
@@ -399,7 +397,8 @@ export default function HomeScreenV1() {
       // différé via setPendingTier → ouvert à la prochaine validation sans
       // collision. Logique généralisable aux autres collisions narratives
       // structurantes (S0.2 currentDay 16).
-      const charniere = CHARNIERE_BY_STREAK[result.newStreak];
+      // D38 — charnière indexée sur currentDay (jour de progression validé).
+      const charniere = CHARNIERE_BY_DAY[currentDay];
       // Détection collision : si on est sur J15 ou J16 (jours S0.1/S0.2),
       // tout palier détecté à cette validation est différé. Le flag narratif
       // est posé AU TRIGGER du S0.x (avant validation), donc on ne peut pas
@@ -462,43 +461,6 @@ export default function HomeScreenV1() {
     }
   };
 
-  /**
-   * DEV uniquement : avance directement au jour suivant via seedDevStreak.
-   *
-   * Pourquoi pas validateDay + advanceToNextDay : le calendar date (today)
-   * et currentDay sont découplés (currentDay dérivé de accountCreatedAt).
-   * validateDay écrit dans streak_history avec local_date = today, puis
-   * shift accountCreatedAt rend l'historique incohérent (today devient
-   * day N+1 mais a une entry pour day N). Résultat : actions grisées car
-   * le système pense "jour déjà validé".
-   *
-   * seedDevStreak(N+1) reconstruit un état cohérent : 14 entries valides
-   * pour days 1..N, today = day N+1. État coherent, écrans narratifs
-   * (S0.1 à J15, S0.2 à J16, charnières J3/J7/J11/J14, paliers via streak)
-   * se déclenchent normalement via useEffect.
-   *
-   * Tradeoff : skip la cascade modale (tier modal, charniere modal qui
-   * pop juste après validateDay). Ces écrans se déclenchent quand même
-   * au prochain render via useEffect car narrative_flags reset.
-   */
-  const handleConfirmAndAdvance = async () => {
-    // Ferme la modale IA-15 d'abord pour éviter empilement de modales
-    // fullscreen (IA-15 standard + charnière fullscreen ouvertes en même
-    // temps bloquent l'interaction). Puis seedDevStreak qui peut
-    // déclencher charnière/S0.x via useEffect proprement.
-    setModalVisible(false);
-    // Reset les coches locales pour que le jour suivant démarre frais.
-    await AsyncStorage.removeItem(STORAGE_KEY(today));
-    setChecks(EMPTY_CHECKS);
-
-    try {
-      const next = Math.min((currentDay || 0) + 1, 16);
-      await seedDevStreak(next);
-    } catch (e: any) {
-      Alert.alert('Erreur', e.message ?? 'Avancement échoué');
-    }
-  };
-
   // Marqueur dynamique pour le header — placeholder Sprint 5, à enrichir
   // copy V1 quand le brief contenu sera produit.
   // Label adapté selon phase : Phase 0 (J1-J14), S0.1 (J15), S0.2 (J16),
@@ -544,22 +506,19 @@ export default function HomeScreenV1() {
             )}
 
             {/* DEV : raccourci "Passer au jour suivant" — visible sur hub
-                quand journée déjà validée (sinon utiliser bouton dans modale
-                IA-15). Gated devPanelEnabled (invisible build prod).
-                Recompute via seedDevStreak pour cohérence streak/accountCreatedAt. */}
+                quand journée déjà validée. J1-J15 → advanceToNextDay (shift).
+                J16 → seedDevPillarDay('S1', 1) pour transition Phase 1
+                propre (pose currentPillarId='S1', pillarStartedAt=now, +
+                narrative flags S0). Sans ça, J17 atteint mais pilier pas
+                démarré → hub Phase 1 cassé (dayInPillarWeek=0). */}
             {devPanelEnabled && alreadyValidatedToday && (
               <Button
                 label="(DEV) Passer au jour suivant"
                 onPress={() => {
-                  // J1-J15 → seedDevStreak (Phase 0 + S0). J16 → bascule
-                  // Phase 1 via seedDevPillarDay('S1', 1) qui pose
-                  // accountCreatedAt à J17 + flags s0_1/s0_2 vus. À partir
-                  // de Phase 1, ce bouton n'est plus rendu — Phase1HomeScreen
-                  // a son propre DEV.
-                  if (currentDay < 16) {
-                    void seedDevStreak(currentDay + 1);
-                  } else if (currentDay === 16) {
+                  if (currentDay === 16) {
                     void seedDevPillarDay('S1', 1);
+                  } else {
+                    void advanceToNextDay();
                   }
                 }}
                 variant="ghost"
@@ -684,9 +643,6 @@ export default function HomeScreenV1() {
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         onConfirm={handleConfirmValidation}
-        onConfirmAndAdvance={
-          devPanelEnabled ? handleConfirmAndAdvance : undefined
-        }
         actionsCount={checkedCount}
         phase={currentPhase}
         loading={validating}

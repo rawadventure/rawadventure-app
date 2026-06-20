@@ -33,7 +33,7 @@ export type Phase0StackParamList = {
   PillarEvaluation: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarRecap: { pillarId: string; evaluationType?: 'initial' | 'final' };
   PillarFinalRecap: { pillarId: string };
-  PillarOverview: { pillarId?: string } | undefined;
+  PillarOverview: { pillarId?: string; fromRecap?: boolean; fromStart?: boolean } | undefined;
   Session: { sessionIndex: 1 | 2 | 3; pillarId?: string };
   PaliersGallery: undefined;
   Paywall: undefined;

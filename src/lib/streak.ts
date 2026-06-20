@@ -78,6 +78,27 @@ export function longestStreakFromHistory(history: StreakEntry[]): number {
   return history.reduce((max, entry) => Math.max(max, entry.streak_value_after), 0);
 }
 
+/**
+ * Compte les jours de progression validés dans une phase donnée.
+ *
+ * Découplé du calendrier (D38 — découplage progression/streak).
+ * Une entrée compte comme validation si statut ∈ {valid_above_threshold, valid_with_joker}.
+ * `broken_streak` et `not_yet_processed` ne comptent pas.
+ *
+ * Usage :
+ *  - `currentDay` Phase 0 = validatedDaysCount(history, 'phase_0') + 1
+ *  - `dayInPillarWeek` Phase 1 = nb sessions validées dans pilier courant + 1
+ *    (calculé séparément depuis pillar_sessions, pas via cette fonction)
+ */
+export function validatedDaysCount(history: StreakEntry[], phase: Phase): number {
+  return history.filter(
+    (e) =>
+      e.phase === phase &&
+      (e.validation_status === 'valid_above_threshold' ||
+        e.validation_status === 'valid_with_joker'),
+  ).length;
+}
+
 // ─── Joker hebdomadaire ───────────────────────────────────────────────────────
 
 /**

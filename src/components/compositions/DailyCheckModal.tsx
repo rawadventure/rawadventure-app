@@ -41,11 +41,6 @@ export type DailyCheckModalProps = {
   /** Validation explicite. `userValidatedManually` = true pour les deux variantes
    *  (au-dessus ou sous le seuil avec "Valider quand même"). */
   onConfirm: () => Promise<void> | void;
-  /** DEV uniquement : valide ET avance d'un jour. Si fourni, un bouton
-   *  ghost discret "Valider + jour suivant" s'affiche sous le bouton normal.
-   *  Caller (HomeScreenV1) injecte la fonction seulement si __DEV__ ou
-   *  EXPO_PUBLIC_ENABLE_DEV_PANEL=true. */
-  onConfirmAndAdvance?: () => Promise<void> | void;
   /** Nombre d'actions cochées par l'utilisateur au moment d'ouvrir la modale. */
   actionsCount: number;
   /** Phase courante (drive le seuil et l'affichage). */
@@ -58,7 +53,6 @@ export function DailyCheckModal({
   visible,
   onClose,
   onConfirm,
-  onConfirmAndAdvance,
   actionsCount,
   phase,
   loading = false,
@@ -119,21 +113,6 @@ export function DailyCheckModal({
               context={context}
             />
           </>
-        )}
-        {/* DEV : raccourci "Valider + jour suivant" — visible uniquement si
-            le caller injecte onConfirmAndAdvance (gated __DEV__ /
-            EXPO_PUBLIC_ENABLE_DEV_PANEL côté HomeScreenV1). Préserve le
-            flow naturel : on passe vraiment par validateDay puis on décale
-            accountCreatedAt -1j. */}
-        {onConfirmAndAdvance && (
-          <Button
-            label="(DEV) Valider + jour suivant"
-            onPress={onConfirmAndAdvance}
-            loading={loading}
-            variant="ghost"
-            fullWidth
-            context={context}
-          />
         )}
       </View>
     </Modal>
