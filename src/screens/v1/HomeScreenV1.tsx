@@ -505,21 +505,17 @@ export default function HomeScreenV1() {
               </View>
             )}
 
-            {/* DEV : raccourci "Passer au jour suivant" — visible sur hub
-                quand journée déjà validée. J1-J15 → advanceToNextDay (shift).
-                J16 → seedDevPillarDay('S1', 1) pour transition Phase 1
-                propre (pose currentPillarId='S1', pillarStartedAt=now, +
-                narrative flags S0). Sans ça, J17 atteint mais pilier pas
-                démarré → hub Phase 1 cassé (dayInPillarWeek=0). */}
+            {/* DEV (Tranche 2) : raccourci "Passer au jour suivant" →
+                avance le clock virtuel +1j. Les useEffects narratifs (S0.x,
+                charnières, paliers) re-évaluent naturellement currentDay
+                via devTodayLocalDate(). Aucune mutation de streakHistory. */}
             {devPanelEnabled && alreadyValidatedToday && (
               <Button
                 label="(DEV) Passer au jour suivant"
                 onPress={() => {
-                  if (currentDay === 16) {
-                    void seedDevPillarDay('S1', 1);
-                  } else {
-                    void advanceToNextDay();
-                  }
+                  // eslint-disable-next-line @typescript-eslint/no-require-imports
+                  const { advanceDevClock } = require('../../lib/devClock');
+                  advanceDevClock(1);
                 }}
                 variant="ghost"
                 fullWidth

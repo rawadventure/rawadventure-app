@@ -124,6 +124,10 @@ interface ProgressContextType {
    *  currentPillarId + pillarStartedAt = (targetDay-1) jours dans le passé.
    *  Ne touche pas streak_history. */
   seedDevPillarDay: (pillarId: string, targetDay: number) => Promise<void>;
+  /** DEV uniquement : applique un snapshot timeline atomique (remplace
+   *  seedDevStreak/seedDevPillarDay/advanceToNextDay). Cohabite avec les
+   *  anciennes fonctions pendant Tranche 1 de validation. */
+  applyDevSnapshot: (snapshot: import('../lib/devTimeline').TimelineSnapshot) => Promise<void>;
   /** Démarre la semaine d'un pilier de Phase 1 (sortie IA-41 "Démarrer cette
    *  semaine"). Pose `currentPillarId` et `pillarStartedAt = now()`. */
   startPillarWeek: (pillarId: string) => Promise<void>;
@@ -315,6 +319,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
   const [loading, setLoading] = useState(true);
+
+  // DEV clock epoch — bump à chaque advanceDevClock/setDevClockOffset/reset
+  // pour forcer recompute des useMemo currentDay/dayInPillarWeek/jokerAvailable.
+  const [clockEpoch, setClockEpoch] = useState(0);
+  useEffect(() => {
+    if (!__DEV__) return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { subscribeDevClock } = require('../lib/devClock');
+    return subscribeDevClock(() => setClockEpoch((e) => e + 1));
+  }, []);
 
   // Onboarding
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -832,7 +846,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const p0 = validatedDaysCount(streakHistory, 'phase_0');
     const p1 = validatedDaysCount(streakHistory, 'phase_1');
     return p0 + p1 + (alreadyToday ? 0 : 1);
-  }, [accountCreatedAt, streakHistory]);
+  }, [accountCreatedAt, streakHistory, clockEpoch]);
 
   // dayInPillarWeek = jour DU PILIER EN COURS où je suis aujourd'hui.
   // Même logique que currentDay : si une session phase_1 validée today, reste
@@ -851,7 +865,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const validatedInPillar = inPillar.length;
     const alreadyTodayInPillar = inPillar.some((e) => e.local_date === today);
     return Math.min(validatedInPillar + (alreadyTodayInPillar ? 0 : 1), 7);
-  }, [pillarStartedAt, streakHistory]);
+  }, [pillarStartedAt, streakHistory, clockEpoch]);
 
   const startPillarWeek = useCallback(
     async (pillarId: string) => {
@@ -1046,6 +1060,29 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setCurrentPillarId(pillarId);
     },
     [user, narrativeFlags],
+  );
+
+  /**
+   * Applique un snapshot timeline DEV atomiquement. Remplace progressivement
+   * seedDevStreak / seedDevPillarDay / advanceToNextDay. Cohabitation
+   * Tranche 1 pour comparaison côte-à-côte.
+   */
+  const applyDevSnapshot = useCallback(
+    async (snapshot: import('../lib/devTimeline').TimelineSnapshot) => {
+      const { applyTimelineSnapshot } = await import('../lib/devTimeline');
+      await applyTimelineSnapshot(snapshot, {
+        userId: user?.id ?? null,
+        setAccountCreatedAt: setAccountCreatedAtState,
+        setStreakHistory,
+        setJokerConsumptions,
+        setTierReaches,
+        setNarrativeFlags,
+        setCurrentPillarId,
+        setPillarStartedAt,
+        setS8FinalCompleted,
+      });
+    },
+    [user],
   );
 
   const savePillarSession = useCallback(
@@ -1541,6 +1578,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         savePillarSession,
         saveAdaptiveChoice,
         seedDevPillarDay,
+        applyDevSnapshot,
         currentPillarId,
         pillarStartedAt,
         dayInPillarWeek,

@@ -26,9 +26,13 @@ export type WeekKey = string;
 
 // ─── Helpers de date locale ───────────────────────────────────────────────────
 
-/** Date courante locale au format `YYYY-MM-DD`. */
-export function todayLocalDate(now: Date = new Date()): LocalDate {
-  return localDateOf(now);
+/** Date courante locale au format `YYYY-MM-DD`.
+ *  Si `now` est omis, utilise le clock DEV (qui est = Date.now() en PROD). */
+export function todayLocalDate(now?: Date): LocalDate {
+  // Import dynamique pour éviter cycle (devClock importe LocalDate).
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { devNowDate } = require('./devClock');
+  return localDateOf(now ?? devNowDate());
 }
 
 /** Convertit une `Date` (heure locale) en `YYYY-MM-DD` local. */
@@ -67,19 +71,25 @@ export function addDays(localDate: LocalDate, days: number): LocalDate {
 // ─── Minuit local et démarrage différé (D24) ──────────────────────────────────
 
 /** Renvoie le timestamp ISO du prochain minuit local (00:00 du jour suivant). */
-export function startOfNextLocalDay(now: Date = new Date()): string {
-  const next = new Date(now);
+export function startOfNextLocalDay(now?: Date): string {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { devNowDate } = require('./devClock');
+  const base = now ?? devNowDate();
+  const next = new Date(base);
   next.setDate(next.getDate() + 1);
   next.setHours(0, 0, 0, 0);
   return next.toISOString();
 }
 
 /** Heures restantes avant le prochain minuit local. Float (avec décimales). */
-export function hoursUntilNextLocalMidnight(now: Date = new Date()): number {
-  const next = new Date(now);
+export function hoursUntilNextLocalMidnight(now?: Date): number {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { devNowDate } = require('./devClock');
+  const base = now ?? devNowDate();
+  const next = new Date(base);
   next.setDate(next.getDate() + 1);
   next.setHours(0, 0, 0, 0);
-  return (next.getTime() - now.getTime()) / 3_600_000;
+  return (next.getTime() - base.getTime()) / 3_600_000;
 }
 
 // ─── Jour du parcours (currentDay) ────────────────────────────────────────────
@@ -99,11 +109,14 @@ export function hoursUntilNextLocalMidnight(now: Date = new Date()): number {
  */
 export function currentDayInParcours(
   accountCreatedAt: Date | string,
-  now: Date = new Date(),
+  now?: Date,
 ): number {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { devNowDate } = require('./devClock');
+  const base = now ?? devNowDate();
   const created = typeof accountCreatedAt === 'string' ? new Date(accountCreatedAt) : accountCreatedAt;
-  if (created.getTime() > now.getTime()) return 0;
-  const diff = daysBetween(localDateOf(created), localDateOf(now));
+  if (created.getTime() > base.getTime()) return 0;
+  const diff = daysBetween(localDateOf(created), localDateOf(base));
   return diff + 1;
 }
 
@@ -138,8 +151,10 @@ export function weekKeyOf(localDate: LocalDate | Date): WeekKey {
 }
 
 /** Identifiant de la semaine ISO courante. */
-export function currentWeekKey(now: Date = new Date()): WeekKey {
-  return weekKeyOf(localDateOf(now));
+export function currentWeekKey(now?: Date): WeekKey {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { devNowDate } = require('./devClock');
+  return weekKeyOf(localDateOf(now ?? devNowDate()));
 }
 
 /** Renvoie le LUNDI (local) de la semaine ISO d'une date donnée. */

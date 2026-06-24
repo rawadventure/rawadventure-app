@@ -121,6 +121,7 @@ export default function ProfilTabScreen() {
     resetAll,
     seedDevStreak,
     seedDevPillarDay,
+    applyDevSnapshot,
   } = useProgress();
 
   return (
@@ -247,111 +248,9 @@ export default function ProfilTabScreen() {
             <Button label="Se déconnecter" variant="secondary" onPress={signOut} fullWidth />
             {(__DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true') && (
               <>
-                <Button
-                  label="(DEV) Avancer +1 jour"
-                  variant="ghost"
-                  onPress={() => {
-                    const next = Math.min((currentDay || 0) + 1, 16);
-                    void seedDevStreak(next);
-                  }}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 3"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(3)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 7 (palier)"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(7)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 11 (charnière)"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(11)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 14 (charnière)"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(14)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 15 (S0.1)"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(15)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) Aller au jour 16 (S0.2)"
-                  variant="ghost"
-                  onPress={() => seedDevStreak(16)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S1 — Jour 7 (éval finale)"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S1', 7)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S1 — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S1', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S2 Activité physique — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S2', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S3 Alimentation — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S3', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S4 Connexion vivant — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S4', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S5 Repos & régé. — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S5', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S6 Passion — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S6', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S7 Mindset — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S7', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S8 Élim. & détox — Jour 1"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S8', 1)}
-                  fullWidth
-                />
-                <Button
-                  label="(DEV) S8 — Jour 7 (fin Phase 1)"
-                  variant="ghost"
-                  onPress={() => seedDevPillarDay('S8', 7)}
-                  fullWidth
-                />
+                {/* T2.2 — DEV Timeline : presets + clock.
+                    Remplace seedDevStreak/seedDevPillarDay/advanceToNextDay. */}
+                <DevTimelineSection applyDevSnapshot={applyDevSnapshot} />
                 <Button
                   label="(DEV) Notif test dans 5s"
                   variant="ghost"
@@ -481,6 +380,107 @@ export default function ProfilTabScreen() {
     </SafeAreaView>
   );
 }
+
+// ─── DevTimelineSection — UI Profil DEV refondue ─────────────────────────────
+
+function DevTimelineSection({
+  applyDevSnapshot,
+}: {
+  applyDevSnapshot: (snapshot: import('../../lib/devTimeline').TimelineSnapshot) => Promise<void>;
+}) {
+  const [presets, setPresets] = React.useState<
+    Array<import('../../lib/devTimeline').TimelineSnapshot>
+  >([]);
+  const [clockOffsetDays, setClockOffsetDays] = React.useState(0);
+  const [busyId, setBusyId] = React.useState<string | null>(null);
+
+  React.useEffect(() => {
+    void (async () => {
+      const mod = await import('../../lib/devTimelinePresets');
+      setPresets(mod.TIMELINE_PRESETS);
+    })();
+  }, []);
+
+  React.useEffect(() => {
+    const { devClockOffsetDays, subscribeDevClock } = require('../../lib/devClock');
+    setClockOffsetDays(devClockOffsetDays());
+    return subscribeDevClock(() => setClockOffsetDays(devClockOffsetDays()));
+  }, []);
+
+  const handleApply = async (snapshotId: string) => {
+    setBusyId(snapshotId);
+    try {
+      const snap = presets.find((p) => p.id === snapshotId);
+      if (snap) await applyDevSnapshot(snap);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const handleClock = (days: number) => {
+    const { advanceDevClock, resetDevClock } = require('../../lib/devClock');
+    if (days === 0) resetDevClock();
+    else advanceDevClock(days);
+  };
+
+  return (
+    <View style={{ gap: space[2] }}>
+      <Text style={{ ...interTextStyle('bodyLargeEmphasis'), color: brandColors.deep, marginTop: space[3] }}>
+        DEV Timeline
+      </Text>
+
+      {/* Clock section */}
+      <View style={devStyles.clockBox}>
+        <Text style={devStyles.clockLabel}>
+          Clock offset : {clockOffsetDays >= 0 ? '+' : ''}{clockOffsetDays.toFixed(1)}j
+        </Text>
+        <View style={devStyles.clockRow}>
+          <Button label="+1j" variant="ghost" onPress={() => handleClock(1)} />
+          <Button label="+7j" variant="ghost" onPress={() => handleClock(7)} />
+          <Button label="Reset" variant="ghost" onPress={() => handleClock(0)} />
+        </View>
+      </View>
+
+      {/* Snapshots list */}
+      <Text style={{ ...interTextStyle('body'), color: neutralColors.textSecondary, marginTop: space[2] }}>
+        Snapshots
+      </Text>
+      {presets.map((p) => (
+        <View key={p.id} style={devStyles.presetBox}>
+          <Text style={devStyles.presetLabel}>{p.label}</Text>
+          <Text style={devStyles.presetDesc}>{p.description}</Text>
+          <Button
+            label={busyId === p.id ? 'Application…' : 'Aller'}
+            variant="ghost"
+            onPress={() => handleApply(p.id)}
+            fullWidth
+            disabled={busyId !== null}
+          />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+const devStyles = StyleSheet.create({
+  clockBox: {
+    padding: space[3],
+    borderRadius: 8,
+    backgroundColor: neutralColors.borderSubtle,
+    gap: space[2],
+  },
+  clockLabel: { ...interTextStyle('bodyLargeEmphasis'), color: brandColors.deep },
+  clockRow: { flexDirection: 'row', gap: space[2] },
+  presetBox: {
+    padding: space[2],
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: neutralColors.borderSubtle,
+    gap: space[1],
+  },
+  presetLabel: { ...interTextStyle('bodyLargeEmphasis'), color: brandColors.deep },
+  presetDesc: { ...interTextStyle('body'), color: neutralColors.textSecondary, marginBottom: space[1] },
+});
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: brandColors.cream },

@@ -67,13 +67,10 @@ export default function Phase1HomeScreen() {
     __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true';
 
   const handleDevNextDay = async () => {
-    const PILLAR_ORDER = ['S1', 'S2', 'S3', 'S4', 'S5', 'S6', 'S7', 'S8'];
     const currentPid = currentPillarId ?? 'S1';
     const day = dayInPillarWeek > 0 ? dayInPillarWeek : 1;
 
-    // J7 + pas d'éval finale → redirect IA-46 obligatoire (mandatory pour
-    // mise à jour branche toile). PillarFinalRecap qui suit gère la
-    // transition vers le pilier suivant (Alert + startPillarWeek + IA-40).
+    // J7 + pas d'éval finale → redirect IA-46 obligatoire. Sinon shift clock.
     if (day === 7 && !hasFinalEval) {
       navigation.navigate('PillarEvaluation', {
         pillarId: currentPid,
@@ -82,28 +79,16 @@ export default function Phase1HomeScreen() {
       return;
     }
 
-    // Reset local state AVANT await — sinon race : advanceToNextDay shift
-    // les entries, dayInPillarWeek passe à 7 au re-render, validatedSessions
-    // pas encore vidé → trigger éval finale fire à tort (bug 2026-06-17).
+    // T2.3 (2026-06-19) — clock virtuel +1j. Les useEffects de Phase1HomeScreen
+    // re-évaluent isDayAfterJ7, dayInPillarWeek, hasFinalEval via re-fetch
+    // naturellement. Pas de mutation streakHistory directe.
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { advanceDevClock } = require('../../lib/devClock');
+    advanceDevClock(1);
+
+    // Reset local state pour cohérence UI immédiate.
     setValidatedSessions(new Set());
     setHasFinalEval(false);
-
-    if (day < 7) {
-      // D38 (2026-06-17) — shift calendrier -1j pour libérer today (la
-      // validation a déjà avancé dayInPillarWeek). Si aucune session validée
-      // today, advanceToNextDay ajoute aussi 1 entry phase_1 puis shift.
-      await advanceToNextDay();
-    } else {
-      // day === 7 && hasFinalEval = true → bascule pilier suivant via DEV.
-      const idx = PILLAR_ORDER.indexOf(currentPid);
-      if (idx < 0 || idx >= PILLAR_ORDER.length - 1) {
-        console.warn('[DEV] S8 J7 atteint — bascule post-S8 non implémentée');
-        return;
-      }
-      const nextPid = PILLAR_ORDER[idx + 1];
-      await seedDevPillarDay(nextPid, 1);
-    }
-    // Re-fetch frais (au cas où pilier changé → check eval initiale du nouveau).
     void fetchTodaySessions();
   };
   const pillarId = currentPillarId ?? 'S1';
