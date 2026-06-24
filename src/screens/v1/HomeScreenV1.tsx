@@ -124,8 +124,6 @@ export default function HomeScreenV1() {
     clearPendingTier,
     tierReaches,
     startPillarWeek,
-    advanceToNextDay,
-    seedDevPillarDay,
   } = useProgress();
   const { isActive: subscriptionActive } = useSubscription();
 

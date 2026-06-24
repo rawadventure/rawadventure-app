@@ -119,8 +119,6 @@ export default function ProfilTabScreen() {
     profileDynamicId,
     accountCreatedAt,
     resetAll,
-    seedDevStreak,
-    seedDevPillarDay,
     applyDevSnapshot,
   } = useProgress();
 

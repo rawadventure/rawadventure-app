@@ -60,7 +60,7 @@ const SESSION_ICONS: Record<SessionIndex, React.ComponentType<{ size?: number; c
 export default function Phase1HomeScreen() {
   const navigation = useNavigation<Nav>();
   const { user } = useAuth();
-  const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, streakHistory, seedDevPillarDay, advanceToNextDay } = useProgress();
+  const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, streakHistory } = useProgress();
 
   // DEV gate — bouton skip jour suivant accessible uniquement en mode DEV.
   const devPanelEnabled =
