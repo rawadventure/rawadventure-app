@@ -262,7 +262,15 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  const isActive = useMemo(() => computeIsActive(state), [state]);
+  // clockEpoch force recompute quand mock clock change (DEV uniquement).
+  const [clockEpoch, setClockEpoch] = useState(0);
+  useEffect(() => {
+    if (!__DEV__) return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { subscribeDevClock } = require('../lib/devClock');
+    return subscribeDevClock(() => setClockEpoch((e) => e + 1));
+  }, []);
+  const isActive = useMemo(() => computeIsActive(state), [state, clockEpoch]);
 
   return (
     <SubscriptionContext.Provider

@@ -50,6 +50,7 @@ import {
   space,
 } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
+import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 
 const SUBSCRIBE_BASE_URL = 'https://rawadventure.world/abonnement/';
@@ -60,16 +61,73 @@ export type PaywallScreenProps = {
   onBack?: () => void;
 };
 
+// Module-level guard : reload-on-mount fire UNE seule fois par cycle de
+// vie du bundle JS. Reset implicite à chaque reload du Metro bundler.
+let paywallReloadedThisSession = false;
+
 export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const { user } = useAuth();
   const { reload } = useSubscription();
+  const { currentDay, currentPhase } = useProgress();
   const [loading, setLoading] = useState(false);
 
-  // Reload subscription au montage — évite boucle si abonnement existe
-  // côté Supabase mais state local stale (webhook tardif, insert manuel
-  // SQL, realtime non propagé). Si row active → isActive true → RootNavigator
-  // sort du paywall au prochain render.
+  // Variant copy selon contexte parcours.
+  const variant: 'fin_phase_0' | 'expired_phase_1' | 'expired_post_s8' =
+    currentPhase === 'post_s8'
+      ? 'expired_post_s8'
+      : currentDay >= 17
+        ? 'expired_phase_1'
+        : 'fin_phase_0';
+
+  const copy = {
+    fin_phase_0: {
+      marker: 'FIN DE LA PHASE 0',
+      title: 'Tu as terminé tes 14 jours.',
+      subtitle:
+        'Quatorze jours pour préparer ton corps. La suite — 8 semaines guidées, un pilier par semaine — commence maintenant.',
+      paragraph:
+        'Respiration, alimentation, mindset, mouvement, repos, passion, connexion au vivant, élimination. Chaque semaine isole un terrain pour que tu ressentes le travail dans le détail.',
+      ctaParagraph:
+        "Pour continuer, termine ton inscription depuis ton navigateur. Tu seras ramené dans l'app à la fin.",
+      laterAlertTitle: 'Phase 0 acquise',
+      laterAlertMessage:
+        'Tu peux fermer l\'app. Renouvelle quand tu seras prêt pour démarrer la Phase 1.',
+    },
+    expired_phase_1: {
+      marker: 'ABONNEMENT EXPIRÉ',
+      title: 'Ta progression Phase 1 est en pause.',
+      subtitle:
+        'Ton abonnement a expiré. Aucune progression perdue — tu reprends exactement où tu en étais dès renouvellement.',
+      paragraph:
+        'Toile, paliers, sessions, évaluations : tout reste enregistré côté serveur. Le programme attend que tu reviennes.',
+      ctaParagraph:
+        'Renouvelle ton abonnement depuis ton navigateur pour réactiver la Phase 1.',
+      laterAlertTitle: 'Parcours en pause',
+      laterAlertMessage:
+        'Ton parcours Phase 1 est gelé jusqu\'au renouvellement. Aucune progression perdue. À la prochaine ouverture, tu retombes ici.',
+    },
+    expired_post_s8: {
+      marker: 'ABONNEMENT EXPIRÉ',
+      title: 'Mode consolidation libre en pause.',
+      subtitle:
+        'Ton abonnement a expiré. Les 10 semaines guidées restent acquises côté toile et progression.',
+      paragraph:
+        'Renouvelle pour réactiver le mode consolidation libre et continuer à explorer les 8 piliers à ton rythme.',
+      ctaParagraph:
+        'Renouvelle ton abonnement depuis ton navigateur.',
+      laterAlertTitle: 'Consolidation en pause',
+      laterAlertMessage:
+        'Tes 10 semaines sont acquises. Renouvelle pour reprendre la consolidation libre.',
+    },
+  }[variant];
+
+  // Reload subscription au montage — fire UNE seule fois par session via
+  // module-level guard. Évite mount/unmount loop infinie quand
+  // SubscriptionContext.loading=true cause LoadingScreen → unmount Paywall →
+  // re-mount → reload → loop.
   useEffect(() => {
+    if (paywallReloadedThisSession) return;
+    paywallReloadedThisSession = true;
     void reload();
   }, [reload]);
 
@@ -129,10 +187,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
       onBack();
       return;
     }
-    Alert.alert(
-      'Plus tard',
-      'Tu peux fermer l\'app. Tu reprendras où tu en es à la prochaine ouverture.',
-    );
+    Alert.alert(copy.laterAlertTitle, copy.laterAlertMessage);
   };
 
   return (
@@ -155,21 +210,11 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
       <ScrollView contentContainerStyle={styles.scroll}>
         <View style={styles.body}>
           <View>
-            <Text style={styles.marker}>FIN DE LA PHASE 0</Text>
-            <Text style={styles.title}>Tu as terminé tes 14 jours.</Text>
-            <Text style={styles.subtitle}>
-              Quatorze jours pour préparer ton corps. La suite — 8 semaines guidées,
-              un pilier par semaine — commence maintenant.
-            </Text>
-            <Text style={styles.paragraph}>
-              Respiration, alimentation, mindset, mouvement, repos, passion, connexion
-              au vivant, élimination. Chaque semaine isole un terrain pour que tu
-              ressentes le travail dans le détail.
-            </Text>
-            <Text style={styles.paragraph}>
-              Pour continuer, termine ton inscription depuis ton navigateur. Tu seras
-              ramené dans l\'app à la fin.
-            </Text>
+            <Text style={styles.marker}>{copy.marker}</Text>
+            <Text style={styles.title}>{copy.title}</Text>
+            <Text style={styles.subtitle}>{copy.subtitle}</Text>
+            <Text style={styles.paragraph}>{copy.paragraph}</Text>
+            <Text style={styles.paragraph}>{copy.ctaParagraph}</Text>
           </View>
 
           <View style={styles.actions}>
