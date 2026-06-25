@@ -36,6 +36,7 @@ import { useSubscription } from '../hooks/SubscriptionContext';
 import TabNavigator from './TabNavigator';
 import { brandColors } from '../theme';
 import { computeProfileDynamicId } from '../lib/onboarding';
+import { devNow } from '../lib/devClock';
 
 function LoadingScreen() {
   return (
@@ -135,7 +136,7 @@ export default function RootNavigator() {
   }
 
   // 4. Session + accountCreatedAt dans le futur → IA-10c WaitingScreen
-  if (accountCreatedAt && new Date(accountCreatedAt).getTime() > Date.now()) {
+  if (accountCreatedAt && new Date(accountCreatedAt).getTime() > devNow()) {
     return <WaitingScreen onStartNow={() => { /* re-render via accountCreatedAt mise à jour */ }} />;
   }
 

@@ -606,7 +606,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const startPillarWeek = useCallback(
     async (pillarId: string) => {
-      const nowIso = new Date().toISOString();
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { devNowDate } = require('../lib/devClock');
+      const nowIso = (devNowDate() as Date).toISOString();
       setCurrentPillarId(pillarId);
       setPillarStartedAt(nowIso);
       await AsyncStorage.multiSet([

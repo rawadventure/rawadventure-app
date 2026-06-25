@@ -36,6 +36,7 @@ import React, {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { devNow } from '../lib/devClock';
 
 export type SubscriptionStatus =
   | 'free'
@@ -96,7 +97,7 @@ function computeIsActive(state: SubscriptionState): boolean {
     return true;
   }
   if (state.status === 'cancelled' && state.renewsAt) {
-    return new Date(state.renewsAt).getTime() > Date.now();
+    return new Date(state.renewsAt).getTime() > devNow();
   }
   return false;
 }
