@@ -10,7 +10,7 @@
  *  4. setState EN DERNIER (un seul flush React, pas de race).
  *  5. Cohérence validator interne : warn console si computed != applied.
  *
- * Gated __DEV__. No-op en PROD.
+ * Gated isDevToolsEnabled(). No-op si DEV tools off.
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -23,6 +23,7 @@ import {
   type WeekKey,
 } from './calendar';
 import { devNowDate } from './devClock';
+import { isDevToolsEnabled } from './devToolsEnabled';
 import {
   TIER_THRESHOLDS,
   type JokerConsumption,
@@ -157,14 +158,14 @@ function pillarIndexOf(pillarId: string): number {
  * Applique un snapshot atomiquement. Construit l'état complet en mémoire,
  * persiste Supabase + AsyncStorage, puis met à jour React state en dernier.
  *
- * En PROD (`__DEV__` false), no-op + warn.
+ * No-op + warn si DEV tools désactivés (isDevToolsEnabled() false).
  */
 export async function applyTimelineSnapshot(
   snapshot: TimelineSnapshot,
   ctx: TimelineContext,
 ): Promise<void> {
-  if (!__DEV__) {
-    console.warn('[applyTimelineSnapshot] no-op en PROD');
+  if (!isDevToolsEnabled()) {
+    console.warn('[applyTimelineSnapshot] no-op : DEV tools désactivés');
     return;
   }
 

@@ -29,6 +29,7 @@ import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { supabase } from '../../lib/supabase';
+import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
 
 type Nav = NativeStackNavigationProp<ProfilStackParamList>;
@@ -244,7 +245,7 @@ export default function ProfilTabScreen() {
 
           <View style={styles.actions}>
             <Button label="Se déconnecter" variant="secondary" onPress={signOut} fullWidth />
-            {(__DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true') && (
+            {isDevToolsEnabled() && (
               <>
                 {/* T2.2 — DEV Timeline : presets + clock.
                     Remplace seedDevStreak/seedDevPillarDay/advanceToNextDay. */}

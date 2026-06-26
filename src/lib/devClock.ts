@@ -18,13 +18,14 @@
  */
 
 import type { LocalDate } from './calendar';
+import { isDevToolsEnabled } from './devToolsEnabled';
 
 let devClockOffsetMs = 0;
 let listeners: Array<() => void> = [];
 
-/** Retourne le timestamp courant + offset DEV (ms). En PROD, == Date.now(). */
+/** Retourne le timestamp courant + offset DEV (ms). DEV tools off → Date.now() strict. */
 export function devNow(): number {
-  if (!__DEV__) return Date.now();
+  if (!isDevToolsEnabled()) return Date.now();
   return Date.now() + devClockOffsetMs;
 }
 
@@ -44,34 +45,34 @@ export function devTodayLocalDate(): LocalDate {
 
 /** Offset courant en jours (float, positif = futur). DEV-only. */
 export function devClockOffsetDays(): number {
-  if (!__DEV__) return 0;
+  if (!isDevToolsEnabled()) return 0;
   return devClockOffsetMs / 86_400_000;
 }
 
 /** Pose l'offset DEV en ms. Force 0 en PROD. */
 export function setDevClockOffset(ms: number): void {
-  if (!__DEV__) return;
+  if (!isDevToolsEnabled()) return;
   devClockOffsetMs = ms;
   notify();
 }
 
 /** Avance le clock de N jours (peut être négatif). */
 export function advanceDevClock(days: number): void {
-  if (!__DEV__) return;
+  if (!isDevToolsEnabled()) return;
   devClockOffsetMs += days * 86_400_000;
   notify();
 }
 
 /** Reset offset à 0 (clock réel). */
 export function resetDevClock(): void {
-  if (!__DEV__) return;
+  if (!isDevToolsEnabled()) return;
   devClockOffsetMs = 0;
   notify();
 }
 
 /** Abonnement aux changements d'offset (pour forcer re-renders UI DEV). */
 export function subscribeDevClock(cb: () => void): () => void {
-  if (!__DEV__) return () => {};
+  if (!isDevToolsEnabled()) return () => {};
   listeners.push(cb);
   return () => {
     listeners = listeners.filter((l) => l !== cb);

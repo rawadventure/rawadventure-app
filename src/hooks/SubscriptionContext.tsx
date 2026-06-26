@@ -262,10 +262,12 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
-  // clockEpoch force recompute quand mock clock change (DEV uniquement).
+  // clockEpoch force recompute quand mock clock change (DEV tools uniquement).
   const [clockEpoch, setClockEpoch] = useState(0);
   useEffect(() => {
-    if (!__DEV__) return;
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { isDevToolsEnabled } = require('../lib/devToolsEnabled');
+    if (!isDevToolsEnabled()) return;
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { subscribeDevClock } = require('../lib/devClock');
     return subscribeDevClock(() => setClockEpoch((e) => e + 1));

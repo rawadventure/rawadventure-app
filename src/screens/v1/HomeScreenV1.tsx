@@ -65,6 +65,7 @@ import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { todayLocalDate } from '../../lib/calendar';
+import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
@@ -145,8 +146,7 @@ export default function HomeScreenV1() {
 
   // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
   // bouton "(DEV) Valider + jour suivant" dans la modale IA-15.
-  const devPanelEnabled =
-    __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true';
+  const devPanelEnabled = isDevToolsEnabled();
 
   // Branche post-S8 (mode consolidation libre, IA-23 + D13). Prime sur Phase 1.
   if (currentPhase === 'post_s8') {

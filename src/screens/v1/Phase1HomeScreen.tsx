@@ -47,6 +47,7 @@ import { supabase } from '../../lib/supabase';
 import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
 import { getPillarMeta } from '../../data/pillar-registry';
 import { todayLocalDate } from '../../lib/calendar';
+import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
@@ -63,8 +64,7 @@ export default function Phase1HomeScreen() {
   const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, streakHistory } = useProgress();
 
   // DEV gate — bouton skip jour suivant accessible uniquement en mode DEV.
-  const devPanelEnabled =
-    __DEV__ || process.env.EXPO_PUBLIC_ENABLE_DEV_PANEL === 'true';
+  const devPanelEnabled = isDevToolsEnabled();
 
   const handleDevNextDay = async () => {
     const currentPid = currentPillarId ?? 'S1';
