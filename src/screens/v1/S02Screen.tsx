@@ -115,9 +115,11 @@ export default function S02Screen({ visible, onStartEvaluation, onLater, onDisco
           </View>
           <Text style={styles.title}>Huit semaines.{'\n'}Huit piliers.</Text>
           <Text style={styles.subtitle}>
-            Phase 1 démarre demain. Tu vas explorer un pilier par semaine,
-            dans cet ordre précis. Chaque pilier renforce une branche de ta
-            toile. [copy à valider]
+            Phase 1 démarre demain. Un seul pilier par semaine — parce qu'on
+            travaille en profondeur, pas en surface. Chaque semaine : une
+            évaluation au départ, des sessions courtes chaque jour, une
+            évaluation à la fin pour mesurer le chemin. Tu sentiras la
+            différence sur ton terrain. [copy à valider]
           </Text>
         </View>
 

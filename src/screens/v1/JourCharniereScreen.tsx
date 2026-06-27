@@ -88,8 +88,8 @@ const COPY: Record<CharniereDay, CharniereCopy> = {
   },
   14: {
     marker: 'Jour 14 · fin de Phase 0',
-    title: 'Tu as tenu.\n14 jours.',
-    body: "Quatorze jours. Tu as fait ce que peu font — pas par intensité, par choix. Ton corps n'est plus le même qu'au Jour 1. Champion de ta vie. C'est toi.",
+    title: 'Quatorze jours.\nUn premier ressenti.',
+    body: "Tu as expérimenté pendant deux semaines. Pas pour la performance — pour sentir. Ce ressenti, il est à toi : c'est le vrai acquis. Et ce n'est que le début. Si tu veux continuer avec nous, c'est pour construire des bases solides, profondes, sur le long terme. [copy à valider]",
     cta: 'Voir la suite',
   },
 };

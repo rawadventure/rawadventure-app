@@ -83,8 +83,10 @@ export default function S01Screen({ visible, streak, onContinue }: S01ScreenProp
           </View>
           <Text style={styles.title}>Quatorze jours{'\n'}derrière toi.</Text>
           <Text style={styles.subtitle}>
-            La Phase 0 est complète. Tu as construit le terrain. Le corps a
-            reçu deux semaines de signaux. [copy à valider]
+            Tu n'as pas tout fait parfaitement — personne ne le fait. Ce qui
+            compte, c'est que tu es revenu. Peut-être que tu t'endors plus
+            vite, que le froid te fait moins peur, que tu repères mieux ta
+            faim réelle. Ce sont tes premiers signaux. [copy à valider]
           </Text>
         </View>
 
@@ -116,8 +118,9 @@ export default function S01Screen({ visible, streak, onContinue }: S01ScreenProp
         <View style={styles.toileSection}>
           <Text style={styles.toileLabel}>Ta toile de vitalité</Text>
           <Text style={styles.toileSubtitle}>
-            Huit branches, une par pilier. Elles se renforcent à mesure que
-            tu pratiques. C'est la carte de ta progression.
+            Huit branches, une par pilier. Pas un score, pas un diagnostic.
+            Une branche courte n'est pas un défaut — c'est un terrain à
+            explorer. Elles se renforcent à mesure que tu pratiques.
           </Text>
           <View style={styles.toileWrap}>
             <Toile scores={scores} variant="full" animateOnMount />

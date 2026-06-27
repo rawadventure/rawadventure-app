@@ -20,19 +20,25 @@
  * Référence IA : IA-12. Pattern : A (écran narratif plein).
  */
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { X } from 'lucide-react-native';
+import { Video, ResizeMode } from 'expo-av';
+import { Play, X } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
-import { LogoRawAdventure } from '../../components/illustrations';
 import {
   brandColors,
   interTextStyle,
-  pillarColors,
   radiusV1,
   space,
 } from '../../theme';
+
+/**
+ * URL vidéo bienvenue J0 — Supabase Storage public bucket `phase0-videos`.
+ * Vidéo Mimi & Jacky : vision, qui on est, mission, démarche (ton friendly).
+ */
+const VIDEO_URL =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/welcome-j1-bienvenue.mp4';
 
 export type WelcomeVideoScreenProps = {
   visible: boolean;
@@ -41,6 +47,16 @@ export type WelcomeVideoScreenProps = {
 };
 
 export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideoScreenProps) {
+  const videoRef = useRef<Video | null>(null);
+  const openVideoFullscreen = async () => {
+    try {
+      await videoRef.current?.presentFullscreenPlayer();
+      await videoRef.current?.playAsync();
+    } catch (e) {
+      console.warn('WelcomeVideoScreen — fullscreen launch failed', e);
+    }
+  };
+
   return (
     <Modal visible={visible} onClose={() => {}} variant="fullscreen" context="phase0" dismissable={false}>
       <View style={styles.skipRow}>
@@ -65,13 +81,30 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
           </Text>
         </View>
 
-        <View style={styles.videoPlaceholder}>
-          <LogoRawAdventure variant="filigrane" size={56} opacity={0.22} color={brandColors.deep} />
-          <Text style={styles.videoText}>
-            Vidéo Mimi & Jacky — bienvenue J1{'\n'}
-            (Brief contenu vidéo bienvenue, 15-30s)
-          </Text>
-        </View>
+        {/* Vidéo Mimi & Jacky bienvenue J0 — preview 16:9 + tap fullscreen */}
+        <Pressable
+          onPress={openVideoFullscreen}
+          style={styles.videoPreview}
+          accessibilityRole="button"
+          accessibilityLabel="Lire la vidéo de bienvenue"
+        >
+          <Video
+            ref={(r) => {
+              videoRef.current = r;
+            }}
+            source={{ uri: VIDEO_URL }}
+            style={StyleSheet.absoluteFill}
+            resizeMode={ResizeMode.COVER}
+            isLooping={false}
+            shouldPlay={false}
+            positionMillis={1000}
+          />
+          <View style={styles.videoPlayOverlay} pointerEvents="none">
+            <View style={styles.videoPlayCircle}>
+              <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+            </View>
+          </View>
+        </Pressable>
 
         <View style={styles.notes}>
           <Text style={styles.note}>
@@ -122,22 +155,29 @@ const styles = StyleSheet.create({
     ...interTextStyle('bodyLarge'),
     color: brandColors.deep,
   },
-  videoPlaceholder: {
-    backgroundColor: pillarColors.neutral.bg,
+  videoPreview: {
     borderRadius: radiusV1.xl,
-    padding: space[5],
-    alignItems: 'center',
-    gap: space[3],
-    borderWidth: 1.5,
-    borderColor: brandColors.deep + '22',
-    minHeight: 200,
-    justifyContent: 'center',
+    overflow: 'hidden',
+    backgroundColor: '#000',
+    width: '100%',
+    aspectRatio: 16 / 9,
+    alignSelf: 'center',
+    position: 'relative',
   },
-  videoText: {
-    ...interTextStyle('bodySmall'),
-    color: brandColors.deep,
-    textAlign: 'center',
-    opacity: 0.75,
+  videoPlayOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.25)',
+  },
+  videoPlayCircle: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingLeft: 4,
   },
   notes: {
     paddingTop: space[3],

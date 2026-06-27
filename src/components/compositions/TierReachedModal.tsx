@@ -83,7 +83,7 @@ const TIER_VIDEO_URL: Record<TierId, string | null> = {
 const TIER_FIRST_MESSAGE: Record<TierId, { title: string; body: string }> = {
   7: {
     title: 'Sept jours.',
-    body: "Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions. Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.",
+    body: "Une semaine. Pense à ça comme à un entraînement, pas à une pilule. Les effets ne sont pas immédiats, et chacun avance à son rythme — c'est normal, ça se construit dans le temps. Ce qui compte, c'est que tu pratiques, jour après jour. Le corps répond dans la durée, pas dans l'instant. [copy à valider]",
   },
   15: {
     title: 'Quinze jours.',
