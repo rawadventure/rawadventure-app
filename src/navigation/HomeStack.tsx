@@ -24,7 +24,6 @@ import PillarRecapScreen from '../screens/v1/PillarRecapScreen';
 import PillarFinalRecapScreen from '../screens/v1/PillarFinalRecapScreen';
 import PillarOverviewScreen from '../screens/v1/PillarOverviewScreen';
 import SessionScreen from '../screens/v1/SessionScreen';
-import PaliersGalleryScreen from '../screens/v1/PaliersGalleryScreen';
 import type { Phase0ActionId } from '../data/phase0-actions';
 
 export type Phase0StackParamList = {
@@ -35,7 +34,6 @@ export type Phase0StackParamList = {
   PillarFinalRecap: { pillarId: string };
   PillarOverview: { pillarId?: string; fromRecap?: boolean; fromStart?: boolean } | undefined;
   Session: { sessionIndex: 1 | 2 | 3; pillarId?: string };
-  PaliersGallery: undefined;
   Paywall: undefined;
 };
 
@@ -76,7 +74,6 @@ export default function HomeStack() {
       <Stack.Screen name="PillarFinalRecap" component={PillarFinalRecapScreen} />
       <Stack.Screen name="PillarOverview" component={PillarOverviewScreen} />
       <Stack.Screen name="Session" component={SessionScreen} />
-      <Stack.Screen name="PaliersGallery" component={PaliersGalleryScreen} />
       <Stack.Screen name="Paywall" component={PaywallSoftScreen} />
     </Stack.Navigator>
   );

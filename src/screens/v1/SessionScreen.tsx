@@ -324,14 +324,9 @@ export default function SessionScreen() {
           setTierModal(null);
           navigation.popToTop();
         }}
-        onViewGallery={
-          tierModal?.isFirstReach
-            ? () => {
-                setTierModal(null);
-                navigation.navigate('PaliersGallery');
-              }
-            : undefined
-        }
+        // Bouton « Voir mes paliers » retiré (Fix B) : galerie accessible via
+        // Profil, relecture vidéo par tap sur une carte. PaliersGallery n'est
+        // plus déclaré dans HomeStack.
       />
     </SafeAreaView>
   );

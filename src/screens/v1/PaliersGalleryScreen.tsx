@@ -17,12 +17,13 @@
  * Référence IA : IA-51. Pattern : F (galerie).
  */
 
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ChevronLeft, Lock } from 'lucide-react-native';
 import { useProgress } from '../../hooks/ProgressContext';
+import { TierReachedModal } from '../../components/compositions';
 import { TIER_THRESHOLDS, type TierId } from '../../lib/streak';
 import {
   brandColors,
@@ -77,6 +78,9 @@ export default function PaliersGalleryScreen() {
   const navigation = useNavigation();
   const { tierReaches, streak } = useProgress();
 
+  // Palier sélectionné → rouvre la modale palier (avec vidéo) pour relecture.
+  const [selectedTier, setSelectedTier] = useState<TierId | null>(null);
+
   const byId = useMemo(() => {
     const map = new Map<TierId, { first_reached_at: string; reach_count: number }>();
     for (const t of tierReaches) {
@@ -95,7 +99,12 @@ export default function PaliersGalleryScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
         <Pressable
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            // Galerie déclarée uniquement dans ProfilStack (Fix B) → atteinte
+            // via push depuis ProfilMain, donc canGoBack vrai. Garde défensive
+            // par sécurité (jamais d'erreur GO_BACK).
+            if (navigation.canGoBack()) navigation.goBack();
+          }}
           hitSlop={12}
           accessibilityRole="button"
           accessibilityLabel="Retour"
@@ -120,11 +129,16 @@ export default function PaliersGalleryScreen() {
             const unit = tier === 365 ? 'AN' : 'JOURS';
 
             return (
-              <View
+              <Pressable
                 key={tier}
-                style={[
+                disabled={!isReached}
+                onPress={() => setSelectedTier(tier)}
+                accessibilityRole={isReached ? 'button' : undefined}
+                accessibilityLabel={isReached ? `Revoir le palier ${TIER_LABEL[tier]}` : undefined}
+                style={({ pressed }) => [
                   styles.card,
                   !isReached && styles.cardLocked,
+                  pressed && isReached && { opacity: 0.85 },
                 ]}
               >
                 <View
@@ -162,7 +176,7 @@ export default function PaliersGalleryScreen() {
                     )}
                   </>
                 )}
-              </View>
+              </Pressable>
             );
           })}
         </View>
@@ -172,6 +186,16 @@ export default function PaliersGalleryScreen() {
           zéro — ce qui est posé est posé. [copy à valider]
         </Text>
       </ScrollView>
+
+      {/* Relecture : taper une carte de palier atteint rouvre la modale palier
+          (vidéo + message). Pas de `onViewGallery` — on est déjà dans la galerie. */}
+      <TierReachedModal
+        visible={selectedTier != null}
+        tierId={selectedTier}
+        isFirstReach
+        streakValue={streak}
+        onClose={() => setSelectedTier(null)}
+      />
     </SafeAreaView>
   );
 }

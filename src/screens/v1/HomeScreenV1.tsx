@@ -655,14 +655,9 @@ export default function HomeScreenV1() {
             setPendingCharniere(null);
           }
         }}
-        onViewGallery={
-          tierModal?.isFirstReach
-            ? () => {
-                setTierModal(null);
-                navigation.navigate('PaliersGallery');
-              }
-            : undefined
-        }
+        // Bouton « Voir mes paliers » retiré de la modale (redondant avec le
+        // Profil → galerie, et il faisait perdre la vidéo en fermant la modale).
+        // La relecture se fait désormais depuis PaliersGalleryScreen (carte → modale).
       />
 
       <JourCharniereScreen
@@ -678,10 +673,10 @@ export default function HomeScreenV1() {
             navigation.navigate('Paywall');
           }
         }}
-        onViewGallery={() => {
-          setCharniereDay(null);
-          navigation.navigate('PaliersGallery');
-        }}
+        // Raccourci « Voir mes paliers » retiré de la charnière J14 : la galerie
+        // est désormais accessible uniquement via Profil (PaliersGallery n'est
+        // plus déclaré dans HomeStack — évite la collision de route qui bloquait
+        // la navigation). Voir plan Fix B.
       />
 
       <WelcomeVideoScreen
