@@ -132,8 +132,13 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
    *    sécurité.
    *  - User connecté + row présente → source de vérité Supabase
    */
-  const load = useCallback(async () => {
-    setLoading(true);
+  const load = useCallback(async (opts?: { silent?: boolean }) => {
+    // `silent` : rafraîchit sans lever le flag global `loading`. Évite que le
+    // RootNavigator bascule sur LoadingScreen (qui démonterait toute la nav)
+    // sur un reload transitoire — ex : PaywallScreen qui reload à son ouverture
+    // provoquait un retour à l'accueil au 1er clic. Le boot initial reste
+    // non-silent (affiche bien le LoadingScreen au démarrage).
+    if (!opts?.silent) setLoading(true);
     try {
       if (!user) {
         // Mode anonyme : AsyncStorage
@@ -172,7 +177,7 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
       setState(next);
       await persistLocal(next);
     } finally {
-      setLoading(false);
+      if (!opts?.silent) setLoading(false);
     }
   }, [user, persistLocal]);
 
@@ -280,7 +285,9 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
         state,
         loading,
         isActive,
-        reload: load,
+        // reload silencieux : rafraîchit sans flip du flag loading global
+        // (sinon RootNavigator démonte la nav → retour accueil intempestif).
+        reload: () => load({ silent: true }),
         setMockSubscriptionState,
         resetSubscription,
       }}
