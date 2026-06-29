@@ -100,17 +100,17 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
         'Termine d\'abord tes 14 jours de préparation, ils mettent le terrain en place. La Phase 1 t\'attend ensuite.',
     },
     fin_phase_0: {
-      marker: 'FIN DE LA PHASE 0',
-      title: 'Tu as terminé tes 14 jours.',
+      marker: 'FIN DE TA PRÉPARATION',
+      title: 'Ton corps est prêt.\nLa suite commence.',
       subtitle:
-        'Quatorze jours pour préparer ton corps. La suite — 8 semaines guidées, un pilier par semaine — commence maintenant.',
+        "Quatorze jours t'ont donné un premier ressenti. Maintenant on va plus loin : 8 semaines, un pilier par semaine, pour installer une vitalité qui tient dans le temps.",
       paragraph:
-        'Respiration, alimentation, mindset, mouvement, repos, passion, connexion au vivant, élimination. Chaque semaine isole un terrain pour que tu ressentes le travail dans le détail.',
+        "Respiration, alimentation, mindset, mouvement, repos, passion, connexion au vivant, élimination. Chaque semaine isole un terrain pour que tu ressentes le travail dans le détail — là où la plupart des programmes empilent, nous on affine.",
       ctaParagraph:
-        "Pour continuer, termine ton inscription depuis ton navigateur. Tu seras ramené dans l'app à la fin.",
-      laterAlertTitle: 'Phase 0 acquise',
+        "Pour continuer, termine ton inscription depuis ton navigateur. Tu seras ramené dans l'app à la fin. [copy à valider]",
+      laterAlertTitle: 'Ta préparation est acquise',
       laterAlertMessage:
-        'Tu peux fermer l\'app. Renouvelle quand tu seras prêt pour démarrer la Phase 1.',
+        'Tu peux fermer l\'app. Reviens quand tu veux pour démarrer la Phase 1.',
     },
     expired_phase_1: {
       marker: 'ABONNEMENT EXPIRÉ',
