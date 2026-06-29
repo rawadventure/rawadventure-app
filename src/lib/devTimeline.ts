@@ -126,7 +126,7 @@ function buildPlaceholderEvalRow(
     responses: isInitial ? PLACEHOLDER_INITIAL_RESPONSES : PLACEHOLDER_FINAL_RESPONSES,
     raw_score: isInitial ? 36 : 48,
     normalized_score: isInitial ? 50 : 75,
-    diagnostic_level: isInitial ? 3 : 4,
+    diagnostic_level: (isInitial ? 3 : 4) as 1 | 2 | 3 | 4 | 5,
     engagement_level_recommended: 'progression' as const,
     engagement_level_chosen: 'progression' as const,
     completed_at: completedAt,
