@@ -72,14 +72,33 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const [loading, setLoading] = useState(false);
 
   // Variant copy selon contexte parcours.
-  const variant: 'fin_phase_0' | 'expired_phase_1' | 'expired_post_s8' =
+  //  - decouverte    : J1-J13, conversion précoce (D3) — l'utilisateur explore
+  //    encore ses 14 jours, ne PAS dire "tu as terminé".
+  //  - fin_phase_0   : J14-J16, vraiment en fin de phase initiale.
+  //  - expired_phase_1 / expired_post_s8 : abonnement expiré en cours de route.
+  const variant: 'decouverte' | 'fin_phase_0' | 'expired_phase_1' | 'expired_post_s8' =
     currentPhase === 'post_s8'
       ? 'expired_post_s8'
       : currentDay >= 17
         ? 'expired_phase_1'
-        : 'fin_phase_0';
+        : currentDay >= 14
+          ? 'fin_phase_0'
+          : 'decouverte';
 
   const copy = {
+    decouverte: {
+      marker: 'PHASE 1 À VENIR',
+      title: 'La suite, quand ton corps sera prêt.',
+      subtitle:
+        'Tes 14 premiers jours sont une phase initiale de préparation — l\'étape indispensable pour mettre ton corps en condition avant la suite. Ensuite vient la Phase 1 : 8 semaines guidées, un pilier par semaine.',
+      paragraph:
+        'Respiration, alimentation, mindset, mouvement, repos, passion, connexion au vivant, élimination. Chaque semaine isole un terrain pour que tu ressentes le travail dans le détail.',
+      ctaParagraph:
+        'Tu peux t\'abonner dès maintenant — ton premier mois payant ne démarre qu\'à la fin de tes 14 jours de préparation. [copy à valider]',
+      laterAlertTitle: 'Rien ne presse',
+      laterAlertMessage:
+        'Termine d\'abord tes 14 jours de préparation, ils mettent le terrain en place. La Phase 1 t\'attend ensuite.',
+    },
     fin_phase_0: {
       marker: 'FIN DE LA PHASE 0',
       title: 'Tu as terminé tes 14 jours.',
