@@ -25,6 +25,17 @@ export type OpenExternalOptions = {
   controlsColor?: string;
   /** Style bouton dismiss (iOS). Ignoré Android + web. */
   dismissButtonStyle?: 'done' | 'close' | 'cancel';
+  /**
+   * Comportement web (ignoré natif).
+   *  - `'same-tab'` (défaut) : `window.location.href` — remplace la page.
+   *    À utiliser quand un `await` précède l'appel (sinon popup bloquée Safari).
+   *  - `'new-tab'` : `window.open(_blank)` — l'app reste dans l'onglet
+   *    d'origine, l'utilisateur ferme l'onglet ouvert pour revenir. N'utiliser
+   *    QUE si AUCUN async ne précède l'appel (geste utilisateur direct), sinon
+   *    le navigateur bloque la popup. Fallback automatique sur same-tab si
+   *    `window.open` renvoie null (popup bloquée malgré tout).
+   */
+  webBehavior?: 'same-tab' | 'new-tab';
 };
 
 export type OpenExternalResult =
@@ -37,11 +48,19 @@ export async function openExternal(
   options: OpenExternalOptions = {},
 ): Promise<OpenExternalResult> {
   if (Platform.OS === 'web') {
-    // Sur web, redirige même onglet — évite popup bloquée Safari.
-    // L'utilisateur revient via Back navigateur, ce qui déclenche
-    // un re-mount des écrans React (pas besoin de reload manuel).
     if (typeof window !== 'undefined') {
-      window.location.href = url;
+      if (options.webBehavior === 'new-tab') {
+        // Ouvre un nouvel onglet — l'app reste dans l'onglet d'origine
+        // (utilisateur revient en fermant l'onglet Stripe). Possible
+        // uniquement sans async préalable (geste direct). Fallback same-tab
+        // si la popup est bloquée (window.open renvoie null).
+        const opened = window.open(url, '_blank');
+        if (!opened) window.location.href = url;
+      } else {
+        // Défaut : redirige même onglet — évite popup bloquée Safari après
+        // un await. Retour via Back navigateur (re-mount des écrans React).
+        window.location.href = url;
+      }
     }
     return { type: 'opened' };
   }

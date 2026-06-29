@@ -157,6 +157,10 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
         controlsColor: pillarColors.phase0.text,
         // Permet le close manuel via le bouton "Done" iOS / X Android
         dismissButtonStyle: 'close',
+        // Web : nouvel onglet pour ne pas remplacer l'app (l'URL est construite
+        // sans async avant cet appel → popup autorisée). Évite que l'utilisateur
+        // reste coincé sur la page Stripe sans retour in-app.
+        webBehavior: 'new-tab',
       });
 
       // Reload SubscriptionContext quel que soit le mode de fermeture du
