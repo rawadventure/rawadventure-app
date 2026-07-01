@@ -1,8 +1,29 @@
 # Repositionnement du parcours 14 premiers jours — Cadrage v1
 
-*Doc de cadrage produit. Statut : draft à valider par Stéphane avant tout code. Daté du 18 juin 2026.*
+*Doc de cadrage produit. Daté du 18 juin 2026.*
 
-*Objet : repenser le parcours client des 14 premiers jours (Phase 0). Trois chantiers liés : (1) minimiser le streak et maximiser les paliers, (2) mieux expliquer le parcours / qui on est / pour qui / les bénéfices, (3) redéfinir et affiner le narratif streak vs palier. Le chantier paywall est traité séparément, plus tard.*
+---
+
+## ⚠️ MISE À JOUR 1er juillet 2026 — CETTE SECTION PRIME SUR LE RESTE DU DOC
+
+*Après implémentation et clarification du vocabulaire avec Stéphane, la direction a été précisée. Les décisions A et B de la section 1 ci-dessous (« paliers sur progression », « streak discret ») **NE SONT PAS retenues telles quelles**. Lire ceci en priorité ; le reste du doc est conservé comme trace de la réflexion mais est en partie obsolète.*
+
+**Vocabulaire figé (source de la confusion initiale) :**
+- **Charnière** = un moment d'histoire au **Xe jour du PARCOURS** (progression), peu importe le streak. Écrans : J0 (bienvenue), J3, **J7**, J11, J14, puis S0.1 (J15) / S0.2 (J16). Certaines ont une vidéo (J0, J7, J14, S0.1, S0.2), d'autres non (J3, J11).
+- **Palier de streak** = une **récompense pour X jours d'affilée** (le streak). Chacun a sa vidéo.
+- Ce sont **deux mécaniques distinctes**. « Jour 7 » était ambigu : 7e jour du parcours (charnière) vs 7 jours d'affilée (palier de streak).
+
+**Décisions réellement appliquées (code committé) :**
+1. **J7 = charnière de progression** (7e jour du parcours), plus une récompense de streak. Conforme D19 (J3/J7/J11/J14 charnières). Vidéo `charniere-j7-une-semaine.mp4` (ex-`palier-7j.mp4`).
+2. **Récompenses de streak = 15 / 30 / 60 / 100 / 365** (le palier 7j est supprimé). `TIER_THRESHOLDS` dans `streak.ts`.
+3. **Le streak reste tel quel** (pas rendu discret). Décision B abandonnée.
+4. Les 5 vidéos narratives (J0/J7/J14/J15/J16) sont des **charnières de progression**, pas des récompenses de streak.
+
+**En clair : les récompenses de streak restent liées au streak (pour ceux qui tiennent la série), et les vidéos narratives sont des marqueurs de progression. Les deux coexistent, séparément.**
+
+---
+
+*Objet initial (18 juin) : repenser le parcours client des 14 premiers jours (Phase 0). Trois chantiers : (1) minimiser le streak et maximiser les paliers, (2) mieux expliquer le parcours, (3) redéfinir le narratif streak vs palier. **Voir la mise à jour ci-dessus pour l'état réel.***
 
 ---
 
