@@ -94,7 +94,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
       paragraph:
         'Respiration, alimentation, mindset, mouvement, repos, passion, connexion au vivant, élimination. Chaque semaine isole un terrain pour que tu ressentes le travail dans le détail.',
       ctaParagraph:
-        'Tu peux t\'abonner dès maintenant — ton premier mois payant ne démarre qu\'à la fin de tes 14 jours de préparation. [copy à valider]',
+        'Tu peux t\'abonner dès maintenant pour préparer la suite. Tes jours de préparation restent gratuits ; le paiement démarre à l\'abonnement. [copy à valider]',
       laterAlertTitle: 'Rien ne presse',
       laterAlertMessage:
         'Termine d\'abord tes 14 jours de préparation, ils mettent le terrain en place. La Phase 1 t\'attend ensuite.',
