@@ -113,30 +113,30 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
         'Tu peux fermer l\'app. Reviens quand tu veux pour démarrer la Phase 1.',
     },
     expired_phase_1: {
-      marker: 'ABONNEMENT EXPIRÉ',
+      marker: 'TON ACCÈS EST EN PAUSE',
       title: 'Ta progression Phase 1 est en pause.',
       subtitle:
-        'Ton abonnement a expiré. Aucune progression perdue — tu reprends exactement où tu en étais dès renouvellement.',
+        'Ton abonnement a pris fin. Rien de perdu — tu reprends exactement où tu en étais dès que tu réactives. [copy à valider]',
       paragraph:
-        'Toile, paliers, sessions, évaluations : tout reste enregistré côté serveur. Le programme attend que tu reviennes.',
+        'Toile, paliers, sessions, évaluations : tout reste enregistré côté serveur. Le programme t\'attend.',
       ctaParagraph:
-        'Renouvelle ton abonnement depuis ton navigateur pour réactiver la Phase 1.',
+        'Réactive ton abonnement depuis ton navigateur pour reprendre la Phase 1.',
       laterAlertTitle: 'Parcours en pause',
       laterAlertMessage:
-        'Ton parcours Phase 1 est gelé jusqu\'au renouvellement. Aucune progression perdue. À la prochaine ouverture, tu retombes ici.',
+        'Ton parcours Phase 1 est en pause jusqu\'à la réactivation. Rien de perdu. À la prochaine ouverture, tu retombes ici.',
     },
     expired_post_s8: {
-      marker: 'ABONNEMENT EXPIRÉ',
+      marker: 'TON ACCÈS EST EN PAUSE',
       title: 'Mode consolidation libre en pause.',
       subtitle:
-        'Ton abonnement a expiré. Les 10 semaines guidées restent acquises côté toile et progression.',
+        'Ton abonnement a pris fin. Tout ton parcours guidé reste acquis côté toile et progression. [copy à valider]',
       paragraph:
-        'Renouvelle pour réactiver le mode consolidation libre et continuer à explorer les 8 piliers à ton rythme.',
+        'Réactive pour reprendre le mode consolidation libre et continuer à explorer les 8 piliers à ton rythme.',
       ctaParagraph:
-        'Renouvelle ton abonnement depuis ton navigateur.',
+        'Réactive ton abonnement depuis ton navigateur.',
       laterAlertTitle: 'Consolidation en pause',
       laterAlertMessage:
-        'Tes 10 semaines sont acquises. Renouvelle pour reprendre la consolidation libre.',
+        'Ton parcours reste acquis. Réactive pour reprendre la consolidation libre.',
     },
   }[variant];
 
