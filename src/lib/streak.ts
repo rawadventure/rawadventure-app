@@ -189,9 +189,15 @@ export function applyStreakIncrement(prev: number, increment: number): number {
   return prev;
 }
 
-// ─── Paliers de récompense (§2.6 + D29) ───────────────────────────────────────
+// ─── Paliers de récompense de streak (§2.6 + D29) ─────────────────────────────
+//
+// Récompenses liées au STREAK (jours d'affilée), distinctes des charnières de
+// progression. Le palier 7j a été retiré le 2026-07-01 (décision Stéphane) :
+// le 7e jour est désormais un marqueur de PROGRESSION (charnière J7,
+// JourCharniereScreen), pas une récompense de série. La série démarre donc ses
+// récompenses à 15 jours.
 
-export const TIER_THRESHOLDS = [7, 15, 30, 60, 100, 365] as const;
+export const TIER_THRESHOLDS = [15, 30, 60, 100, 365] as const;
 export type TierId = (typeof TIER_THRESHOLDS)[number];
 
 /**

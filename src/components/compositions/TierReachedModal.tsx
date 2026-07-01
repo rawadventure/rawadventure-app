@@ -52,7 +52,6 @@ export type TierReachedModalProps = {
 
 /** Couleur dominante du badge selon le palier (§5.7 + cohérence palette brand). */
 const TIER_COLOR: Record<TierId, string> = {
-  7: brandColors.sun,
   15: brandColors.alive,
   30: pillarColors.s1.headerBg,
   60: pillarColors.s5.headerBg,
@@ -71,7 +70,6 @@ const SUPABASE_VIDEOS_BASE =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
 
 const TIER_VIDEO_URL: Record<TierId, string | null> = {
-  7: `${SUPABASE_VIDEOS_BASE}/palier-7j.mp4`,
   15: `${SUPABASE_VIDEOS_BASE}/palier-15j.mp4`,
   30: `${SUPABASE_VIDEOS_BASE}/palier-30j.mp4`,
   60: `${SUPABASE_VIDEOS_BASE}/palier-60j.mp4`,
@@ -81,10 +79,6 @@ const TIER_VIDEO_URL: Record<TierId, string | null> = {
 
 /** Message court de premier franchissement par palier (placeholders V1). */
 const TIER_FIRST_MESSAGE: Record<TierId, { title: string; body: string }> = {
-  7: {
-    title: 'Sept jours.',
-    body: "Une semaine. Pense à ça comme à un entraînement, pas à une pilule. Les effets ne sont pas immédiats, et chacun avance à son rythme — c'est normal, ça se construit dans le temps. Ce qui compte, c'est que tu pratiques, jour après jour. Le corps répond dans la durée, pas dans l'instant. [copy à valider]",
-  },
   15: {
     title: 'Quinze jours.',
     body: "Tu as traversé la Phase 0. Les bases sont posées. [copy à valider]",

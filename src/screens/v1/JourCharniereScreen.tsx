@@ -52,12 +52,34 @@ export type JourCharniereScreenProps = {
  *  Session 1 étendu). URL Supabase placeholder en attendant. Le fichier peut
  *  ne pas exister tant que tournage pas fait → fallback gracieux côté Video
  *  component. */
-const J14_VIDEO_URL =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/charniere-j14-fin-phase-0.mp4';
+const CHARNIERE_VIDEO_BASE =
+  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
 
-/** Couleur badge J14 — `brandColors.sun` (jaune doré, même que palier 7j)
- *  pour cohérence visuelle "fin de cycle Phase 0" + ton célébration positif. */
-const J14_BADGE_COLOR = brandColors.sun;
+/**
+ * Jours-charnière "riches" (badge cercle + vidéo Mimi & Jacky), par opposition
+ * aux jours text-only (J3, J11). J7 et J14 sont des moments d'histoire liés à
+ * la PROGRESSION (7e / 14e jour du parcours), pas au streak. La vidéo J7
+ * (`charniere-j7-une-semaine.mp4`, ex-`palier-7j.mp4`) a été repositionnée en
+ * marqueur de progression — décision Stéphane 2026-07-01, conforme D19 :
+ * J3/J7/J11/J14 charnières. La récompense de série démarre désormais à
+ * 15 jours (streak.ts).
+ */
+const RICH_CHARNIERE: Partial<
+  Record<CharniereDay, { videoUrl: string; badgeNumber: string; badgeLabel: string; badgeColor: string }>
+> = {
+  7: {
+    videoUrl: `${CHARNIERE_VIDEO_BASE}/charniere-j7-une-semaine.mp4`,
+    badgeNumber: '7',
+    badgeLabel: 'JOURS',
+    badgeColor: brandColors.sun,
+  },
+  14: {
+    videoUrl: `${CHARNIERE_VIDEO_BASE}/charniere-j14-fin-phase-0.mp4`,
+    badgeNumber: '14',
+    badgeLabel: 'JOURS',
+    badgeColor: brandColors.sun,
+  },
+};
 
 type CharniereCopy = { marker: string; title: string; body: string; cta: string };
 
@@ -77,7 +99,7 @@ const COPY: Record<CharniereDay, CharniereCopy> = {
   7: {
     marker: 'Jour 7 · une semaine',
     title: 'Sept jours.',
-    body: "Une semaine de signaux quotidiens, c'est ce qu'il faut pour que le corps commence à recalibrer son fonctionnement de base. Sommeil un peu plus dense, énergie plus stable au réveil, moins de pics de faim — ce sont des indices, pas des illusions. Tu n'es plus en train d'essayer. Tu pratiques. Et le corps suit.",
+    body: "Une semaine. Pense à ça comme à un entraînement, pas à une pilule. Les effets ne sont pas immédiats, et chacun avance à son rythme — c'est normal, ça se construit dans le temps. Ce qui compte, c'est que tu pratiques, jour après jour. Le corps répond dans la durée, pas dans l'instant. [copy à valider]",
     cta: 'Je continue',
   },
   11: {
@@ -112,11 +134,13 @@ export default function JourCharniereScreen({
   };
   if (!day) return null;
   const copy = COPY[day];
+  const rich = RICH_CHARNIERE[day];
 
-  // Variant riche pour J14 — style palier 7j (badge cercle + vidéo +
-  // "Voir mes paliers"). Décision Stéphane 2026-06-12 : J14 = fin de Phase 0
-  // = moment célébration équivalent palier streak. J3/J11 restent text-only.
-  if (day === 14) {
+  // Variant riche (badge cercle + vidéo) pour les jours-charnière porteurs
+  // d'une vidéo d'histoire : J7 et J14. Ce sont des marqueurs de PROGRESSION
+  // (7e / 14e jour du parcours), pas des récompenses de streak. J3/J11 restent
+  // text-only.
+  if (rich) {
     return (
       <Modal visible={visible} onClose={onClose} variant="fullscreen" context="neutral" dismissable={false}>
         <ScrollView contentContainerStyle={styles.scrollRich}>
@@ -129,26 +153,26 @@ export default function JourCharniereScreen({
             <Text style={styles.bodyRich}>{copy.body}</Text>
           </View>
 
-          {/* Badge cercle "14 JOURS" — couleur sun (cohérence palier 7j). */}
+          {/* Badge cercle "N JOURS" — marqueur de progression. */}
           <View style={styles.badgeWrap}>
-            <View style={[styles.badgeLarge, { backgroundColor: J14_BADGE_COLOR }]}>
-              <Text style={styles.badgeNumber}>14</Text>
-              <Text style={styles.badgeLabel}>JOURS</Text>
+            <View style={[styles.badgeLarge, { backgroundColor: rich.badgeColor }]}>
+              <Text style={styles.badgeNumber}>{rich.badgeNumber}</Text>
+              <Text style={styles.badgeLabel}>{rich.badgeLabel}</Text>
             </View>
           </View>
 
-          {/* Vidéo Mimi & Jacky "Fin de Phase 0" — preview 16:9 + tap fullscreen. */}
+          {/* Vidéo Mimi & Jacky — preview 16:9 + tap fullscreen. */}
           <Pressable
             onPress={openVideoFullscreen}
             style={styles.videoPreview}
             accessibilityRole="button"
-            accessibilityLabel="Lire la vidéo de fin de Phase 0"
+            accessibilityLabel="Lire la vidéo"
           >
             <Video
               ref={(r) => {
                 videoRef.current = r;
               }}
-              source={{ uri: J14_VIDEO_URL }}
+              source={{ uri: rich.videoUrl }}
               style={StyleSheet.absoluteFill}
               resizeMode={ResizeMode.COVER}
               isLooping={false}

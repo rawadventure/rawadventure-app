@@ -200,10 +200,12 @@ export default function HomeScreenV1() {
   // Map currentDay (validation-based, D38) → IA-14 jour-charnière. Déclenchement
   // à la VALIDATION du jour (après IA-15). currentDay = jour de progression
   // (compte de validations + 1) — découplé du streak calendaire.
-  // Sprint 31 — J7 charnière fusionnée dans palier 7j (TierReachedModal).
-  // J3 / J11 / J14 restent des charnières indépendantes.
+  // J7 repositionné en charnière de PROGRESSION (jour 7 du parcours), décision
+  // Stéphane 2026-07-01 — conforme D19 (J3/J7/J11/J14 charnières). N'est plus
+  // une récompense de streak (le palier de streak 7j est supprimé, cf. streak.ts).
   const CHARNIERE_BY_DAY: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
     3: { day: 3, flag: 'j3_charniere' },
+    7: { day: 7, flag: 'j7_charniere' },
     11: { day: 11, flag: 'j11_charniere' },
     14: { day: 14, flag: 'j14_charniere' },
   };

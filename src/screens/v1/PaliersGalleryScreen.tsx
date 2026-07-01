@@ -36,7 +36,6 @@ import {
 import { getInterFamily } from '../../theme';
 
 const TIER_COLOR: Record<TierId, string> = {
-  7: brandColors.sun,
   15: brandColors.alive,
   30: pillarColors.s1.headerBg,
   60: pillarColors.s5.headerBg,
@@ -45,7 +44,6 @@ const TIER_COLOR: Record<TierId, string> = {
 };
 
 const TIER_LABEL: Record<TierId, string> = {
-  7: '7 jours',
   15: '15 jours',
   30: '30 jours',
   60: '60 jours',
@@ -54,7 +52,6 @@ const TIER_LABEL: Record<TierId, string> = {
 };
 
 const TIER_TAGLINE: Record<TierId, string> = {
-  7: 'Première semaine bouclée.',
   15: 'Cap des deux semaines.',
   30: 'Un mois de pratique.',
   60: 'Deux mois de continuité.',
