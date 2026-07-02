@@ -21,8 +21,28 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { Platform } from 'react-native';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
+
+/**
+ * URL de base pour les redirects auth. Sur web PWA, retourne l'origin
+ * courant (ex: https://app.rawadventure.world). Sur natif iOS/Android,
+ * retourne le custom scheme deep link `rawadventure://`.
+ *
+ * Permet aux emails de confirmation / reset password d'ouvrir le bon
+ * endroit selon la plateforme du user au moment du signup.
+ */
+function authRedirectBase(): string {
+  if (Platform.OS === 'web') {
+    // window.location.origin dispo côté web uniquement
+    if (typeof window !== 'undefined' && window.location?.origin) {
+      return window.location.origin;
+    }
+    return 'https://app.rawadventure.world';
+  }
+  return 'rawadventure://';
+}
 
 export type AuthResult = {
   user: User | null;
@@ -127,10 +147,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Sprint B email confirm — passe le redirect deep link pour que le clic
       // sur le lien email ouvre l'app et déclenche `SIGNED_IN`. Si Supabase a
       // "Confirm email" OFF en dashboard, `data.session` arrive directement.
+      const base = authRedirectBase();
+      const emailRedirectTo =
+        Platform.OS === 'web'
+          ? `${base}/confirm-email`
+          : `${base}confirm-email`;
       const { data, error } = await supabase.auth.signUp({
         email,
         password,
-        options: { emailRedirectTo: 'rawadventure://confirm-email' },
+        options: { emailRedirectTo },
       });
       return { user: data.user ?? null, error };
     },
@@ -146,8 +171,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // Deep link cible IA-Reset. Le scheme `rawadventure://` est déclaré
       // dans app.json. Supabase ajoute ses tokens en fragment d'URL et
       // déclenche `PASSWORD_RECOVERY` côté client à l'ouverture.
+      const base = authRedirectBase();
+      const redirectTo =
+        Platform.OS === 'web'
+          ? `${base}/reset-password`
+          : `${base}reset-password`;
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: 'rawadventure://reset-password',
+        redirectTo,
       });
       return { error };
     },

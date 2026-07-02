@@ -1,4 +1,5 @@
 import 'react-native-url-polyfill/auto';
+import { Platform } from 'react-native';
 import { createClient } from '@supabase/supabase-js';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -16,6 +17,9 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    detectSessionInUrl: false,
+    // Sur web PWA, autodétection des tokens dans l'URL fragment (après clic
+    // sur lien email confirmation / reset password) → session créée auto.
+    // Sur natif, on gère via deep link handler + supabase.auth.setSession.
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
