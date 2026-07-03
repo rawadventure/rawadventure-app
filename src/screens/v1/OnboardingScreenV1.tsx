@@ -345,7 +345,7 @@ function SlideQuestionnaireP1({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.slideTitle, styles.center]}>Aujourd'hui, ton énergie elle est où ?</Text>
+      <Text style={[styles.slideTitle, styles.center]}>Aujourd'hui, ton énergie elle est où ?</Text>
       <View style={{ marginTop: space[5] }}>
         <Scale15
           value={(answers.energy as Scale15Value | undefined) ?? null}
@@ -357,7 +357,7 @@ function SlideQuestionnaireP1({
       </View>
 
       <Text style={[styles.slideTitle, styles.center, { marginTop: space[7] }]}>
-        Ton corps, il se sent :
+        Ton corps, il se sent :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {BODY_OPTIONS.map((opt) => (
@@ -382,7 +382,7 @@ function SlideQuestionnaireP2({
 }) {
   return (
     <View style={styles.slideWrapCenter}>
-      <Text style={[styles.slideTitle, styles.center]}>En ce moment, ta tête elle est :</Text>
+      <Text style={[styles.slideTitle, styles.center]}>En ce moment, ta tête elle est :</Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {MENTAL_OPTIONS.map((opt) => (
           <ChoiceChip
@@ -395,7 +395,7 @@ function SlideQuestionnaireP2({
       </View>
 
       <Text style={[styles.slideTitle, styles.center, { marginTop: space[7] }]}>
-        Tu es prêt à t'engager :
+        Tu es prêt à t'engager :
       </Text>
       <View style={[styles.chipRow, styles.centerWrap]}>
         {MOTIVATION_OPTIONS.map((opt) => (
@@ -555,6 +555,8 @@ const styles = StyleSheet.create({
   centerWrap: { justifyContent: 'center' },
   slideTitle: {
     ...interTextStyle('display'),
+    fontSize: 34,
+    lineHeight: 38,
     color: pillarColors.phase0.text,
   },
   slideBody: {
