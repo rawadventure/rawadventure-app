@@ -4,11 +4,16 @@
  * Extrait du pattern dupliqué dans WelcomeVideoScreen / JourCharniereScreen /
  * S01Screen / S02Screen / PillarOverviewScreen / TierReachedModal.
  *
- * Natif : tap → lecteur fullscreen (`presentFullscreenPlayer`) puis lecture.
- * Web : `presentFullscreenPlayer` n'existe pas (throw) — tap → lecture inline
- * avec les contrôles natifs du navigateur. La preview repose sur le fragment
- * média `#t=1` (peint la frame à 1s, y compris iOS Safari) ; `positionMillis`
- * est ignoré côté web. Un poster optionnel peut remplacer la frame auto.
+ * Tap → lecteur fullscreen (`presentFullscreenPlayer`) puis lecture, sur
+ * natif ET web : expo-av web supporte le fullscreen (requestFullscreen
+ * standard, fallback `webkitEnterFullScreen` iOS Safari). Sur web le
+ * fullscreen peut échouer au premier essai si les métadonnées vidéo ne sont
+ * pas encore chargées (`InvalidStateError`) — on re-tente une fois dès que
+ * la lecture démarre (onPlaybackStatusUpdate). Filet : lecture inline avec
+ * contrôles natifs du navigateur si le fullscreen reste indisponible.
+ *
+ * Preview : poster embarqué (registre video-posters) — iOS Safari ne peint
+ * jamais la frame d'une vidéo en pause, ni via positionMillis ni via #t=1.
  *
  * Chaque écran appelant passe SA vidéo (`uri`) et, si fourni, SON poster.
  */
@@ -23,7 +28,7 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import { Video, ResizeMode, type AVPlaybackStatus } from 'expo-av';
 import { Play } from 'lucide-react-native';
 import { radiusV1 } from '../../theme';
 import { getVideoPoster } from '../../lib/video-posters';
@@ -48,6 +53,9 @@ export function VideoPreview({
 }: VideoPreviewProps) {
   const videoRef = useRef<Video | null>(null);
   const [webPlaying, setWebPlaying] = useState(false);
+  // Fullscreen raté au tap (métadonnées pas prêtes) → re-tenter dès que la
+  // lecture démarre. Une seule re-tentative.
+  const pendingFullscreenRef = useRef(false);
 
   const sourceUri = isWeb ? `${uri}#t=1` : uri;
 
@@ -57,25 +65,35 @@ export function VideoPreview({
   const poster = posterUri ? { uri: posterUri } : getVideoPoster(uri);
 
   const handlePress = async () => {
-    if (isWeb) {
-      try {
-        await videoRef.current?.setStatusAsync({ shouldPlay: true });
-        setWebPlaying(true);
-      } catch (e) {
-        console.warn('VideoPreview — lecture web échouée', e);
-      }
-      return;
-    }
-    // Fullscreen et lecture séparés : un échec fullscreen ne bloque pas la lecture.
+    // Fullscreen et lecture séparés : un échec fullscreen ne bloque pas la
+    // lecture. Sur web, le fullscreen échoue si la vidéo n'a encore rien
+    // chargé — flag posé pour re-tenter au démarrage de la lecture.
     try {
       await videoRef.current?.presentFullscreenPlayer();
     } catch (e) {
-      console.warn('VideoPreview — fullscreen indisponible', e);
+      pendingFullscreenRef.current = true;
+      console.warn('VideoPreview — fullscreen différé', e);
     }
     try {
-      await videoRef.current?.playAsync();
+      await videoRef.current?.setStatusAsync({ shouldPlay: true });
     } catch (e) {
       console.warn('VideoPreview — lecture échouée', e);
+    }
+    if (isWeb) {
+      // Masque poster + overlay ; contrôles natifs en filet si le fullscreen
+      // reste indisponible.
+      setWebPlaying(true);
+    }
+  };
+
+  const handleStatusUpdate = (status: AVPlaybackStatus) => {
+    if (!pendingFullscreenRef.current) return;
+    if (status.isLoaded && status.isPlaying) {
+      pendingFullscreenRef.current = false;
+      videoRef.current?.presentFullscreenPlayer().catch(() => {
+        // Fullscreen refusé (jeton de geste expiré) — l'inline avec
+        // contrôles fait le travail.
+      });
     }
   };
 
@@ -98,6 +116,7 @@ export function VideoPreview({
         shouldPlay={false}
         useNativeControls={isWeb && webPlaying}
         positionMillis={isWeb ? undefined : 1000}
+        onPlaybackStatusUpdate={handleStatusUpdate}
       />
       {poster && !webPlaying && (
         <Image
