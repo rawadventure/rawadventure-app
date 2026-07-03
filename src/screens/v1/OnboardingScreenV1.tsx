@@ -62,6 +62,13 @@ import {
 
 export type OnboardingScreenV1Props = {
   onComplete: (answers: Record<string, string>) => Promise<void> | void;
+  /**
+   * Sprint C auth PWA — lien "J'ai déjà un compte" sur la slide 1.
+   * Cas d'usage : user inscrit dans Safari qui ouvre la PWA installée
+   * (storage iOS séparé → contexte vierge) — il se connecte directement
+   * sans refaire les 10 slides. Optionnel : absent = lien masqué.
+   */
+  onAlreadyHaveAccount?: () => void;
 };
 
 type Answers = OnboardingAnswers;
@@ -123,7 +130,7 @@ const PROFILE_COPY: Record<string, { title: string; message: string }> = {
   },
 };
 
-export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Props) {
+export default function OnboardingScreenV1({ onComplete, onAlreadyHaveAccount }: OnboardingScreenV1Props) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [commitChecked, setCommitChecked] = useState(false);
@@ -241,6 +248,15 @@ export default function OnboardingScreenV1({ onComplete }: OnboardingScreenV1Pro
               label="Précédente"
               variant="ghost"
               onPress={goBack}
+              fullWidth
+              context="phase0"
+            />
+          )}
+          {index === 0 && onAlreadyHaveAccount && (
+            <Button
+              label="J'ai déjà un compte"
+              variant="ghost"
+              onPress={onAlreadyHaveAccount}
               fullWidth
               context="phase0"
             />

@@ -84,6 +84,11 @@ export default function RootNavigator() {
   // fenêtre D24 (<4h avant minuit local), on affiche IA-10b avant le hub.
   const [awaitingStartChoice, setAwaitingStartChoice] = useState(false);
 
+  // Sprint C auth PWA — connexion demandée depuis la slide 1 onboarding
+  // (user déjà inscrit ailleurs qui ouvre un contexte vierge, typiquement la
+  // PWA installée après un signup fait dans Safari). Bypasse les 10 slides.
+  const [loginRequested, setLoginRequested] = useState(false);
+
   // Chargement initial (auth + données + subscription)
   if (authLoading || progressLoading || subscriptionLoading) {
     return <LoadingScreen />;
@@ -116,11 +121,29 @@ export default function RootNavigator() {
     return <LoadingScreen />;
   }
 
+  // 0.8 Sprint C auth PWA — connexion directe demandée depuis la slide 1.
+  //     Session arrivée → la condition tombe et le routing normal reprend
+  //     (onboarding_done remote = true pour un compte existant → hub).
+  if (!session && loginRequested) {
+    return (
+      <RegisterScreen
+        initialMode="signin"
+        onSignupRedirect={() => setLoginRequested(false)}
+        onRegistered={({ requiresStartChoice }) => {
+          if (requiresStartChoice) {
+            setAwaitingStartChoice(true);
+          }
+        }}
+      />
+    );
+  }
+
   // 1. Onboarding pas terminé → 10 slides (mode anonyme si pas de session,
   //    Supabase si session existante)
   if (!onboardingDone) {
     return (
       <OnboardingScreen
+        onAlreadyHaveAccount={() => setLoginRequested(true)}
         onComplete={async (answers) => {
           // Calcule l'ID profil dynamique à partir des réponses brutes.
           const profileId = computeProfileDynamicId({

@@ -63,9 +63,26 @@ export type RegisterScreenProps = {
    * automatiquement (saute IA-10 et IA-10b puisque l'utilisateur a déjà tout).
    */
   onRegistered: (args: { requiresStartChoice: boolean }) => void;
+  /**
+   * Sprint C auth PWA — mode initial forcé. `signin` quand on arrive depuis
+   * le lien "J'ai déjà un compte" de la slide 1 onboarding.
+   */
+  initialMode?: 'register' | 'signin';
+  /**
+   * Sprint C auth PWA — présent quand l'écran est ouvert depuis la slide 1
+   * onboarding (entrée connexion). Le toggle "Créer un compte" appelle alors
+   * ce callback (retour onboarding, le vrai chemin de création) au lieu de
+   * basculer en mode register — un signup ici court-circuiterait les slides
+   * et créerait un compte sans données d'onboarding.
+   */
+  onSignupRedirect?: () => void;
 };
 
-export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
+export default function RegisterScreen({
+  onRegistered,
+  initialMode,
+  onSignupRedirect,
+}: RegisterScreenProps) {
   const {
     signUpWithPassword,
     signInWithPassword,
@@ -76,7 +93,9 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
   const { migrateLocalToRemote, markPendingMigration } = useProgress();
   // Si on arrive ici suite à une session expirée (Sprint C polish auth),
   // on bascule directement sur le mode signin pour réduire la friction.
-  const [mode, setMode] = useState<Mode>(sessionExpired ? 'signin' : 'register');
+  const [mode, setMode] = useState<Mode>(
+    initialMode ?? (sessionExpired ? 'signin' : 'register'),
+  );
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -282,6 +301,10 @@ export default function RegisterScreen({ onRegistered }: RegisterScreenProps) {
               onPress={() => {
                 if (isForgot) {
                   setMode('signin');
+                } else if (!isRegister && onSignupRedirect) {
+                  // Entrée depuis la slide 1 onboarding : la création de
+                  // compte passe par l'onboarding complet, pas par ce toggle.
+                  onSignupRedirect();
                 } else {
                   setMode(isRegister ? 'signin' : 'register');
                 }
