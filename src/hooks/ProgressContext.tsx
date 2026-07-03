@@ -918,6 +918,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         })
         .eq('id', userId);
 
+      // Le loadData() déclenché par l'arrivée de la session a pu lire
+      // onboarding_done=false AVANT ce write (race) et écraser le state →
+      // OnboardingScreen re-affiché à tort. On repose le state tout de suite ;
+      // le re-load post-migration (effet pendingMigration) re-synchronisera
+      // le reste depuis le remote.
+      setOnboardingDone(true);
+
       // 2. streak_history (Sprint 24 : table `progress` plus alimentée
       //    en mode anonyme — validateDay l'écrit directement quand l'user
       //    est connecté).
@@ -1105,11 +1112,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       try {
         await migrateLocalToRemote(pendingMigration.userId, pendingMigration.accountCreatedAt);
         await clearPendingMigration();
+        // Re-hydrate depuis le remote : le loadData() concurrent déclenché par
+        // l'arrivée de la session a pu lire un profil pré-migration
+        // (onboarding_done=false) — sans ce re-load l'user retombe sur
+        // l'onboarding jusqu'au prochain reload manuel.
+        await loadData();
       } catch (e) {
         // Migration échouée — on garde pendingMigration pour retry au prochain load.
         console.warn('Pending migration failed', e);
       }
     })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, pendingMigration, migrateLocalToRemote, clearPendingMigration]);
 
   return (
