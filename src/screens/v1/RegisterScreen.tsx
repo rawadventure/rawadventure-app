@@ -181,21 +181,9 @@ export default function RegisterScreen({
       // EmailPendingScreen via RootNavigator. La migration se déclenche
       // automatiquement quand la session arrive post-confirmation.
       //
-      // Note : on stocke aussi l'email pour permettre le renvoi du lien.
-      await markPendingMigration(user.id, accountCreatedAtIso);
-      // Patch direct du pending pour ajouter l'email (markPendingMigration
-      // ne le prend pas en arg pour rester compatible reset). Re-set ici.
-      const { default: AsyncStorage } = await import(
-        '@react-native-async-storage/async-storage'
-      );
-      await AsyncStorage.setItem(
-        'pending_migration',
-        JSON.stringify({
-          userId: user.id,
-          accountCreatedAt: accountCreatedAtIso,
-          email: email.trim(),
-        }),
-      );
+      // L'email est stocké AVEC le pending : EmailPendingScreen en a besoin
+      // immédiatement (saisie code OTP + renvoi) sans attendre un reload.
+      await markPendingMigration(user.id, accountCreatedAtIso, email.trim());
 
       // Si Supabase a renvoyé une session immédiatement (Confirm email OFF
       // côté dashboard), on peut migrer tout de suite et passer à la suite.

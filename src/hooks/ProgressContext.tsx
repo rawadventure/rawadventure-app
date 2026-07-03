@@ -126,7 +126,7 @@ interface ProgressContextType {
   migrateLocalToRemote: (userId: string, accountCreatedAtIso: string) => Promise<void>;
   /** Sprint B email confirm — pose la pendingMigration en AsyncStorage au signup
    *  (avant confirmation email). Sera consommée par useEffect quand session arrive. */
-  markPendingMigration: (userId: string, accountCreatedAtIso: string) => Promise<void>;
+  markPendingMigration: (userId: string, accountCreatedAtIso: string, email?: string) => Promise<void>;
   /** Sprint B email confirm — true si signup fait + confirmation email en attente. */
   pendingMigration: PendingMigration | null;
   /** Sprint B email confirm — efface la pendingMigration (annulation ou reset). */
@@ -502,9 +502,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   }, []);
 
   // Sprint B email confirm — pendingMigration getters/setters.
+  // `email` alimente EmailPendingScreen (affichage + verifyOtp + resend) —
+  // il doit être dans le STATE dès le signup, pas seulement en AsyncStorage,
+  // sinon l'écran est inutilisable jusqu'au prochain reload du bundle.
   const markPendingMigration = useCallback(
-    async (userId: string, accountCreatedAtIso: string) => {
-      const pm: PendingMigration = { userId, accountCreatedAt: accountCreatedAtIso };
+    async (userId: string, accountCreatedAtIso: string, email?: string) => {
+      const pm: PendingMigration = { userId, accountCreatedAt: accountCreatedAtIso, email };
       setPendingMigrationState(pm);
       await AsyncStorage.setItem(LOCAL_KEYS.pendingMigration, JSON.stringify(pm));
     },
