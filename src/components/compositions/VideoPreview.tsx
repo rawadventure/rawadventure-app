@@ -102,7 +102,7 @@ export function VideoPreview({
       {poster && !webPlaying && (
         <Image
           source={poster}
-          style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
+          style={StyleSheet.absoluteFill}
           resizeMode="cover"
           accessibilityIgnoresInvertColors
         />
