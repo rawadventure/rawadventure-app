@@ -205,10 +205,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const resendConfirmationEmail = useCallback(
     async (email: string): Promise<{ error: AuthError | null }> => {
+      const base = authRedirectBase();
+      const emailRedirectTo =
+        Platform.OS === 'web'
+          ? `${base}/confirm-email`
+          : `${base}confirm-email`;
       const { error } = await supabase.auth.resend({
         type: 'signup',
         email,
-        options: { emailRedirectTo: 'rawadventure://confirm-email' },
+        options: { emailRedirectTo },
       });
       return { error };
     },

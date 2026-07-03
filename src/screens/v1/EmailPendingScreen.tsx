@@ -7,10 +7,12 @@
  *  - pendingMigration ≠ null (signup fait, en attente clic lien email)
  *
  * Une fois que l'utilisateur clique le lien dans l'email reçu, Supabase
- * confirme + signe in via deep link `rawadventure://confirm-email`,
- * la session arrive via `onAuthStateChange`, ProgressContext déclenche
- * la migration différée (cf. useEffect dans ProgressContext), RootNavigator
- * bascule sur TabNavigator.
+ * confirme + signe in via redirect intelligent (web:
+ * `https://app.rawadventure.world/confirm-email` avec tokens en fragment,
+ * détection auto via detectSessionInUrl ; natif: deep link
+ * `rawadventure://confirm-email`). La session arrive via `onAuthStateChange`,
+ * ProgressContext déclenche la migration différée (cf. useEffect dans
+ * ProgressContext), RootNavigator bascule sur TabNavigator.
  *
  * Identifiant écran : IA-EmailPending (Sprint B).
  */
@@ -106,12 +108,19 @@ export default function EmailPendingScreen() {
           </View>
 
           <View style={styles.actions}>
-            <Button
-              label="Ouvrir mon app Mail"
-              onPress={handleOpenMail}
-              fullWidth
-              size="large"
-            />
+            {Platform.OS !== 'web' && (
+              <Button
+                label="Ouvrir mon app Mail"
+                onPress={handleOpenMail}
+                fullWidth
+                size="large"
+              />
+            )}
+            {Platform.OS === 'web' && (
+              <Text style={styles.webHint}>
+                Ouvre ton client mail habituel dans un autre onglet.
+              </Text>
+            )}
             <Button
               label="Renvoyer l'email"
               variant="ghost"
@@ -170,4 +179,11 @@ const styles = StyleSheet.create({
     marginTop: space[4],
   },
   actions: { gap: space[3], marginBottom: space[5] },
+  webHint: {
+    ...interTextStyle('body'),
+    color: pillarColors.phase0.text,
+    opacity: 0.8,
+    textAlign: 'center',
+    marginBottom: space[2],
+  },
 });
