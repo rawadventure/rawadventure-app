@@ -22,12 +22,12 @@
  * cette modale). À implémenter en Sprint 6 IA-14 / Sprint 7 S0.
  */
 
-import React, { useRef } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
-import { Play, Sparkle } from 'lucide-react-native';
+import React from 'react';
+import { Image, StyleSheet, Text, View } from 'react-native';
+import { Sparkle } from 'lucide-react-native';
 import { Modal } from '../primitives/Modal';
 import { Button } from '../primitives/Button';
+import { VideoPreview } from './VideoPreview';
 import {
   brandColors,
   interTextStyle,
@@ -112,26 +112,10 @@ export function TierReachedModal({
   onClose,
   onViewGallery,
 }: TierReachedModalProps) {
-  const videoRef = useRef<Video | null>(null);
-
   if (!tierId) return null;
 
   const color = TIER_COLOR[tierId];
   const videoUrl = TIER_VIDEO_URL[tierId];
-
-  /**
-   * Lance le player en plein écran (iOS : QuickTime-style natif, Android :
-   * ExoPlayer fullscreen). User tap preview → on appelle l'API native
-   * via la ref Video. Auto-play une fois en fullscreen.
-   */
-  const openVideoFullscreen = async () => {
-    try {
-      await videoRef.current?.presentFullscreenPlayer();
-      await videoRef.current?.playAsync();
-    } catch (e) {
-      console.warn('TierReachedModal — fullscreen launch failed', e);
-    }
-  };
 
   if (isFirstReach) {
     const message = TIER_FIRST_MESSAGE[tierId];
@@ -156,38 +140,14 @@ export function TierReachedModal({
             </View>
           </View>
 
-          {/* Vidéo Mimi & Jacky — Supabase Storage.
-              UX : preview compacte 16:9 cliquable → tap ouvre player natif
-              plein écran (fullscreen iOS/Android). Pas d'auto-play sur
+          {/* Vidéo Mimi & Jacky — Supabase Storage. Pas d'auto-play sur
               modale ouverture — l'utilisateur déclenche la lecture quand
               il a fini de lire le titre + body au-dessus. */}
           {videoUrl ? (
-            <Pressable
-              onPress={openVideoFullscreen}
-              style={styles.videoPreview}
-              accessibilityRole="button"
+            <VideoPreview
+              uri={videoUrl}
               accessibilityLabel={`Lire la vidéo du palier ${tierId} jours`}
-            >
-              <Video
-                ref={(r) => {
-                  videoRef.current = r;
-                }}
-                source={{ uri: videoUrl }}
-                style={StyleSheet.absoluteFill}
-                resizeMode={ResizeMode.COVER}
-                isLooping={false}
-                shouldPlay={false}
-                // positionMillis avance le frame d'1s pour avoir un poster
-                // déjà reconnaissable (visage Mimi/Jacky en place, pas
-                // l'écran noir du début).
-                positionMillis={1000}
-              />
-              <View style={styles.videoPlayOverlay} pointerEvents="none">
-                <View style={styles.videoPlayCircle}>
-                  <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-                </View>
-              </View>
-            </Pressable>
+            />
           ) : (
             <View style={styles.videoPlaceholder}>
               <LogoRawAdventure variant="filigrane" size={48} opacity={0.18} color={brandColors.deep} />
@@ -285,34 +245,6 @@ const styles = StyleSheet.create({
     gap: space[3],
     borderWidth: 1.5,
     borderColor: brandColors.deep + '22',
-  },
-  videoPreview: {
-    borderRadius: radiusV1.xl,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    // Preview compacte 16:9 paysage (~180px hauteur) avec play overlay.
-    // Tap → openVideoFullscreen() → player iOS/Android natif portrait plein
-    // écran, parfait pour visage Mimi/Jacky en 9:16 source.
-    width: '100%',
-    aspectRatio: 16 / 9,
-    alignSelf: 'center',
-    position: 'relative',
-  },
-  videoPlayOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-  },
-  videoPlayCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    // Décalage léger Play icon (triangle pas parfaitement centré visuellement).
-    paddingLeft: 4,
   },
   videoText: {
     ...interTextStyle('bodySmall'),

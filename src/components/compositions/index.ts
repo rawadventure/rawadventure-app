@@ -18,3 +18,6 @@ export type { TierReachedModalProps } from './TierReachedModal';
 
 export { StreakBubble } from './StreakBubble';
 export type { StreakBubbleProps } from './StreakBubble';
+
+export { VideoPreview } from './VideoPreview';
+export type { VideoPreviewProps } from './VideoPreview';

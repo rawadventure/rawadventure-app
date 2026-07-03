@@ -18,7 +18,7 @@
  * Référence IA : IA-42. Pattern : F (liste/galerie).
  */
 
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   Pressable,
   ScrollView,
@@ -29,9 +29,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Video, ResizeMode } from 'expo-av';
-import { ChevronLeft, Circle, CheckCircle2, Play } from 'lucide-react-native';
+import { ChevronLeft, Circle, CheckCircle2 } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
+import { VideoPreview } from '../../components/compositions/VideoPreview';
 import { LogoRawAdventure } from '../../components/illustrations';
 import {
   brandColors,
@@ -104,18 +104,7 @@ export default function PillarOverviewScreen() {
   const [sessionsByDay, setSessionsByDay] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  // Ref pour le player vidéo intro pilier — utilisé pour ouvrir le player
-  // natif fullscreen au tap sur la preview.
-  const videoRef = useRef<Video | null>(null);
   const introVideoUrl = PILLAR_INTRO_VIDEO_URL[pillarId] ?? null;
-  const openVideoFullscreen = async () => {
-    try {
-      await videoRef.current?.presentFullscreenPlayer();
-      await videoRef.current?.playAsync();
-    } catch (e) {
-      console.warn('PillarOverview — fullscreen launch failed', e);
-    }
-  };
 
   // Charge engagement + comptage sessions par jour de la semaine
   const fetchData = useCallback(async () => {
@@ -209,32 +198,12 @@ export default function PillarOverviewScreen() {
             )}
 
             {/* Vidéo intro pilier — Brief contenu Session 3. URL Supabase
-                Storage si tournée, fallback placeholder texte sinon.
-                UX : preview 16:9 cliquable → fullscreen iOS natif portrait. */}
+                Storage si tournée, fallback placeholder texte sinon. */}
             {introVideoUrl ? (
-              <Pressable
-                onPress={openVideoFullscreen}
-                style={styles.videoPreview}
-                accessibilityRole="button"
+              <VideoPreview
+                uri={introVideoUrl}
                 accessibilityLabel={`Lire la vidéo d'intro du pilier ${meta.name}`}
-              >
-                <Video
-                  ref={(r) => {
-                    videoRef.current = r;
-                  }}
-                  source={{ uri: introVideoUrl }}
-                  style={StyleSheet.absoluteFill}
-                  resizeMode={ResizeMode.COVER}
-                  isLooping={false}
-                  shouldPlay={false}
-                  positionMillis={1000}
-                />
-                <View style={styles.videoPlayOverlay} pointerEvents="none">
-                  <View style={styles.videoPlayCircle}>
-                    <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-                  </View>
-                </View>
-              </Pressable>
+              />
             ) : (
               <View style={styles.videoPlaceholder}>
                 <LogoRawAdventure variant="filigrane" size={48} opacity={0.22} color={brandColors.deep} />
@@ -447,30 +416,6 @@ const makeStyles = (palette: Palette) =>
       color: brandColors.deep,
       textAlign: 'center',
       opacity: 0.75,
-    },
-    videoPreview: {
-      borderRadius: radiusV1.xl,
-      overflow: 'hidden',
-      backgroundColor: '#000',
-      width: '100%',
-      aspectRatio: 16 / 9,
-      alignSelf: 'center',
-      position: 'relative',
-    },
-    videoPlayOverlay: {
-      ...StyleSheet.absoluteFillObject,
-      alignItems: 'center',
-      justifyContent: 'center',
-      backgroundColor: 'rgba(0, 0, 0, 0.25)',
-    },
-    videoPlayCircle: {
-      width: 64,
-      height: 64,
-      borderRadius: 32,
-      backgroundColor: 'rgba(0, 0, 0, 0.55)',
-      alignItems: 'center',
-      justifyContent: 'center',
-      paddingLeft: 4,
     },
     programSection: { gap: space[2] },
     sectionTitle: {

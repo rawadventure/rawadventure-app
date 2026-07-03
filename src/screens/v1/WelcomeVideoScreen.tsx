@@ -20,16 +20,15 @@
  * Référence IA : IA-12. Pattern : A (écran narratif plein).
  */
 
-import React, { useRef } from 'react';
+import React from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
-import { Play, X } from 'lucide-react-native';
+import { X } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
+import { VideoPreview } from '../../components/compositions/VideoPreview';
 import {
   brandColors,
   interTextStyle,
-  radiusV1,
   space,
 } from '../../theme';
 
@@ -47,16 +46,6 @@ export type WelcomeVideoScreenProps = {
 };
 
 export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideoScreenProps) {
-  const videoRef = useRef<Video | null>(null);
-  const openVideoFullscreen = async () => {
-    try {
-      await videoRef.current?.presentFullscreenPlayer();
-      await videoRef.current?.playAsync();
-    } catch (e) {
-      console.warn('WelcomeVideoScreen — fullscreen launch failed', e);
-    }
-  };
-
   return (
     <Modal visible={visible} onClose={() => {}} variant="fullscreen" context="phase0" dismissable={false}>
       <View style={styles.skipRow}>
@@ -81,30 +70,8 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
           </Text>
         </View>
 
-        {/* Vidéo Mimi & Jacky bienvenue J0 — preview 16:9 + tap fullscreen */}
-        <Pressable
-          onPress={openVideoFullscreen}
-          style={styles.videoPreview}
-          accessibilityRole="button"
-          accessibilityLabel="Lire la vidéo de bienvenue"
-        >
-          <Video
-            ref={(r) => {
-              videoRef.current = r;
-            }}
-            source={{ uri: VIDEO_URL }}
-            style={StyleSheet.absoluteFill}
-            resizeMode={ResizeMode.COVER}
-            isLooping={false}
-            shouldPlay={false}
-            positionMillis={1000}
-          />
-          <View style={styles.videoPlayOverlay} pointerEvents="none">
-            <View style={styles.videoPlayCircle}>
-              <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-            </View>
-          </View>
-        </Pressable>
+        {/* Vidéo Mimi & Jacky bienvenue J0 — preview 16:9 + lecture. */}
+        <VideoPreview uri={VIDEO_URL} accessibilityLabel="Lire la vidéo de bienvenue" />
 
         <View style={styles.notes}>
           <Text style={styles.note}>
@@ -154,30 +121,6 @@ const styles = StyleSheet.create({
   subtitle: {
     ...interTextStyle('bodyLarge'),
     color: brandColors.deep,
-  },
-  videoPreview: {
-    borderRadius: radiusV1.xl,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    width: '100%',
-    aspectRatio: 16 / 9,
-    alignSelf: 'center',
-    position: 'relative',
-  },
-  videoPlayOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-  },
-  videoPlayCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: 4,
   },
   notes: {
     paddingTop: space[3],

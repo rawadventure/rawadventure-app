@@ -22,16 +22,14 @@
  * Référence IA : IA-21. Pattern : A.
  */
 
-import React, { useRef } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Video, ResizeMode } from 'expo-av';
+import React from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import {
   Activity,
   Apple,
   Compass,
   Lightbulb,
   Moon,
-  Play,
   Recycle,
   Sparkle,
   Trees,
@@ -39,6 +37,7 @@ import {
 } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
+import { VideoPreview } from '../../components/compositions/VideoPreview';
 import { LogoRawAdventure } from '../../components/illustrations';
 import {
   brandColors,
@@ -95,16 +94,6 @@ const VIDEO_URL =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-2-roadmap.mp4';
 
 export default function S02Screen({ visible, onStartEvaluation, onLater, onDiscoverSubscription }: S02ScreenProps) {
-  const videoRef = useRef<Video | null>(null);
-  const openVideoFullscreen = async () => {
-    try {
-      await videoRef.current?.presentFullscreenPlayer();
-      await videoRef.current?.playAsync();
-    } catch (e) {
-      console.warn('S02Screen — fullscreen launch failed', e);
-    }
-  };
-
   return (
     <Modal visible={visible} onClose={() => {}} variant="fullscreen" context="neutral" dismissable={false}>
       <ScrollView contentContainerStyle={styles.scroll}>
@@ -123,30 +112,8 @@ export default function S02Screen({ visible, onStartEvaluation, onLater, onDisco
           </Text>
         </View>
 
-        {/* Vidéo Mimi & Jacky introduction Phase 1 — preview 16:9 + tap fullscreen */}
-        <Pressable
-          onPress={openVideoFullscreen}
-          style={styles.videoPreview}
-          accessibilityRole="button"
-          accessibilityLabel="Lire la vidéo d'introduction Phase 1"
-        >
-          <Video
-            ref={(r) => {
-              videoRef.current = r;
-            }}
-            source={{ uri: VIDEO_URL }}
-            style={StyleSheet.absoluteFill}
-            resizeMode={ResizeMode.COVER}
-            isLooping={false}
-            shouldPlay={false}
-            positionMillis={1000}
-          />
-          <View style={styles.videoPlayOverlay} pointerEvents="none">
-            <View style={styles.videoPlayCircle}>
-              <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
-            </View>
-          </View>
-        </Pressable>
+        {/* Vidéo Mimi & Jacky introduction Phase 1 — preview 16:9 + lecture. */}
+        <VideoPreview uri={VIDEO_URL} accessibilityLabel="Lire la vidéo d'introduction Phase 1" />
 
         <Text style={styles.roadmapTitle}>L'ordre des piliers</Text>
 
@@ -258,30 +225,6 @@ const styles = StyleSheet.create({
     color: brandColors.deep,
     textAlign: 'center',
     opacity: 0.7,
-  },
-  videoPreview: {
-    borderRadius: radiusV1.xl,
-    overflow: 'hidden',
-    backgroundColor: '#000',
-    width: '100%',
-    aspectRatio: 16 / 9,
-    alignSelf: 'center',
-    position: 'relative',
-  },
-  videoPlayOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.25)',
-  },
-  videoPlayCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingLeft: 4,
   },
   roadmapTitle: {
     ...interTextStyle('h2'),
