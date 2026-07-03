@@ -15,6 +15,7 @@
 
 import React, { useRef, useState } from 'react';
 import {
+  Image,
   Platform,
   Pressable,
   StyleProp,
@@ -25,6 +26,7 @@ import {
 import { Video, ResizeMode } from 'expo-av';
 import { Play } from 'lucide-react-native';
 import { radiusV1 } from '../../theme';
+import { getVideoPoster } from '../../lib/video-posters';
 
 export type VideoPreviewProps = {
   /** URL mp4 (Supabase Storage public). */
@@ -48,6 +50,11 @@ export function VideoPreview({
   const [webPlaying, setWebPlaying] = useState(false);
 
   const sourceUri = isWeb ? `${uri}#t=1` : uri;
+
+  // Poster : prop explicite > registre embarqué (frame extraite de la vidéo).
+  // Affiché tant que la lecture web n'a pas démarré — iOS Safari ne peint
+  // jamais la frame d'une vidéo en pause, le poster est la preview fiable.
+  const poster = posterUri ? { uri: posterUri } : getVideoPoster(uri);
 
   const handlePress = async () => {
     if (isWeb) {
@@ -85,8 +92,6 @@ export function VideoPreview({
           videoRef.current = r;
         }}
         source={{ uri: sourceUri }}
-        posterSource={posterUri ? { uri: posterUri } : undefined}
-        usePoster={!!posterUri && !webPlaying}
         style={StyleSheet.absoluteFill}
         resizeMode={ResizeMode.COVER}
         isLooping={false}
@@ -94,6 +99,14 @@ export function VideoPreview({
         useNativeControls={isWeb && webPlaying}
         positionMillis={isWeb ? undefined : 1000}
       />
+      {poster && !webPlaying && (
+        <Image
+          source={poster}
+          style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}
+          resizeMode="cover"
+          accessibilityIgnoresInvertColors
+        />
+      )}
       {!webPlaying && (
         <View style={styles.playOverlay} pointerEvents="none">
           <View style={styles.playCircle}>
