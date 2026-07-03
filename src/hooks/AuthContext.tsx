@@ -49,6 +49,21 @@ export type AuthResult = {
   error: AuthError | null;
 };
 
+/**
+ * Sprint C auth PWA — cache mémoire (module, jamais persisté) du mot de passe
+ * saisi au signup. Permet la recovery "J'ai déjà confirmé via le lien" sur
+ * EmailPendingScreen : si l'utilisateur a confirmé en cliquant le lien dans
+ * un AUTRE navigateur (Safari fresh vs PWA installée), le code OTP est
+ * consommé — on retente alors un signInWithPassword silencieux dans le bon
+ * contexte. Perdu au reload du bundle JS : l'écran demande alors le mot de
+ * passe manuellement. Effacé dès qu'une session arrive ou au signOut.
+ */
+let cachedSignupPassword: string | null = null;
+
+export function getCachedSignupPassword(): string | null {
+  return cachedSignupPassword;
+}
+
 interface AuthContextType {
   session: Session | null;
   user: User | null;
@@ -82,6 +97,13 @@ interface AuthContextType {
    * à cliquer le lien.
    */
   resendConfirmationEmail: (email: string) => Promise<{ error: AuthError | null }>;
+  /**
+   * Sprint C auth PWA — vérifie le code OTP 6 chiffres reçu par email
+   * (template Supabase "Confirm signup" avec `{{ .Token }}`). Crée la session
+   * DANS le contexte courant — indispensable sur PWA installée iOS où le
+   * click lien ouvre toujours un Safari fresh au lieu de la PWA.
+   */
+  verifyEmailOtp: (email: string, token: string) => Promise<{ error: AuthError | null }>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -125,6 +147,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (event === 'SIGNED_IN') {
         setSessionExpired(false);
         hadSession = true;
+        // Session établie — le cache signup n'a plus de raison d'exister.
+        cachedSignupPassword = null;
       }
       if (event === 'TOKEN_REFRESHED') {
         hadSession = true;
@@ -157,12 +181,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         password,
         options: { emailRedirectTo },
       });
+      if (!error) {
+        cachedSignupPassword = password;
+      }
       return { user: data.user ?? null, error };
     },
     [],
   );
 
   const signOut = useCallback(async () => {
+    cachedSignupPassword = null;
     await supabase.auth.signOut();
   }, []);
 
@@ -220,6 +248,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const verifyEmailOtp = useCallback(
+    async (email: string, token: string): Promise<{ error: AuthError | null }> => {
+      // `type: 'signup'` = confirmation de compte non confirmé. Si Supabase
+      // renvoyait "token not found" sur un code régénéré par resend, retenter
+      // avec `type: 'email'` serait le fallback documenté — pas observé à ce
+      // jour, pas de branche.
+      const { error } = await supabase.auth.verifyOtp({
+        email,
+        token: token.trim(),
+        type: 'signup',
+      });
+      // Succès → session posée automatiquement → onAuthStateChange SIGNED_IN.
+      return { error };
+    },
+    [],
+  );
+
   return (
     <AuthContext.Provider
       value={{
@@ -236,6 +281,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         updateUserPassword,
         clearPasswordRecoveryMode,
         resendConfirmationEmail,
+        verifyEmailOtp,
       }}
     >
       {children}

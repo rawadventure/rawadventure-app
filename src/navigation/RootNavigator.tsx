@@ -22,10 +22,11 @@
  */
 
 import React, { useState } from 'react';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Platform, View } from 'react-native';
 import { useAuth } from '../hooks/AuthContext';
 import { useProgress } from '../hooks/ProgressContext';
 import OnboardingScreen from '../screens/v1/OnboardingScreenV1';
+import EmailConfirmedFallbackScreen from '../screens/v1/EmailConfirmedFallbackScreen';
 import RegisterScreen from '../screens/v1/RegisterScreen';
 import ResetPasswordConfirmScreen from '../screens/v1/ResetPasswordConfirmScreen';
 import EmailPendingScreen from '../screens/v1/EmailPendingScreen';
@@ -37,6 +38,19 @@ import TabNavigator from './TabNavigator';
 import { brandColors } from '../theme';
 import { computeProfileDynamicId } from '../lib/onboarding';
 import { devNow } from '../lib/devClock';
+
+/**
+ * Détecte l'atterrissage web sur le lien de confirmation email
+ * (`https://app.rawadventure.world/confirm-email#...`). vercel.json rewrite
+ * tout vers index.html, donc le pathname survit au boot de l'app.
+ */
+function isConfirmEmailLanding(): boolean {
+  return (
+    Platform.OS === 'web' &&
+    typeof window !== 'undefined' &&
+    window.location.pathname === '/confirm-email'
+  );
+}
 
 function LoadingScreen() {
   return (
@@ -80,6 +94,26 @@ export default function RootNavigator() {
   //    nouveau mot de passe avant de poursuivre. Sprint A auth.
   if (passwordRecoveryMode) {
     return <ResetPasswordConfirmScreen />;
+  }
+
+  // 0.5 Sprint C auth PWA — lien de confirmation ouvert dans un navigateur
+  //     SANS état local du signup (typique : PWA installée iOS → click lien
+  //     Gmail → Safari fresh). Le compte est confirmé côté Supabase ; on
+  //     invite à retourner dans l'app d'origine au lieu de dérouler
+  //     l'onboarding dans le mauvais contexte. Un Safari classique (non-PWA)
+  //     partage le localStorage → pendingMigration présent → skip, la
+  //     branche 0.6 prend le relais et la migration entre dans l'app.
+  //     `!onboardingDone` : après migration réussie dans CE navigateur, le
+  //     pathname est encore /confirm-email mais l'user est légitime → app.
+  if (isConfirmEmailLanding() && !pendingMigration && !onboardingDone) {
+    return <EmailConfirmedFallbackScreen />;
+  }
+
+  // 0.6 Session arrivée + migration en attente → la migration tourne dans
+  //     ProgressContext (useEffect). Loader plutôt qu'un flash d'onboarding
+  //     pendant que le profil remote passe onboarding_done=true.
+  if (session && pendingMigration) {
+    return <LoadingScreen />;
   }
 
   // 1. Onboarding pas terminé → 10 slides (mode anonyme si pas de session,
