@@ -954,8 +954,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           .upsert(rows, { onConflict: 'user_id,tier_id' });
       }
 
-      // 6. Clear local
-      await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
+      // 6. Clear local — sauf narrative_flags : les drapeaux narratifs sont
+      // local-only (pas de colonne Supabase), les effacer re-déclencherait
+      // les écrans narratifs déjà vus (ex : vidéo J1 re-affichée post-OTP).
+      const keysToClear = Object.values(LOCAL_KEYS).filter(
+        (k) => k !== LOCAL_KEYS.narrativeFlags,
+      );
+      await AsyncStorage.multiRemove(keysToClear);
 
       // 7. Met à jour le state in-memory accountCreatedAt pour que currentDay
       //    se recalcule immédiatement.
