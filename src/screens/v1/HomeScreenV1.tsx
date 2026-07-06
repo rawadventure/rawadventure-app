@@ -128,21 +128,24 @@ export default function HomeScreenV1() {
   } = useProgress();
   const { isActive: subscriptionActive } = useSubscription();
 
-  // J17 auto-start S1 — bascule Phase 1 automatique. Si user a complété
-  // l'éval Respiration en J16 (flag s0_2_screen + currentPillarId resté null
-  // car handleStart sur J16 ne fait pas startPillarWeek), à J17 currentPhase
-  // passe à 'phase_1' et ce useEffect pose currentPillarId + pillarStartedAt
-  // → re-render → Phase1HomeScreen affiché. Cas absence longue D25 traité
-  // pareil (J17+ direct).
+  // J17 auto-start S1 — bascule Phase 1 automatique. À J17+ (currentPhase
+  // 'phase_1') sans pilier en cours, on démarre S1. Cas absence longue D25
+  // traité pareil (J17+ direct).
+  // Audit B2 (2026-07-06) : ne PAS conditionner au flag s0_2_screen — il est
+  // local-only (AsyncStorage) et ne peut se poser qu'à currentDay === 16.
+  // S'il est perdu après J16 (réinstall, données Safari effacées, bascule
+  // Safari ↔ PWA installée), l'exiger bloquait l'utilisateur à vie sur
+  // « En attente de pilier ». À currentPhase 'phase_1', S0 est forcément
+  // derrière nous — le flag n'apporte rien.
+  // Limite connue (suivi audit) : si le storage saute en cours de Phase 1,
+  // currentPillarId (local-only aussi) est perdu → on redémarre à S1 au lieu
+  // du pilier réel. Récupération depuis pillar_evaluations (remote) = chantier
+  // séparé.
   useEffect(() => {
-    if (
-      currentPhase === 'phase_1' &&
-      !currentPillarId &&
-      narrativeFlags.s0_2_screen
-    ) {
+    if (currentPhase === 'phase_1' && !currentPillarId) {
       void startPillarWeek('S1');
     }
-  }, [currentPhase, currentPillarId, narrativeFlags.s0_2_screen, startPillarWeek]);
+  }, [currentPhase, currentPillarId, startPillarWeek]);
 
   // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
   // bouton "(DEV) Valider + jour suivant" dans la modale IA-15.
@@ -221,9 +224,12 @@ export default function HomeScreenV1() {
   useEffect(() => {
     // IA-12 vidéo bienvenue — premier lancement Accueil post-onboarding,
     // peu importe currentDay (IA V3 §IA-12 : "tout premier lancement après
-    // onboarding"). Pas trigger en phase_1/post_s8 (early return en amont
-    // empêche le render de HomeScreenV1).
+    // onboarding"). Garde currentPhase === 'phase_0' (audit B2) : en phase_1
+    // sans pilier (fenêtre transitoire avant l'auto-start S1, ou flags perdus
+    // après J16), ce hub rend brièvement — sans la garde, la vidéo J1 se
+    // rejouait en plein J17+ puis disparaissait au remount.
     if (
+      currentPhase === 'phase_0' &&
       !narrativeFlags.welcome_video &&
       !showWelcomeVideo &&
       !welcomeShownThisSession.current
@@ -284,6 +290,7 @@ export default function HomeScreenV1() {
     }
   }, [
     currentDay,
+    currentPhase,
     narrativeFlags,
     markNarrativeSeen,
     showS01,
