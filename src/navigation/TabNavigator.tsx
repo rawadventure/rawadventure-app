@@ -23,11 +23,14 @@ import ProfilStack from './ProfilStack';
 import { useProgress } from '../hooks/ProgressContext';
 
 export default function TabNavigator() {
-  const { currentPhase, tabBarHidden } = useProgress();
+  const { currentPhase, currentDay, tabBarHidden } = useProgress();
   const [active, setActive] = useState<TabId>('home');
 
-  // Onglet Toile masqué en Phase 0 (D5 + D18) — apparaît au S0.1 (≥ J15 / phase_1).
-  const showToileTab = currentPhase !== 'phase_0';
+  // Onglet Toile masqué en Phase 0 (D5 + D18) — apparaît au S0.1 (J15).
+  // Audit M2 (2026-07-06) : currentPhase reste 'phase_0' pendant S0 (J15-J16),
+  // donc le test de phase seul masquait l'onglet alors que D18 dit « apparaît
+  // au S0.1 » — la toile venait d'être révélée en vidéo sans être consultable.
+  const showToileTab = currentPhase !== 'phase_0' || currentDay >= 15;
 
   // Si l'utilisateur est sur 'toile' au moment où la phase repasse en phase_0
   // (cas limite : reset, voyage en TZ, etc.), rebascule sur 'home'.
