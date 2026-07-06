@@ -29,6 +29,7 @@ import React, {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -331,6 +332,19 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [narrativeFlags, setNarrativeFlags] = useState<
     Partial<Record<NarrativeEventId, string>>
   >({});
+  // Miroir synchrone du state narrativeFlags. Deux markNarrativeSeen peuvent
+  // partir dans le même commit React (ex : J1 — welcome_video + prompt notifs) ;
+  // chacun lirait la closure stale et écraserait le flag de l'autre (lost
+  // update, bug double vidéo J1). La ref est lue/écrite de façon synchrone
+  // avant tout await → pas de perte possible.
+  const narrativeFlagsRef = useRef<Partial<Record<NarrativeEventId, string>>>({});
+  const setNarrativeFlagsSynced = useCallback(
+    (flags: Partial<Record<NarrativeEventId, string>>) => {
+      narrativeFlagsRef.current = flags;
+      setNarrativeFlags(flags);
+    },
+    [],
+  );
 
   // Phase 1 — pilier en cours (local-only V1)
   const [currentPillarId, setCurrentPillarId] = useState<string | null>(null);
@@ -429,9 +443,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setS8FinalCompleted(!!s8FinalRes.data && s8FinalRes.data.length > 0);
 
     // Narrative flags : local-only V1 même en mode connecté (pas de table
-    // distante dédiée pour l'instant — Sprint 7+).
+    // distante dédiée pour l'instant — Sprint 7+). Merge : un flag posé en
+    // mémoire pendant que ce load était en vol (deux loadData concurrents
+    // post-OTP) ne doit pas être écrasé par la version disque en retard.
     const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
-    if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
+    if (rawFlags) {
+      setNarrativeFlagsSynced({ ...JSON.parse(rawFlags), ...narrativeFlagsRef.current });
+    }
 
     // Pilier en cours : local-only V1 (Sprint 10+ : migration vers une
     // colonne `current_pillar_id` + `pillar_started_at` sur `profiles`).
@@ -475,8 +493,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (history) setStreakHistory(JSON.parse(history));
     if (consumptions) setJokerConsumptions(JSON.parse(consumptions));
     if (tiers) setTierReaches(JSON.parse(tiers));
+    // Merge (même logique que loadFromSupabase) : les flags posés en mémoire
+    // pendant le load priment sur la version disque.
     const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
-    if (rawFlags) setNarrativeFlags(JSON.parse(rawFlags));
+    if (rawFlags) {
+      setNarrativeFlagsSynced({ ...JSON.parse(rawFlags), ...narrativeFlagsRef.current });
+    }
     const [rawPid, rawPstart] = await Promise.all([
       AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
       AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
@@ -521,12 +543,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const markNarrativeSeen = useCallback(
     async (id: NarrativeEventId) => {
-      if (narrativeFlags[id]) return; // déjà marqué — idempotent
-      const next = { ...narrativeFlags, [id]: new Date().toISOString() };
-      setNarrativeFlags(next);
+      if (narrativeFlagsRef.current[id]) return; // déjà marqué — idempotent
+      const next = { ...narrativeFlagsRef.current, [id]: new Date().toISOString() };
+      setNarrativeFlagsSynced(next);
       await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
     },
-    [narrativeFlags],
+    [setNarrativeFlagsSynced],
   );
 
   // ── Persistance des évaluations 12 questions ──────────────────────────────
@@ -639,7 +661,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         setStreakHistory,
         setJokerConsumptions,
         setTierReaches,
-        setNarrativeFlags,
+        setNarrativeFlags: setNarrativeFlagsSynced,
         setCurrentPillarId,
         setPillarStartedAt,
         setS8FinalCompleted,
@@ -1063,7 +1085,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setStreakHistory([]);
     setJokerConsumptions([]);
     setTierReaches([]);
-    setNarrativeFlags({});
+    setNarrativeFlagsSynced({});
     setCurrentPillarId(null);
     setPillarStartedAt(null);
     setS8FinalCompleted(false);

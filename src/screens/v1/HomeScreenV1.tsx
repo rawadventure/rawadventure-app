@@ -29,7 +29,7 @@
  * Référence IA : IA-11 (Phase 0 uniquement). Pattern : B.
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -187,6 +187,10 @@ export default function HomeScreenV1() {
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
+  // Garde de session : la vidéo J1 ne se rejoue jamais dans la même session
+  // même si narrativeFlags.welcome_video se perdait (race storage) — ceinture
+  // et bretelles du fix lost-update markNarrativeSeen (ProgressContext).
+  const welcomeShownThisSession = useRef(false);
 
   // Sprint notif UX — statut natif de permission, met à jour banner dynamique.
   const [notifPermission, setNotifPermission] = useState<PermissionStatus>('undetermined');
@@ -219,7 +223,12 @@ export default function HomeScreenV1() {
     // peu importe currentDay (IA V3 §IA-12 : "tout premier lancement après
     // onboarding"). Pas trigger en phase_1/post_s8 (early return en amont
     // empêche le render de HomeScreenV1).
-    if (!narrativeFlags.welcome_video && !showWelcomeVideo) {
+    if (
+      !narrativeFlags.welcome_video &&
+      !showWelcomeVideo &&
+      !welcomeShownThisSession.current
+    ) {
+      welcomeShownThisSession.current = true;
       setShowWelcomeVideo(true);
       void markNarrativeSeen('welcome_video');
     } else if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
