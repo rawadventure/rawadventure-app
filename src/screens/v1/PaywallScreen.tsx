@@ -67,19 +67,24 @@ let paywallReloadedThisSession = false;
 
 export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const { user } = useAuth();
-  const { reload } = useSubscription();
+  const { reload, state: subscriptionState } = useSubscription();
   const { currentDay, currentPhase } = useProgress();
   const [loading, setLoading] = useState(false);
 
   // Variant copy selon contexte parcours.
   //  - decouverte    : J1-J13, conversion précoce (D3) — l'utilisateur explore
   //    encore ses 14 jours, ne PAS dire "tu as terminé".
-  //  - fin_phase_0   : J14-J16, vraiment en fin de phase initiale.
+  //  - fin_phase_0   : J14-J16, vraiment en fin de phase initiale — et aussi
+  //    J17+ jamais abonné (audit M3) : « Ton abonnement a pris fin » serait
+  //    mensonger pour quelqu'un qui ne s'est jamais abonné. Les variantes
+  //    expired_* sont réservées aux comptes ayant eu un abonnement
+  //    (status !== 'free' : active/past_due/cancelled).
   //  - expired_phase_1 / expired_post_s8 : abonnement expiré en cours de route.
+  const everSubscribed = subscriptionState.status !== 'free';
   const variant: 'decouverte' | 'fin_phase_0' | 'expired_phase_1' | 'expired_post_s8' =
-    currentPhase === 'post_s8'
+    currentPhase === 'post_s8' && everSubscribed
       ? 'expired_post_s8'
-      : currentDay >= 17
+      : currentDay >= 17 && everSubscribed
         ? 'expired_phase_1'
         : currentDay >= 14
           ? 'fin_phase_0'
