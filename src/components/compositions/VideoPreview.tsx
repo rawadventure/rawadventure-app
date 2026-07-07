@@ -84,6 +84,10 @@ export function VideoPreview({
     console.warn('VideoPreview — vidéo indisponible', e);
     clearStartTimeout();
     pendingFullscreenRef.current = false;
+    // Referme le lecteur plein écran natif s'il s'est ouvert : figé sur un
+    // écran noir en cas de panne réseau, il masquerait l'overlay d'erreur
+    // (constat test iPhone 7 juillet).
+    videoRef.current?.dismissFullscreenPlayer().catch(() => {});
     setStarting(false);
     setWebPlaying(false);
     setErrored(true);
