@@ -33,6 +33,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
@@ -313,6 +314,29 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const { subscribeDevClock } = require('../lib/devClock');
     return subscribeDevClock(() => setClockEpoch((e) => e + 1));
+  }, []);
+
+  // Audit M1 (2026-07-07) — recalcul du jour au retour au premier plan.
+  // Les useMemo currentDay/dayInPillarWeek/jokerAvailable lisent
+  // todayLocalDate() mais rien ne les invalidait au passage de minuit : une
+  // PWA iOS résumée le matin (JS gardé vivant) restait sur le jour d'avant
+  // jusqu'à une validation ou un vrai relaunch — écrans narratifs S0.1/S0.2/
+  // charnières non déclenchés au lancement. Au retour 'active', si la date
+  // locale a changé, on bump clockEpoch (déjà dans les deps des useMemo).
+  // Sur web, AppState est mappé par react-native-web sur la Page Visibility
+  // API — couvre le resume PWA.
+  const lastKnownTodayRef = useRef(todayLocalDate());
+  useEffect(() => {
+    const onAppStateChange = (state: AppStateStatus) => {
+      if (state !== 'active') return;
+      const today = todayLocalDate();
+      if (today !== lastKnownTodayRef.current) {
+        lastKnownTodayRef.current = today;
+        setClockEpoch((e) => e + 1);
+      }
+    };
+    const sub = AppState.addEventListener('change', onAppStateChange);
+    return () => sub.remove();
   }, []);
 
   // Onboarding
@@ -739,7 +763,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   const jokerAvailable = useMemo(
     () => isJokerAvailable(jokerConsumptions, todayLocalDate()),
-    [jokerConsumptions],
+    // clockEpoch : recompute au changement de jour (audit M1) et au DEV clock —
+    // sans lui, le joker de la semaine passée restait « consommé » après minuit
+    // du dimanche tant que rien d'autre ne changeait.
+    [jokerConsumptions, clockEpoch],
   );
 
   // ── Méthodes V1 ──────────────────────────────────────────────────────────
