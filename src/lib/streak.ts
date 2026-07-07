@@ -24,7 +24,7 @@
  */
 
 import type { LocalDate, WeekKey } from './calendar';
-import { daysBetween, weekKeyOf } from './calendar';
+import { addDays, daysBetween, weekKeyOf } from './calendar';
 
 // ─── Types métier ─────────────────────────────────────────────────────────────
 
@@ -32,8 +32,13 @@ export type Phase = 'phase_0' | 'phase_1' | 'post_s8';
 
 export type ValidationStatus =
   | 'valid_above_threshold'  // Phase 0 ≥ 5/7 ou Phase 1 ≥ 1/3
-  | 'valid_with_joker'        // Phase 0 < 5/7, joker dispo et consommé
-  | 'broken_streak'           // sous le seuil ET joker indisponible
+  | 'valid_with_joker'        // Cas B : validé manuellement < seuil, joker consommé.
+                              // Compte comme jour de PROGRESSION (D38).
+  | 'missed_with_joker'       // Cas C variante 1 (audit B1) : jour MANQUÉ couvert
+                              // par le joker à la cohérence. Streak conservé mais
+                              // ne compte PAS en progression — rien n'a été fait
+                              // ce jour-là. Migration SQL 002 requise.
+  | 'broken_streak'           // sous le seuil / manqué, ET joker indisponible
   | 'not_yet_processed';      // jour pas encore traité par la cohérence
 
 /** Une entrée de l'historique du streak (table `streak_history`). */
@@ -245,4 +250,78 @@ export function missingDatesBetween(
     result.push(`${yyyy}-${mm}-${dd}`);
   }
   return result;
+}
+
+/**
+ * Résout les jours manqués entre le dernier jour traité et HIER inclus
+ * (Cas C de §2.5 — audit B1, 7 juillet 2026). Aujourd'hui n'est jamais
+ * traité : la journée est encore ouverte, l'utilisateur peut valider.
+ *
+ * Pour chaque jour manqué, dans l'ordre chronologique :
+ *  - streak > 0 ET joker de la semaine du jour manqué disponible →
+ *    `missed_with_joker` : joker consommé, streak conservé, PAS de
+ *    progression (l'utilisateur n'a rien fait ce jour-là).
+ *  - sinon → `broken_streak` : streak à 0, joker non consommé.
+ *
+ * Choix produit acté (7 juillet 2026) : le joker n'est PAS consommé quand
+ * le streak est déjà à 0 — il n'y a rien à préserver, il reste disponible
+ * pour la semaine.
+ *
+ * Fonction PURE et idempotente : si aucun jour ne manque, renvoie deux
+ * listes vides. La consommation de joker d'un jour résolu compte pour les
+ * jours suivants de la même semaine (accumulation chronologique).
+ *
+ * @param args.history historique trié par local_date croissant
+ * @param args.consumptions jokers déjà consommés (toutes semaines)
+ * @param args.today date locale du jour (jamais résolue)
+ * @param args.phase phase courante du parcours — stable pendant une absence
+ *   (currentDay est basé sur les validations, D38, il n'avance pas)
+ */
+export function resolveMissedDays(args: {
+  history: StreakEntry[];
+  consumptions: JokerConsumption[];
+  today: LocalDate;
+  phase: Phase;
+}): { entries: StreakEntry[]; consumptions: JokerConsumption[] } {
+  const { history, consumptions, today, phase } = args;
+  if (history.length === 0) return { entries: [], consumptions: [] };
+
+  const lastProcessed = history[history.length - 1].local_date;
+  const yesterday = addDays(today, -1);
+  const missing = missingDatesBetween(lastProcessed, yesterday);
+  if (missing.length === 0) return { entries: [], consumptions: [] };
+
+  const entries: StreakEntry[] = [];
+  const newConsumptions: JokerConsumption[] = [];
+  const allConsumptions = [...consumptions];
+  let streak = currentStreakFromHistory(history);
+
+  for (const date of missing) {
+    if (streak > 0 && isJokerAvailable(allConsumptions, date)) {
+      const consumption: JokerConsumption = {
+        week_key: weekKeyOf(date),
+        consumed_for_local_date: date,
+      };
+      allConsumptions.push(consumption);
+      newConsumptions.push(consumption);
+      entries.push({
+        local_date: date,
+        validation_status: 'missed_with_joker',
+        phase,
+        streak_value_after: streak,
+        joker_used: true,
+      });
+    } else {
+      streak = 0;
+      entries.push({
+        local_date: date,
+        validation_status: 'broken_streak',
+        phase,
+        streak_value_after: 0,
+        joker_used: false,
+      });
+    }
+  }
+
+  return { entries, consumptions: newConsumptions };
 }

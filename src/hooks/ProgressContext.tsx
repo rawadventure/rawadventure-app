@@ -49,6 +49,7 @@ import {
   currentStreakFromHistory,
   determineValidationStatus,
   isJokerAvailable,
+  resolveMissedDays,
   THRESHOLD_PHASE_0_TOTAL,
   TIER_THRESHOLDS,
   tierJustReached,
@@ -58,6 +59,7 @@ import {
   type StreakEntry,
   type TierId,
 } from '../lib/streak';
+import { showNotice } from '../lib/notice';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -768,6 +770,117 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     // du dimanche tant que rien d'autre ne changeait.
     [jokerConsumptions, clockEpoch],
   );
+
+  // ── Cohérence calendaire (audit B1, Feature Spec §2.5 Cas C) ───────────────
+  // Résout les jours manqués depuis la dernière entrée streak_history : joker
+  // auto-consommé (streak conservé) ou cassure (streak 0). Tourne à la fin de
+  // chaque chargement et à chaque changement de jour détecté (clockEpoch —
+  // retour au premier plan M1, DEV clock). Idempotente : rien à résoudre →
+  // aucune écriture.
+  const coherenceRunningRef = useRef(false);
+  const runCalendarCoherence = useCallback(
+    async (
+      history: StreakEntry[],
+      consumptions: JokerConsumption[],
+      s8Done: boolean,
+    ) => {
+      if (coherenceRunningRef.current) return;
+      coherenceRunningRef.current = true;
+      try {
+        // Phase des jours manqués — stable pendant une absence : currentDay
+        // est basé sur les validations (D38), il n'avance pas sans l'app.
+        const day =
+          validatedDaysCount(history, 'phase_0') +
+          validatedDaysCount(history, 'phase_1') +
+          1;
+        const phase: Phase = s8Done
+          ? 'post_s8'
+          : day <= 16
+            ? 'phase_0'
+            : 'phase_1';
+        const resolved = resolveMissedDays({
+          history,
+          consumptions,
+          today: todayLocalDate(),
+          phase,
+        });
+        if (resolved.entries.length === 0) return;
+
+        // Persistance batch — Supabase en connecté, AsyncStorage en anonyme.
+        const nextHistory = [...history, ...resolved.entries].sort((a, b) =>
+          a.local_date.localeCompare(b.local_date),
+        );
+        const nextConsumptions = [...consumptions, ...resolved.consumptions];
+        if (user) {
+          const rows = resolved.entries.map((e) => ({ user_id: user.id, ...e }));
+          const { error } = await supabase
+            .from('streak_history')
+            .upsert(rows, { onConflict: 'user_id,local_date' });
+          if (error) throw error;
+          if (resolved.consumptions.length > 0) {
+            const cRows = resolved.consumptions.map((c) => ({
+              user_id: user.id,
+              ...c,
+            }));
+            const { error: cError } = await supabase
+              .from('joker_consumptions')
+              .upsert(cRows, { onConflict: 'user_id,week_key' });
+            if (cError) throw cError;
+          }
+        } else {
+          await AsyncStorage.setItem(
+            LOCAL_KEYS.streakHistory,
+            JSON.stringify(nextHistory),
+          );
+          if (resolved.consumptions.length > 0) {
+            await AsyncStorage.setItem(
+              LOCAL_KEYS.jokerConsumptions,
+              JSON.stringify(nextConsumptions),
+            );
+          }
+        }
+        setStreakHistory(nextHistory);
+        if (resolved.consumptions.length > 0) {
+          setJokerConsumptions(nextConsumptions);
+        }
+
+        // Message sobre, non-culpabilisant (D26). Slots définitifs
+        // (copy.global.message-joker-consomme / streak-reprise) à venir
+        // avec le Brief contenu Mimi & Jacky.
+        const broke = resolved.entries.some(
+          (e) => e.validation_status === 'broken_streak',
+        );
+        if (broke) {
+          showNotice(
+            'Streak remis à zéro',
+            'Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. [copy à valider]',
+          );
+        } else if (resolved.consumptions.length > 0) {
+          showNotice(
+            'Joker utilisé',
+            'Ton joker de la semaine a couvert une journée manquée. Streak conservé. [copy à valider]',
+          );
+        }
+      } catch (e) {
+        // Non bloquant — retentera au prochain chargement / changement de jour.
+        console.warn('[ProgressContext] cohérence calendaire échouée', e);
+      } finally {
+        coherenceRunningRef.current = false;
+      }
+    },
+    [user],
+  );
+
+  // Déclenchement : fin de chargement (ouverture, changement d'utilisateur,
+  // re-load post-migration) + changement de jour (clockEpoch). Les deps
+  // n'incluent volontairement PAS streakHistory : la cohérence n'a pas à
+  // retourner après chaque validation. Les valeurs lues sont celles du render
+  // au moment où l'effet tourne — fraîches par construction.
+  useEffect(() => {
+    if (loading) return;
+    void runCalendarCoherence(streakHistory, jokerConsumptions, s8FinalCompleted);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loading, clockEpoch, user?.id, runCalendarCoherence]);
 
   // ── Méthodes V1 ──────────────────────────────────────────────────────────
 
