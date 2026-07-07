@@ -445,9 +445,12 @@ export default function HomeScreenV1() {
         setDevShownTiers((prev) => new Set(prev).add(result.tierReached!));
         // Sprint 30 option A : si collision palier × charnière (typique J7),
         // stocke la charnière pour l'ouvrir après fermeture modale palier.
+        // Audit mineur (7 juillet 2026) : le flag narratif est posé à
+        // l'OUVERTURE réelle (onClose de TierReachedModal), pas ici — sinon
+        // app tuée pendant la modale palier = charnière marquée vue sans
+        // avoir été montrée.
         if (charniere && !narrativeFlags[charniere.flag]) {
           setPendingCharniere(charniere.day);
-          await markNarrativeSeen(charniere.flag);
         }
       } else if (charniere && !narrativeFlags[charniere.flag]) {
         // Pas de setTimeout — setCharniereDay synchronous après setModalVisible(false)
@@ -668,8 +671,11 @@ export default function HomeScreenV1() {
         onClose={() => {
           setTierModal(null);
           // Sprint 30 option A : enchaîne charnière différée si applicable.
+          // Flag narratif posé ICI, à l'ouverture réelle (marquage au
+          // déclenchement §2.3 — audit mineur 7 juillet 2026).
           if (pendingCharniere) {
             setCharniereDay(pendingCharniere);
+            void markNarrativeSeen(CHARNIERE_BY_DAY[pendingCharniere].flag);
             setPendingCharniere(null);
           }
         }}

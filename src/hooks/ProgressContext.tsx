@@ -144,7 +144,11 @@ interface ProgressContextType {
   resetAll: () => Promise<void>;
   /** D30 — palier différé en attente d'affichage (collision narrative S0.1 etc.).
    *  `null` si aucun palier en attente. Sera ouvert à la prochaine validation
-   *  sans collision narrative. */
+   *  sans collision narrative (HomeScreenV1 en Phase 0, SessionScreen en
+   *  Phase 1). Stockage AsyncStorage local-only : perdu à la désinstallation
+   *  ou au changement d'appareil — accepté V1 (audit 6 juillet 2026, même
+   *  posture que narrative_flags ; la modale palier est alors simplement
+   *  sautée, tier_reaches distant reste correct). */
   pendingTierReach: PendingTierReach | null;
   /** D30 — pose un palier différé (caller détecte collision narrative). */
   setPendingTier: (pending: PendingTierReach) => Promise<void>;

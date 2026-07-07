@@ -77,9 +77,6 @@ export type S02ScreenProps = {
   /** Tap "Continuer" → ferme la modale. L'éval initiale S1 est désormais
    *  déclenchée auto à J17 (Phase 1 J1) via Phase1HomeScreen redirect. */
   onStartEvaluation: () => void;
-  /** Optionnel : bouton "Plus tard" secondaire qui ferme S0.2. Hérité de la
-   *  Phase D1 (Phase A a fusionné le rôle dans onStartEvaluation). */
-  onLater?: () => void;
   /** Optionnel : Phase D2 — bouton ghost "Découvrir l'abonnement" qui ouvre
    *  Stripe directement (openExternal). Injecté par HomeScreenV1 quand user
    *  n'est pas abonné. */
@@ -93,7 +90,7 @@ export type S02ScreenProps = {
 const VIDEO_URL =
   'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-2-roadmap.mp4';
 
-export default function S02Screen({ visible, onStartEvaluation, onLater, onDiscoverSubscription }: S02ScreenProps) {
+export default function S02Screen({ visible, onStartEvaluation, onDiscoverSubscription }: S02ScreenProps) {
   return (
     <Modal visible={visible} onClose={() => {}} variant="fullscreen" context="neutral" dismissable={false}>
       <ScrollView contentContainerStyle={styles.scroll}>
