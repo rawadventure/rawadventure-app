@@ -18,19 +18,21 @@
  * Chaque écran appelant passe SA vidéo (`uri`) et, si fourni, SON poster.
  */
 
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   Platform,
   Pressable,
   StyleProp,
   StyleSheet,
+  Text,
   View,
   ViewStyle,
 } from 'react-native';
 import { Video, ResizeMode, type AVPlaybackStatus } from 'expo-av';
-import { Play } from 'lucide-react-native';
-import { radiusV1 } from '../../theme';
+import { Play, RefreshCw } from 'lucide-react-native';
+import { getInterFamily, radiusV1 } from '../../theme';
 import { getVideoPoster } from '../../lib/video-posters';
 
 export type VideoPreviewProps = {
@@ -45,6 +47,11 @@ export type VideoPreviewProps = {
 
 const isWeb = Platform.OS === 'web';
 
+// Réseau coupé / URL en panne : sans plafond, le tap play reste un carré
+// noir muet indéfiniment. Au-delà de ce délai sans démarrage de lecture,
+// on bascule sur l'état d'erreur (audit M4).
+const START_TIMEOUT_MS = 12000;
+
 export function VideoPreview({
   uri,
   posterUri,
@@ -53,9 +60,34 @@ export function VideoPreview({
 }: VideoPreviewProps) {
   const videoRef = useRef<Video | null>(null);
   const [webPlaying, setWebPlaying] = useState(false);
+  // Audit M4 — cycle de vie visible : spinner entre le tap et le démarrage
+  // réel, état d'erreur explicite (réseau coupé, URL Supabase en panne),
+  // re-tentative par remount du <Video> (retryKey). Les boutons « Continuer »
+  // des écrans parents ne dépendent jamais de cet état.
+  const [starting, setStarting] = useState(false);
+  const [errored, setErrored] = useState(false);
+  const [retryKey, setRetryKey] = useState(0);
+  const startTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Fullscreen raté au tap (métadonnées pas prêtes) → re-tenter dès que la
   // lecture démarre. Une seule re-tentative.
   const pendingFullscreenRef = useRef(false);
+
+  const clearStartTimeout = () => {
+    if (startTimeoutRef.current) {
+      clearTimeout(startTimeoutRef.current);
+      startTimeoutRef.current = null;
+    }
+  };
+  useEffect(() => clearStartTimeout, []);
+
+  const markError = (e: unknown) => {
+    console.warn('VideoPreview — vidéo indisponible', e);
+    clearStartTimeout();
+    pendingFullscreenRef.current = false;
+    setStarting(false);
+    setWebPlaying(false);
+    setErrored(true);
+  };
 
   const sourceUri = isWeb ? `${uri}#t=1` : uri;
 
@@ -65,6 +97,18 @@ export function VideoPreview({
   const poster = posterUri ? { uri: posterUri } : getVideoPoster(uri);
 
   const handlePress = async () => {
+    if (errored) {
+      // Re-tentative : remount du <Video> (nouvelle source propre), retour à
+      // l'état preview — l'utilisateur relance la lecture d'un tap.
+      setErrored(false);
+      setRetryKey((k) => k + 1);
+      return;
+    }
+    setStarting(true);
+    startTimeoutRef.current = setTimeout(
+      () => markError(`pas de lecture après ${START_TIMEOUT_MS} ms`),
+      START_TIMEOUT_MS,
+    );
     // Fullscreen et lecture séparés : un échec fullscreen ne bloque pas la
     // lecture. Sur web, le fullscreen échoue si la vidéo n'a encore rien
     // chargé — flag posé pour re-tenter au démarrage de la lecture.
@@ -77,7 +121,8 @@ export function VideoPreview({
     try {
       await videoRef.current?.setStatusAsync({ shouldPlay: true });
     } catch (e) {
-      console.warn('VideoPreview — lecture échouée', e);
+      markError(e);
+      return;
     }
     if (isWeb) {
       // Masque poster + overlay ; contrôles natifs en filet si le fullscreen
@@ -87,8 +132,17 @@ export function VideoPreview({
   };
 
   const handleStatusUpdate = (status: AVPlaybackStatus) => {
-    if (!pendingFullscreenRef.current) return;
-    if (status.isLoaded && status.isPlaying) {
+    if (!status.isLoaded) {
+      // `error` n'est renseigné que sur vraie erreur de chargement — un
+      // status non chargé sans erreur est l'état normal pré-lecture.
+      if (status.error) markError(status.error);
+      return;
+    }
+    if (!status.isPlaying) return;
+    // Lecture démarrée — le plafond de démarrage ne s'applique plus.
+    clearStartTimeout();
+    setStarting(false);
+    if (pendingFullscreenRef.current) {
       pendingFullscreenRef.current = false;
       videoRef.current?.presentFullscreenPlayer().catch(() => {
         // Fullscreen refusé (jeton de geste expiré) — l'inline avec
@@ -103,9 +157,10 @@ export function VideoPreview({
       disabled={webPlaying}
       style={[styles.container, style]}
       accessibilityRole="button"
-      accessibilityLabel={accessibilityLabel}
+      accessibilityLabel={errored ? 'Vidéo indisponible, réessayer' : accessibilityLabel}
     >
       <Video
+        key={retryKey}
         ref={(r) => {
           videoRef.current = r;
         }}
@@ -117,6 +172,7 @@ export function VideoPreview({
         useNativeControls={isWeb && webPlaying}
         positionMillis={isWeb ? undefined : 1000}
         onPlaybackStatusUpdate={handleStatusUpdate}
+        onError={(e) => markError(e)}
       />
       {poster && !webPlaying && (
         <Image
@@ -126,12 +182,28 @@ export function VideoPreview({
           accessibilityIgnoresInvertColors
         />
       )}
-      {!webPlaying && (
+      {errored ? (
         <View style={styles.playOverlay} pointerEvents="none">
-          <View style={styles.playCircle}>
-            <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+          <View style={styles.errorBox}>
+            <RefreshCw size={22} color="#FFFFFF" />
+            <Text style={styles.errorTitle}>Vidéo indisponible</Text>
+            <Text style={styles.errorHint}>
+              Vérifie ta connexion, puis touche pour réessayer.
+            </Text>
           </View>
         </View>
+      ) : (
+        !webPlaying && (
+          <View style={styles.playOverlay} pointerEvents="none">
+            <View style={styles.playCircle}>
+              {starting ? (
+                <ActivityIndicator color="#FFFFFF" />
+              ) : (
+                <Play size={28} color="#FFFFFF" fill="#FFFFFF" />
+              )}
+            </View>
+          </View>
+        )
       )}
     </Pressable>
   );
@@ -161,5 +233,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingLeft: 4,
+  },
+  errorBox: {
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 24,
+  },
+  errorTitle: {
+    fontFamily: getInterFamily('600'),
+    fontSize: 15,
+    color: '#FFFFFF',
+    textAlign: 'center',
+  },
+  errorHint: {
+    fontFamily: getInterFamily('400'),
+    fontSize: 13,
+    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.85)',
+    textAlign: 'center',
   },
 });
