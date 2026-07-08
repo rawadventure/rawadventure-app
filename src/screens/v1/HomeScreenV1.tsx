@@ -30,7 +30,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -547,7 +547,14 @@ export default function HomeScreenV1() {
 
             <Text style={styles.message}>{messageDuJour}</Text>
 
-            {notifPermission === 'denied' && <NotificationPermissionBanner />}
+            {/* Bandeau notifs : natif uniquement. Sur la PWA il était un
+                cul-de-sac (tap = Linking.openSettings, no-op web) et de toute
+                façon expo-notifications ne planifie rien sur web — même
+                permission accordée, aucun rappel ne partirait. Masqué web
+                tant que les rappels PWA n'existent pas (8 juillet 2026). */}
+            {Platform.OS !== 'web' && notifPermission === 'denied' && (
+              <NotificationPermissionBanner />
+            )}
 
             <Card title="Actions du jour" subtitle={`${checkedCount} / ${PHASE_0_TOTAL} cochées`} variant="forte">
               <View style={styles.actionsList}>

@@ -6,6 +6,14 @@
  * de permission est `denied`. Le tap ouvre les Réglages système (deep link
  * iOS `app-settings:` ou Android equivalent via `Linking.openSettings()`).
  *
+ * NATIF UNIQUEMENT (revu 8 juillet 2026, salve de tests) : sur la PWA, ce
+ * bandeau était un cul-de-sac — le tap (`Linking.openSettings()`) est un
+ * no-op sur react-native-web, et surtout expo-notifications n'implémente PAS
+ * la planification de notifications sur web (NotificationScheduler.js web est
+ * un stub vide) : même permission accordée, aucun rappel ne partirait. Le
+ * bandeau est donc masqué sur web par HomeScreenV1 tant que les rappels PWA
+ * n'existent pas (web push serveur ou build native — chantier à arbitrer).
+ *
  * Côté code Mimi voice : ton calme, factuel, non-culpabilisant. Pas de
  * "tu rates quelque chose !" — juste mentionne le bénéfice.
  */
