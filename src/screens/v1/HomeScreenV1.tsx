@@ -30,7 +30,7 @@
  */
 
 import React, { useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -52,6 +52,7 @@ import WelcomeVideoScreen from './WelcomeVideoScreen';
 import Phase1HomeScreen from './Phase1HomeScreen';
 import ConsolidationHomeScreen from './ConsolidationHomeScreen';
 import { TIER_THRESHOLDS, type TierId } from '../../lib/streak';
+import { showNotice } from '../../lib/notice';
 import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
   brandColors,
@@ -468,13 +469,15 @@ export default function HomeScreenV1() {
         setDevShownTiers((prev) => new Set(prev).add(pendingTierReach.tierId));
         await clearPendingTier();
       } else if (result.jokerUsed) {
-        Alert.alert(
+        // showNotice et pas Alert.alert : Alert est no-op sur react-native-web,
+        // le message était invisible en PWA (relevé salve de tests 8 juillet).
+        showNotice(
           'Joker consommé',
           `Streak conservé à ${result.newStreak}. Réinitialisation lundi.`,
         );
       }
     } catch (e: any) {
-      Alert.alert('Erreur', e.message ?? 'Validation échouée');
+      showNotice('Erreur', e.message ?? 'Validation échouée');
     } finally {
       setValidating(false);
     }

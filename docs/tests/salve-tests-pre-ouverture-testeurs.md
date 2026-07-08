@@ -1,6 +1,15 @@
 # Salve de tests manuels — avant ouverture aux testeurs externes
 
-*Version 1.0 — 7 juillet 2026. À dérouler sur iPhone, Safari + PWA installée, sur https://app.rawadventure.world (prod). Rédigé d'après le code réellement en prod (post-audit narratif du 6-7 juillet 2026).*
+*Version 1.1 — 8 juillet 2026. À dérouler sur iPhone, Safari + PWA installée, sur https://app.rawadventure.world (prod). Rédigé d'après le code réellement en prod (post-audit narratif du 6-7 juillet 2026). V1.1 : attendus corrigés selon D38 (position par validation) après la première passe de tests du 8 juillet — voir « Rappel du modèle » ci-dessous.*
+
+## Rappel du modèle (D38 — à lire avant les blocs C à I)
+
+L'app a **deux compteurs indépendants** :
+
+- **La position** (« Jour X sur 14 ») = nombre de jours **validés** + 1. Elle n'avance que quand l'utilisateur valide sa journée (au plus un jour de parcours par jour réel). Une absence ne la fait PAS avancer : on reprend là où on s'était arrêté. Les jours-charnière, S0.1/S0.2 et le paywall sont indexés sur cette position.
+- **Le streak** = jours consécutifs en calendrier **réel**. Une absence le casse (le joker en couvre une par semaine calendaire). Les paliers (15/30/60/100/365) sont indexés sur le streak.
+
+Une charnière se joue **à la validation** du jour concerné (pas à l'ouverture du hub). Un seul écran narratif à la fois, priorité : palier > charnière > message joker.
 
 **Hors périmètre de cette salve : Stripe / paiement réel** (vérification séparée prévue demain). Ici on utilise uniquement le bouton DEV « Mock active subscription » pour simuler un abonné.
 
@@ -25,7 +34,7 @@ Le panneau DEV apparaît dans l'onglet **Profil** si le build a `EXPO_PUBLIC_ENA
 
 | Outil | Où | Effet |
 |---|---|---|
-| **Clock offset « +1j » / « +7j » / « Reset »** | Profil → DEV Timeline | Décale l'horloge vue par l'app, sans toucher aux données. Affiche « Clock offset : +X.Xj ». **Attention** : à l'ouverture du hub avec offset, la cohérence calendaire ÉCRIT en base des entrées pour les jours « manqués » (à des dates réelles futures) → d'où le nettoyage SQL après (§ 0.4). |
+| **Clock offset « +1j » / « +7j » / « Reset »** | Profil → DEV Timeline | Décale l'horloge vue par l'app, sans toucher aux données. Affiche « Clock offset : +X.Xj ». Effet : simule le passage de jours réels → le **streak** est traité (joker/cassure) mais la **position ne bouge pas** si rien n'a été validé (D38). **Attention** : la cohérence calendaire ÉCRIT en base des entrées pour les jours « manqués » (à des dates réelles futures) → d'où le nettoyage SQL après (§ 0.4). |
 | **Snapshots « Aller »** | Profil → DEV Timeline | 14 états pré-construits (P0 J1 fresh, P0 J3/J7/J14 avant validation, S0.1 J15, S0.2 J16, S1 J1/J3/J7, S2 J1, S4 J1, post-S8, joker burn, etc.). Écrase TOUTES les données du compte (Supabase + local) puis pose l'état choisi. |
 | **« (DEV) Reset complet »** | Profil | Remet le compte à zéro. |
 | **« Mock active subscription »** | Profil | Simule un abonnement actif — indispensable pour passer J17 sans Stripe. |
@@ -121,7 +130,7 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 ### C1 — Soft-rappel D26 (< 5/7)
 
-- **Départ** : jour non validé (avancer d'un jour avec DEV « +1j » si besoin, puis rouvrir le hub).
+- **Départ** : jour non validé (si la veille est validée, DEV « +1j » puis rouvrir le hub fait passer au jour suivant — la position n'avance au clock offset QUE si le jour courant était validé).
 - **Étapes** : cocher 1 à 4 actions → « Valider ma journée ».
 - **Attendu** : modale titre « Tu peux faire mieux. », texte expliquant le seuil et le joker, deux boutons : « Cocher d'autres actions » (referme la modale, retour aux coches) et « Valider quand même ».
 - **Vérifier** : « Cocher d'autres actions » referme sans rien valider ; compléter à 5 puis valider → cas B2 normal.
@@ -130,7 +139,7 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 - **Départ** : streak > 0, aucun joker consommé cette semaine calendaire (lundi-dimanche), jour courant avec < 5 actions cochées.
 - **Étapes** : « Valider quand même ».
-- **Attendu** : dialogue navigateur « Joker consommé — Streak conservé à N. Réinitialisation lundi. » ; le streak ne baisse PAS mais n'augmente pas non plus ; la journée compte dans la progression.
+- **Attendu** : le streak ne baisse PAS mais n'augmente pas non plus ; la journée compte dans la progression (la position avancera au jour suivant). Message « Joker consommé — Streak conservé à N. Réinitialisation lundi. » — SAUF si un écran narratif se déclenche à cette validation (charnière, palier) : priorité à l'écran, le message joker est tu. Vérification en base possible : ligne dans `joker_consumptions` (semaine courante).
 - **Nettoyage** : noter que le joker de la semaine est grillé pour la suite des tests (ou changer de semaine via +7j, ou nettoyer `joker_consumptions` en SQL).
 
 ### C3 — « Valider quand même » sans joker (cassure)
@@ -142,28 +151,29 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 ---
 
-## Bloc D — Jours manqués : joker automatique et cassure (audit B1)
+## Bloc D — Jours manqués : joker automatique et cassure (audit B1 + D38)
 
-Ces tests vérifient la « cohérence calendaire » qui tourne à l'ouverture de l'app : les jours passés sans validation sont résolus automatiquement.
+Ces tests vérifient la « cohérence calendaire » qui tourne à l'ouverture de l'app : les jours réels passés sans validation sont résolus automatiquement **côté streak** (joker/cassure). La **position, elle, ne bouge pas** : on reprend au jour où on s'était arrêté, et le message le dit.
 
-### D1 — Un jour manqué → joker automatique
+### D1 — Un jour manqué → joker automatique, position inchangée
 
-- **Départ** : le plus simple : snapshot **« P0 J5 + skip J4 (joker dispo) »** (DEV Timeline → Aller). Sinon manuellement : valider un jour, « +2j », rouvrir.
-- **Attendu à l'ouverture** : dialogue navigateur « Joker utilisé — Ton joker de la semaine a couvert une journée manquée. Streak conservé. [copy à valider] ». Streak conservé, le jour manqué ne compte pas dans la progression.
+- **Départ** : le plus simple : snapshot **« P0 J5 + skip J4 (joker dispo) »** (DEV Timeline → Aller) — il pose J1-J3 validés puis un jour réel sauté. Sinon manuellement : valider un jour, « +2j », rouvrir.
+- **Attendu à l'ouverture** : dialogue navigateur « Joker utilisé — Ton joker de la semaine a couvert une journée manquée. Streak conservé. Tu reprends au jour 4, là où tu t'étais arrêté. [copy à valider] ».
+- **Vérifier** : le hub affiche « **Jour 4 sur 14** » (3 jours validés + 1 — PAS jour 5 : le jour manqué n'a pas fait avancer la position, D38). Streak conservé à 3.
 - **Nettoyage** : SQL § 0.4 + Reset clock.
 
-### D2 — Deux jours manqués même semaine → cassure
+### D2 — Deux jours manqués même semaine → cassure, position toujours inchangée
 
 - **Départ** : suite du D1 (joker grillé), ou état avec joker déjà consommé.
 - **Étapes** : « +2j » sans valider, rouvrir le hub.
-- **Attendu** : dialogue « Streak remis à zéro — Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. [copy à valider] ». Streak à 0.
-- **Vérifier ensuite** : valider la journée courante à ≥ 5/7 → streak repart à 1.
+- **Attendu** : dialogue « Streak remis à zéro — Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. Tu reprends au jour 4, là où tu t'étais arrêté. [copy à valider] ». Streak à 0, position toujours « Jour 4 sur 14 ».
+- **Vérifier ensuite** : valider la journée courante à ≥ 5/7 → streak repart à 1 ; le lendemain (+1j), la position passe à « Jour 5 sur 14 ».
 
 ### D3 — Joker non consommé quand le streak est déjà à 0
 
 - **Départ** : streak à 0 (sortie du D2), joker de la nouvelle semaine disponible.
 - **Étapes** : « +1j » sans valider, rouvrir.
-- **Attendu** : PAS de message « Joker utilisé » — le joker n'est pas gaspillé pour protéger un streak déjà nul (décision du 7 juillet). Le jour est marqué manqué, silencieusement ou avec le message de streak à zéro.
+- **Attendu** : PAS de message « Joker utilisé » — le joker n'est pas gaspillé pour protéger un streak déjà nul (décision du 7 juillet). Position inchangée.
 - **Nettoyage** : SQL § 0.4, Reset clock, puis « (DEV) Reset complet » pour aborder le Bloc E propre.
 
 ### D4 — Changement de semaine → joker recrédité
@@ -177,66 +187,76 @@ Ces tests vérifient la « cohérence calendaire » qui tourne à l'ouverture de
 
 ## Bloc E — Jours-charnière J3 / J7 / J11 / J14
 
-Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation », « P0 J14 avant validation » (J11 : y aller au clock offset depuis J7, ou valider les jours intermédiaires).
+Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation », « P0 J14 avant validation » (J11 : y aller en validant les jours intermédiaires avec +1j entre chaque). **Rappel D38 : la charnière se joue à la VALIDATION du jour concerné**, pas à l'ouverture du hub. Un jour charnière jamais validé = charnière jamais jouée (assumé).
 
 ### E1 — J3 (texte seul)
 
-- **Attendu au premier affichage du hub le J3** : modale plein écran « Jour 3 · cap symbolique / Le corps commence à répondre. », texte, bouton « Je continue ». Pas de badge, pas de vidéo.
+- **Étapes** : sur le hub J3, valider la journée (≥ 5/7).
+- **Attendu après validation** : modale plein écran « Jour 3 · cap symbolique / Le corps commence à répondre. », texte, bouton « Je continue ». Pas de badge, pas de vidéo.
 - **Contre-test** : fermer/rouvrir l'app le même jour → la charnière ne se rejoue pas.
+- *Déjà validé le 8 juillet (passe 1, via C2) — à repasser seulement si le temps le permet.*
 
 ### E2 — J7 (riche : badge + vidéo)
 
-- **Attendu** : modale « Jour 7 · une semaine / Sept jours. », badge circulaire « 7 JOURS », vidéo, boutons « Je continue » et « Voir mes paliers ».
+- **Étapes** : valider la journée du J7.
+- **Attendu après validation** : modale « Jour 7 · une semaine / Sept jours. », badge circulaire « 7 JOURS », vidéo, bouton « Je continue ». (Le raccourci « Voir mes paliers » a été retiré — la galerie s'ouvre depuis Profil uniquement.)
 - **Point de vigilance** : il ne doit PAS y avoir de modale « palier 7 jours » en plus — le palier 7j n'existe plus (paliers actuels : 15, 30, 60, 100, 365). La description du preset DEV mentionne encore « palier 7j » : elle est obsolète, ne pas s'y fier. Si une modale palier apparaît à J7 → bug à signaler.
-- **« Voir mes paliers »** → galerie des paliers s'ouvre.
+- **Vérifier aussi** : Profil → « Voir mes paliers » → la galerie s'ouvre.
 
 ### E3 — J11 (texte seul)
 
-- **Attendu** : « Jour 11 · ligne droite finale / Le plus dur est derrière toi. », bouton « Je continue ».
+- **Étapes** : valider la journée du J11.
+- **Attendu après validation** : « Jour 11 · ligne droite finale / Le plus dur est derrière toi. », bouton « Je continue ».
 
 ### E4 — J14 (riche, fin de Phase 0)
 
-- **Attendu** : « Jour 14 · fin de Phase 0 / Quatorze jours. Un premier ressenti. », badge « 14 JOURS », vidéo, CTA « Voir la suite », streak affiché en pied. Mention `[copy à valider]` dans le texte — accepté V1.
-- **Vérifier aussi** : à J14-J16 non abonné, le hub affiche un CTA doux vers l'écran d'abonnement (pas bloquant — on peut revenir en arrière).
+- **Étapes** : valider la journée du J14.
+- **Attendu après validation** : « Jour 14 · fin de Phase 0 / Quatorze jours. Un premier ressenti. », badge « 14 JOURS », vidéo, CTA « Voir la suite », streak affiché en pied. Mention `[copy à valider]` dans le texte — accepté V1.
+- **« Voir la suite »** ferme la charnière et **ouvre l'écran d'abonnement** (paywall soft, avec retour possible) — voulu, conversion accessible en fin de Phase 0.
+- **Vérifier aussi** : aux jours 14-16 non abonné, le hub affiche un CTA doux vers l'écran d'abonnement (pas bloquant — on peut revenir en arrière).
 - **Nettoyage bloc E** : les charnières « vues » sont des flags locaux ; un « Reset complet » les efface pour rejouer.
 
 ---
 
 ## Bloc F — Transition S0.1 / S0.2, onglet Toile, palier 15j différé (D30)
 
-### F1 — S0.1 à J15 : célébration + toile révélée + palier différé
+### F1 — S0.1 au jour 15 : célébration + toile révélée + palier différé (D30)
 
-- **Départ** : snapshot **« S0.1 J15 »** (conçu pour tester la coordination D30 : le palier 15j tombe le même jour).
-- **Étapes** : valider la journée du J15 (ou ouvrir le hub selon l'état du snapshot).
-- **Attendu, dans cet ordre** :
-  1. Écran S0.1 plein écran : « Quatorze jours derrière toi. », vidéo célébration, **révélation animée de la toile d'araignée** (8 branches, « Ta toile de vitalité »), streak, bouton « Continuer ».
-  2. **Après** fermeture de S0.1 : la modale **palier 15 jours** s'affiche (« Quinze jours. », badge, vidéo) — elle a été différée, pas perdue (D30).
-  3. L'onglet **« Toile »** apparaît dans la barre du bas (il était absent avant J15).
-- **Contre-test** : rouvrir l'app → ni S0.1 ni le palier ne se rejouent.
+- **Départ** : snapshot **« S0.1 J15 »** (14 jours validés, streak 14 — conçu pour la coordination D30 : le palier 15j tombera à la validation du jour).
+- **Étapes et attendus, dans l'ordre** :
+  1. **À l'ouverture du hub** (contrairement aux charnières, S0.1 se joue à l'ouverture, pas à la validation) : écran S0.1 plein écran : « Quatorze jours derrière toi. », vidéo célébration, **révélation animée de la toile d'araignée** (8 branches, « Ta toile de vitalité »), streak, bouton « Continuer ».
+  2. L'onglet **« Toile »** apparaît dans la barre du bas (absent avant le jour 15).
+  3. **Valider la journée du jour 15** (≥ 5/7) → le streak passe à 15 → le palier 15 jours est atteint MAIS **rien ne s'affiche** : il est différé (D30, S0.1 prime le même jour). Si une modale palier apparaît ici → bug.
+- **Contre-test** : rouvrir l'app → S0.1 ne se rejoue pas.
 
-### F2 — S0.2 à J16 : roadmap 8 piliers
+### F2 — S0.2 au jour 16 : roadmap 8 piliers + palier 15j repêché
 
-- **Départ** : lendemain du F1 (+1j), ou snapshot « S0.2 J16 ».
-- **Attendu** : écran « Huit semaines. Huit piliers. », vidéo roadmap, liste des 8 piliers dans l'ordre (S1 Respiration en tête, badge « ON DÉMARRE »). Boutons : non abonné → « Découvrir l'abonnement » + « Continuer » ; abonné (mock) → « Continuer » seul.
+- **Départ** : lendemain du F1 (« +1j »), ou snapshot « S0.2 J16 » (mais le snapshot ne porte pas le palier différé du F1 — pour tester D30 de bout en bout, enchaîner depuis F1).
+- **Étapes et attendus** :
+  1. **À l'ouverture du hub** : écran S0.2 « Huit semaines. Huit piliers. », vidéo roadmap, liste des 8 piliers dans l'ordre (S1 Respiration en tête, badge « ON DÉMARRE »). Boutons : non abonné → « Découvrir l'abonnement » + « Continuer » ; abonné (mock) → « Continuer » seul.
+  2. **Valider la journée du jour 16** → la modale **palier 15 jours** différée s'affiche enfin (« Quinze jours. », badge, vidéo, « Continuer ») — différée d'un cran, pas perdue (D30).
 
 ### F3 — Onglet Toile
 
-- **Étapes** : ouvrir l'onglet Toile après J15.
+- **Étapes** : ouvrir l'onglet Toile après le jour 15.
 - **Attendu** : toile 8 branches visible, tap sur une branche → détail. En Phase 0+S0, les branches reflètent l'état initial (pas encore d'évaluations).
 
-### F4 — Absence prolongée traversant la transition (D25)
+### F4 — Absence prolongée autour de la transition (D38 + D25)
 
-- **Départ** : état J14 validé, puis « +4j » d'un coup (on « revient » à J19 sans avoir ouvert l'app).
-- **Attendu** : les écrans narratifs se jouent **un par lancement**, dans l'ordre : 1ère ouverture → S0.1 ; fermer/rouvrir → S0.2 ; rouvrir → suite normale (paywall à J17+ si non abonné). Pas d'enchaînement de 3 modales dans la même session.
+- **Départ** : état jour 14 validé, puis « +4j » d'un coup sans rien valider (absence de 4 jours réels).
+- **Attendu au retour** :
+  1. La position n'a PAS bougé : on est au **jour 15** (14 validés + 1) — pas au « jour 19 ». S0.1 se joue à l'ouverture, comme en F1.
+  2. Côté streak : message de cassure (« Streak remis à zéro… Tu reprends… ») — 4 jours réels manqués, le joker n'en couvre qu'un. Le palier 15j ne sera donc PAS atteint à la validation (streak reparti de 0) — pas de test D30 possible sur cette route.
+  3. S0.2 arrivera naturellement le lendemain (après validation du jour 15 + nouveau jour réel) : les écrans narratifs s'espacent d'eux-mêmes, pas d'enchaînement dans la même session (esprit D25).
 - **Nettoyage** : SQL § 0.4 + Reset clock.
 
 ---
 
 ## Bloc G — J17 : paywall et Phase 1 (S1 Respiration)
 
-### G1 — Paywall à J17 sans abonnement
+### G1 — Paywall au jour 17 sans abonnement
 
-- **Départ** : compte non abonné, arrivé à J17 (suite du F2 avec +1j).
+- **Départ** : compte non abonné, arrivé au jour 17 — c'est-à-dire **jour 16 validé** puis « +1j » (17e jour = 17e jour VALIDÉ, pas 17e jour réel — D38).
 - **Attendu** : l'app est **bloquée** sur l'écran paywall (plein écran, pas d'accès aux onglets). CTA « Continuer mon parcours » (ouvre la page d'abonnement web — **ne pas aller au bout du paiement**, c'est le test de demain) et « Plus tard ». Pas de prix affiché dans l'app, pas des mots « payer/abonnement » sur les CTA (règles Apple).
 - **Vérifier** : « Plus tard » — observer où il mène (l'utilisateur reste bloqué hors Phase 1, c'est le comportement attendu tant que non abonné).
 
@@ -287,10 +307,11 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Attendu** : icône Raw Adventure correcte, app en plein écran sans barre Safari (mode standalone), fond/thème aux couleurs de la marque, orientation portrait. Le login fonctionne dans la PWA.
 - **Rappel** : la PWA a son propre stockage → écrans narratifs revus + re-login nécessaire la première fois. Accepté V1.
 
-### I2 — Recalcul du jour au retour au premier plan (audit M1)
+### I2 — Recalcul au retour au premier plan après minuit (audit M1)
 
-- **Test réaliste** (à programmer un soir) : laisser la PWA ouverte en arrière-plan avant minuit ; après minuit, revenir sur l'app SANS la tuer.
-- **Attendu** : le hub bascule seul sur le nouveau jour (JN+1, coches vierges) sans recharger la page. La cohérence calendaire traite le jour d'avant s'il n'était pas validé (joker/cassure, cf. Bloc D).
+- **Test réaliste** (à programmer un soir) : valider sa journée avant minuit, laisser la PWA ouverte en arrière-plan ; après minuit, revenir sur l'app SANS la tuer.
+- **Attendu** : le hub bascule seul sur le jour suivant du parcours (position +1 car la veille était validée, coches vierges) sans recharger la page.
+- **Variante jour non validé** : si la veille n'était PAS validée, la position ne bouge pas (D38) — le hub reste sur le même jour, et la cohérence traite le streak (joker/cassure + message « Tu reprends au jour X », cf. Bloc D).
 - **Variante rapide** : changer la date du téléphone est déconseillé (fausse Supabase) — préférer le vrai passage de minuit ou le clock offset DEV.
 
 ### I3 — Rafraîchissement / perte réseau générale
@@ -329,6 +350,9 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 5. **Plage de silence notifications 22h-7h dans le code** (D32 dit 22h-8h) : écart assumé dans le code (« attraper les français qui se lèvent 6h-7h ») — à confirmer comme choix ou à réaligner, mais pas bloquant pour la salve.
 6. **Description du preset DEV « P0 J7 » mentionnant un palier 7j** : obsolète (paliers = 15/30/60/100/365). Cosmétique DEV uniquement.
 7. **Stripe/paiement réel** : volontairement hors salve — vérification dédiée demain.
+8. **Design des charnières** (relevé Stéphane, 8 juillet) : l'écran charnière utilise le même design que les paliers streak — différenciation visuelle charnière/palier à faire plus tard, pas bloquant V1.
+9. **Ton de la charnière après une journée « au rabais »** (relevé Stéphane, 8 juillet) : une journée validée à 2/7 avec joker déclenche quand même le texte enthousiaste de la charnière (« Le corps commence à répondre ») — mécaniquement voulu (D38), variante de copy à envisager avec Mimi & Jacky.
+10. **CLAUDE.md était en retard sur D38** : la section D20 décrivait encore la position calendaire — patché le 8 juillet (v1.4). Si un doc Project mentionne encore « le calendrier de l'app suit le calendrier réel » pour la position, c'est l'ancien modèle : D38 fait foi (position par validation).
 
 ---
 

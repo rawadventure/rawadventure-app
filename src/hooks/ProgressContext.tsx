@@ -854,15 +854,23 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         const broke = resolved.entries.some(
           (e) => e.validation_status === 'broken_streak',
         );
+        // Reprise de position (D38) : les jours manqués ne comptent pas en
+        // progression, donc `day` (calculé avant résolution) est bien le jour
+        // où l'utilisateur reprend. En Phase 1 l'UI parle en jour de pilier,
+        // pas en jour global — formulation neutre hors Phase 0.
+        const repriseText =
+          phase === 'phase_0'
+            ? `Tu reprends au jour ${day}, là où tu t'étais arrêté.`
+            : 'Tu reprends là où tu t\'étais arrêté.';
         if (broke) {
           showNotice(
             'Streak remis à zéro',
-            'Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. [copy à valider]',
+            `Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. ${repriseText} [copy à valider]`,
           );
         } else if (resolved.consumptions.length > 0) {
           showNotice(
             'Joker utilisé',
-            'Ton joker de la semaine a couvert une journée manquée. Streak conservé. [copy à valider]',
+            `Ton joker de la semaine a couvert une journée manquée. Streak conservé. ${repriseText} [copy à valider]`,
           );
         }
       } catch (e) {
