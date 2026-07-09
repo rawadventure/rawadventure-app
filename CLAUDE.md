@@ -2,7 +2,7 @@
 
 *Ce fichier est le contexte projet de Claude Code pour le repo Raw Adventure App. Il vit à la racine du repo et est lu en début de chaque session. Sa source de vérité reste les documents du Project Claude.ai (référencés en section 8). Si une info de ce fichier semble contredire un doc Project plus récent, c'est le doc Project qui gagne — il faut alors mettre à jour ce CLAUDE.md.*
 
-*Daté du 8 mai 2026 — Version 1.2 (post-audit V0 vs docs fondateurs). À mettre à jour à chaque décision structurelle nouvelle.*
+*Daté du 8 juillet 2026 — Version 1.4 (patch D38 : position du parcours par validation). À mettre à jour à chaque décision structurelle nouvelle.*
 
 ---
 
@@ -443,8 +443,8 @@ Pour aller plus vite quand la mémoire flanche. Détail complet dans la Synthès
 **D11** — Un seul tier d'abonnement, deux durées (mensuel + annuel).
 **D17** — Durée S0 actée à 2 jours (S0.1 + S0.2).
 **D18** — Navigation à 3 onglets : Accueil (par défaut), Toile (masqué Phase 0, apparaît au S0.1), Profil. Pas de menu hamburger.
-**D19** — Quatre écrans de jour-charnière en Phase 0 : J3, J7, J11, J14, qui se superposent à l'accueil au premier lancement du jour.
-**D20** — Pas de rattrapage automatique des jours manqués. Le calendrier de l'app suit le calendrier réel.
+**D19** — Quatre écrans de jour-charnière en Phase 0 : J3, J7, J11, J14. **Précision D38** : la charnière se joue à la validation du jour concerné (jour de position, pas jour calendaire) ; un jour-charnière jamais validé ne joue jamais sa charnière.
+**D20** — Pas de rattrapage automatique des jours manqués. Le calendrier de l'app suit le calendrier réel. **Portée restreinte par D38 (17 juin 2026)** : ce principe ne gouverne plus que le streak, le joker et les notifications — la position dans le parcours, elle, avance par validation (voir D38).
 **D21** — Workflow git : commits directs sur `main` avec validation explicite de Stéphane avant chaque commit. Pas de push tant que GitHub n'est pas configuré.
 **D22** — Repo GitHub privé à connecter. Pas open source. Bénéfices : sauvegarde hors machine, possibilité d'inviter un collaborateur, historique sécurisé. À activer dans les semaines qui viennent.
 **D23** — Architecture multilingue prévue dès la V1, contenu V1 français uniquement. Slots de copy identifiés, pas de chaînes en dur, médias référencés par asset stable, helpers de format pour les locales sensibles.
@@ -462,10 +462,13 @@ Pour aller plus vite quand la mémoire flanche. Détail complet dans la Synthès
 **D35** — **Pas de badges par pilier V1** (ajouté 7 mai 2026, V6 de la Synthèse). Les libellés narratifs des fichiers piliers Jacky V0 (par exemple "Cohérence cardiaque acquise") restent réutilisables comme **moments narratifs** en cours de semaine, mais ne donnent pas lieu à un système de badges UI dédié. Système de badges potentiel pour V2.
 **D36** — **Pas de questionnaire fin de journée V1** (ajouté 7 mai 2026, V6 de la Synthèse). La matière Jacky existante (questionnaire fin de journée Phase 0) est conservée comme matière V2. La table `daily_check_ins` est créée vide en V1.
 **D37** — **Effet miroir qualitatif V1, chiffré V2** (ajouté 7 mai 2026, V6 de la Synthèse). En V1, on intègre 8 à 12 phrases d'effet miroir qualitatives dans les écrans de jour-charnière J3/J4/J7/J11 (Brief contenu V1 à produire). Pas de système de score quantitatif dynamique calculé sur le pourcentage de complétion, qui aurait nécessité D34 (score quotidien) déjà différée.
+**D38** — **Découplage position / streak** (17 juin 2026, implémenté dans ProgressContext ; reconfirmé par Stéphane le 8 juillet 2026 pendant la salve de tests pré-testeurs). La **position** dans le parcours (« Jour X sur 14 », `currentDay`) = nombre de jours validés (`valid_above_threshold` + `valid_with_joker`) + 1. Elle n'avance que par validation, au plus un jour de parcours par jour réel, et **pause en cas d'absence** : l'utilisateur reprend là où il s'était arrêté (message sobre de reprise « Tu reprends au jour X », ajouté 8 juillet 2026). Le **streak**, lui, reste calendaire (D6 : joker 1/semaine, cassure) — c'est lui, et lui seul, que l'absence pénalise. Conséquences : jours-charnière, S0.1/S0.2 et bascule Phase 1/paywall sont indexés sur la position (17e jour validé, pas 17e jour réel) ; la Phase 0 gratuite n'a pas de limite de durée réelle ; les paliers (15/30/60/100/365) restent indexés sur le streak. Même principe en Phase 1 (`dayInPillarWeek` = jours validés du pilier + 1). Les mentions antérieures d'une position calendaire (D20 au sens large, IA V3 « premier lancement du jour ») sont caduques sur ce point.
 
 ---
 
 ## 11. Historique des versions de ce CLAUDE.md
+
+**Version 1.4 — 8 juillet 2026.** Patch pendant la salve de tests manuels pré-ouverture testeurs. Ajout de la décision **D38** (découplage position/streak, implémentée le 17 juin 2026 mais jamais consignée ici — le CLAUDE.md décrivait encore le modèle calendaire de position, ce qui a causé une fausse alerte en session de tests). Section 10 : D19 et D20 annotés pour renvoyer à D38. En-tête daté au 8 juillet. Au passage : le plan de tests `docs/tests/salve-tests-pre-ouverture-testeurs.md` est passé en V1.1 (attendus alignés sur D38) et les messages de reprise/joker sont désormais visibles en PWA (showNotice au lieu d'Alert.alert).
 
 **Version 1.3 — 13 mai 2026.** Patch en sortie de production de la Feature Spec S1 Respiration (livrée le 12 mai 2026 en V0.1 draft itératif, passée en V1.0 stable le 13 mai après relecture Stéphane). Section 8 (sources de vérité) enrichie d'une nouvelle entrée pour la **Feature Spec S1 Respiration V1.0** comme source de vérité dédiée pour tout travail sur le pilier S1 et comme pilier-pattern Type A pour les Feature Specs S2 à S8 à venir. Quatre entrées existantes mises à jour : Feature Spec V1 Socle minimum V1.1 → V1.2 (acte du joker en Phase 1), Métriques V1 V1.0 → V1.5 (recalibrage paramètre principal S1 à 5/10/20 min), Schéma de données V1.0 → V1.1 (ajout table `notifications_sent`), Customer Journey V1.2 → V1.3 (migration ordre canonique D8 → D39). Aucune nouvelle décision structurelle D42+ — les choix faits sur S1 sont des spécifications de pilier consignées dans la Feature Spec S1, pas des décisions produit transverses. Section 7 du CLAUDE.md (carte des écrans IA) reste inchangée — l'inventaire des 45 écrans est stable.
 

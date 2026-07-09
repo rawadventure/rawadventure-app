@@ -169,7 +169,12 @@ export function VideoPreview({
           videoRef.current = r;
         }}
         source={{ uri: sourceUri }}
-        style={StyleSheet.absoluteFill}
+        // Web : élément <video> invisible tant que la lecture n'a pas démarré.
+        // Certains iOS Safari peignent la frame 0 brute (cadrage caméra raté)
+        // d'une vidéo en pause — constat testeuse 8 juillet 2026 : si le
+        // poster manque ou tarde, cette frame moche transperce. Caché, le
+        // fallback est le fond noir + play, jamais une frame subie.
+        style={[StyleSheet.absoluteFill, isWeb && !webPlaying && { opacity: 0 }]}
         resizeMode={ResizeMode.COVER}
         isLooping={false}
         shouldPlay={false}

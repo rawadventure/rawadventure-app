@@ -4,6 +4,31 @@ subtitle: Continue ton parcours Raw Adventure.
 permalink: /abonnement/
 ---
 
+<button type="button" id="back-to-app" style="display:inline-flex;align-items:center;gap:8px;background:none;border:none;padding:8px 0;margin-bottom:16px;font-size:16px;font-weight:600;color:#1F1147;cursor:pointer;">
+  <span style="font-size:20px;line-height:1;">&#8592;</span> Retour à l'app
+</button>
+<script>
+  // Retour à l'app depuis le checkout. Couvre les deux ouvertures :
+  //  - même onglet (window.location.href) → history.back() ramène à l'app
+  //  - nouvel onglet (window.open _blank) → window.close() ferme l'onglet Stripe
+  // Fallback : si rien ne marche, renvoie vers l'accueil de l'app web.
+  (function() {
+    var btn = document.getElementById('back-to-app');
+    if (!btn) return;
+    btn.addEventListener('click', function() {
+      if (window.history.length > 1) {
+        window.history.back();
+      } else {
+        window.close();
+        // Si window.close est ignoré (onglet non ouvert par script), fallback.
+        setTimeout(function() {
+          window.location.href = 'https://rawadventure.world/';
+        }, 150);
+      }
+    });
+  })();
+</script>
+
 <p style="margin-bottom: 24px;">
   Tes 14 premiers jours sont gratuits. Pour continuer la Phase 1 — huit semaines, huit piliers guidés par Mimi & Jacky — choisis la formule qui te convient.
 </p>

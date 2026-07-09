@@ -9,8 +9,10 @@
  * V1 produit par Mimi & Jacky.
  *
  * Pas de vidéo en Phase 0 (D33 = 1 vidéo par pilier en Phase 1 uniquement),
- * donc le Pattern C est adapté ici sans vignette vidéo. Bouton "C'est pris,
- * je rentre à l'accueil" pour ramener à IA-11.
+ * donc le Pattern C est adapté ici sans vignette vidéo. Bouton de fermeture
+ * neutre "J'ai compris" pour ramener à IA-11 — cet écran n'engage rien : la
+ * validation de l'action se fait en cochant sa case sur l'accueil (IA-11),
+ * d'où le rappel discret au-dessus du bouton (8 juillet 2026).
  *
  * Référence IA : IA-13. Pattern : C adapté.
  */
@@ -90,8 +92,11 @@ export default function Phase0ActionDetailScreen() {
         )}
       </ScrollView>
       <View style={styles.footer}>
+        <Text style={styles.footerHint}>
+          Pour valider cette action, coche sa case sur l'écran d'accueil.
+        </Text>
         <Button
-          label="C'est fait, on continue"
+          label="J'ai compris"
           onPress={() => navigation.goBack()}
           fullWidth
           size="large"
@@ -157,6 +162,13 @@ const styles = StyleSheet.create({
   howText: { ...interTextStyle('bodyLarge'), color: pillarColors.phase0.text, flex: 1 },
   footer: {
     padding: layout.screen.marginHorizontal,
+  },
+  footerHint: {
+    ...interTextStyle('caption'),
+    color: pillarColors.phase0.text,
+    opacity: 0.7,
+    textAlign: 'center',
+    marginBottom: space[2],
   },
   errorText: { ...interTextStyle('body'), color: neutralColors.textSecondary, padding: space[5] },
 });
