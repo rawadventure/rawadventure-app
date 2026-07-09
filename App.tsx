@@ -84,9 +84,12 @@ SplashScreen.preventAutoHideAsync().catch(() => {});
  *    `legal-site/.well-known/`. Cf. docs/release/universal-links-setup.md.
  *
  * Pas de mapping de routes ici — la gestion se fait via les events
- * Supabase (`PASSWORD_RECOVERY`) captés dans AuthContext et SubscriptionContext
- * (reload sur deep link checkout-success). NavigationContainer a juste besoin
- * des prefixes pour ne pas bloquer l'ouverture des deep links.
+ * Supabase (`PASSWORD_RECOVERY`) captés dans AuthContext. Pour le retour de
+ * paiement, il n'y a PAS de handler du deep link subscription-success : le
+ * refresh de l'abonnement passe par PaywallScreen (reload à la fermeture du
+ * navigateur natif + reload au retour au premier plan via AppState).
+ * NavigationContainer a juste besoin des prefixes pour ne pas bloquer
+ * l'ouverture des deep links.
  */
 const linking: LinkingOptions<ReactNavigation.RootParamList> = {
   prefixes: [

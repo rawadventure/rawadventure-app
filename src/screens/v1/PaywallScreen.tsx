@@ -30,6 +30,7 @@
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
+  AppState,
   Linking,
   Platform,
   Pressable,
@@ -153,6 +154,21 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
     if (paywallReloadedThisSession) return;
     paywallReloadedThisSession = true;
     void reload();
+  }, [reload]);
+
+  // Reload au retour au premier plan. Cas critique : PWA — le paiement se
+  // fait dans un autre onglet, et le websocket Supabase realtime de l'onglet
+  // app peut être coupé pendant que Safari le met en veille. Sans ce reload,
+  // l'utilisateur qui a payé reste bloqué sur le paywall jusqu'à un refresh
+  // manuel de la page. Sur react-native-web, AppState s'appuie sur la Page
+  // Visibility API → 'active' fire au retour sur l'onglet. Sur natif, couvre
+  // aussi le retour depuis le navigateur de paiement. reload() est silencieux
+  // (pas de flip du flag loading global → pas de démontage de la nav).
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (nextState) => {
+      if (nextState === 'active') void reload();
+    });
+    return () => sub.remove();
   }, [reload]);
 
   const handleContinue = async () => {
