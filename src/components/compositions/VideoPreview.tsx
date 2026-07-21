@@ -15,6 +15,19 @@
  * Preview : poster embarqué (registre video-posters) — iOS Safari ne peint
  * jamais la frame d'une vidéo en pause, ni via positionMillis ni via #t=1.
  *
+ * Web : le <Video> n'est PAS monté avant le tap play (montage à la demande).
+ * L'ancienne approche (montage permanent + opacity 0) ne suffisait pas : la
+ * couche vidéo native iOS peut se peindre par-dessus le contenu composité en
+ * ignorant l'opacité — la frame t=0 (cadrage caméra raté) transperçait le
+ * poster (constat Stéphane, 21 juillet 2026, modale palier 15j). Aucun
+ * élément <video> dans le DOM = rien qu'iOS puisse peindre. Le montage se
+ * fait synchroniquement au tap via flushSync (helper platform-split) pour
+ * rester dans la pile du geste utilisateur (exigence iOS lecture/fullscreen),
+ * et l'élément est démonté au retour à l'état preview (sortie plein écran,
+ * fin de vidéo, erreur). La position de lecture est mémorisée entre deux
+ * montages : re-play reprend où l'utilisateur s'était arrêté (via fragment
+ * media #t=Ns, appliqué par le navigateur au chargement).
+ *
  * Chaque écran appelant passe SA vidéo (`uri`) et, si fourni, SON poster.
  */
 
@@ -40,6 +53,7 @@ import {
 import { Play, RefreshCw } from 'lucide-react-native';
 import { getInterFamily, radiusV1 } from '../../theme';
 import { getVideoPoster } from '../../lib/video-posters';
+import { flushSync } from '../../lib/flushSync';
 
 export type VideoPreviewProps = {
   /** URL mp4 (Supabase Storage public). */
@@ -81,6 +95,14 @@ export function VideoPreview({
   // la pause pré-lecture (état normal au montage) de la pause post-lecture
   // (sortie du plein écran, fin de vidéo).
   const hasPlayedRef = useRef(false);
+  // Dernière position de lecture connue (ms) — point de reprise du prochain
+  // montage web (le démontage ferait sinon repartir la vidéo du début).
+  // Remise à zéro en fin de vidéo.
+  const lastPositionMillisRef = useRef(0);
+  // Source gelée au moment du tap (fragment #t=Ns de reprise inclus) : la
+  // recalculer au render changerait l'attribut src du <video> en cours de
+  // lecture et rechargerait la vidéo.
+  const mountedSourceUriRef = useRef(`${uri}#t=1`);
 
   const clearStartTimeout = () => {
     if (startTimeoutRef.current) {
@@ -103,7 +125,10 @@ export function VideoPreview({
     setErrored(true);
   };
 
-  const sourceUri = isWeb ? `${uri}#t=1` : uri;
+  // Web : montage à la demande — le <Video> n'existe qu'entre le tap play et
+  // le retour à l'état preview. Natif : montage permanent (comportement V0).
+  const mountVideo = !isWeb || starting || webPlaying;
+  const sourceUri = isWeb ? mountedSourceUriRef.current : uri;
 
   // Poster : prop explicite > registre embarqué (frame extraite de la vidéo).
   // Affiché tant que la lecture web n'a pas démarré — iOS Safari ne peint
@@ -118,7 +143,17 @@ export function VideoPreview({
       setRetryKey((k) => k + 1);
       return;
     }
-    setStarting(true);
+    // Point de reprise : dernière position connue, plancher à 1 s (la frame
+    // t=0 est un cadrage caméra raté sur plusieurs vidéos).
+    mountedSourceUriRef.current = `${uri}#t=${Math.max(
+      1,
+      lastPositionMillisRef.current / 1000,
+    )}`;
+    // flushSync : sur web, monte le <Video> synchroniquement DANS le geste
+    // utilisateur — un setState normal ne commit qu'après le handler, la ref
+    // vidéo serait encore nulle pour la suite (fullscreen + lecture, qu'iOS
+    // n'autorise que dans la pile d'un vrai geste). No-op déguisé sur natif.
+    flushSync(() => setStarting(true));
     startTimeoutRef.current = setTimeout(
       () => markError(`pas de lecture après ${START_TIMEOUT_MS} ms`),
       START_TIMEOUT_MS,
@@ -150,7 +185,9 @@ export function VideoPreview({
   // l'événement `pause`, donc aucun status update n'est garanti quand iOS
   // pause la vidéo en refermant le plein écran — sans ce handler, l'élément
   // <video> figé (frame quelconque ou surface grise) restait affiché
-  // par-dessus le poster (constat Stéphane, salve du 21 juillet).
+  // par-dessus le poster (constat Stéphane, salve du 21 juillet). Sur web,
+  // remettre starting/webPlaying à false démonte aussi le <Video> (condition
+  // mountVideo) — retour garanti au poster seul.
   const handleFullscreenUpdate = (event: VideoFullscreenUpdateEvent) => {
     if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) return;
     videoRef.current?.setStatusAsync({ shouldPlay: false }).catch(() => {});
@@ -166,6 +203,13 @@ export function VideoPreview({
       // status non chargé sans erreur est l'état normal pré-lecture.
       if (status.error) markError(status.error);
       return;
+    }
+    // Point de reprise du prochain montage web. Fin de vidéo → prochain play
+    // repart du début.
+    if (status.didJustFinish) {
+      lastPositionMillisRef.current = 0;
+    } else if (status.positionMillis > 0) {
+      lastPositionMillisRef.current = status.positionMillis;
     }
     if (!status.isPlaying) {
       // Pause APRÈS une lecture effective : sortie du plein écran (iOS pause
@@ -201,27 +245,28 @@ export function VideoPreview({
       accessibilityRole="button"
       accessibilityLabel={errored ? 'Vidéo indisponible, réessayer' : accessibilityLabel}
     >
-      <Video
-        key={retryKey}
-        ref={(r) => {
-          videoRef.current = r;
-        }}
-        source={{ uri: sourceUri }}
-        // Web : élément <video> invisible tant que la lecture n'a pas démarré.
-        // Certains iOS Safari peignent la frame 0 brute (cadrage caméra raté)
-        // d'une vidéo en pause — constat testeuse 8 juillet 2026 : si le
-        // poster manque ou tarde, cette frame moche transperce. Caché, le
-        // fallback est le fond noir + play, jamais une frame subie.
-        style={[StyleSheet.absoluteFill, isWeb && !webPlaying && { opacity: 0 }]}
-        resizeMode={ResizeMode.COVER}
-        isLooping={false}
-        shouldPlay={false}
-        useNativeControls={isWeb && webPlaying}
-        positionMillis={isWeb ? undefined : 1000}
-        onPlaybackStatusUpdate={handleStatusUpdate}
-        onFullscreenUpdate={handleFullscreenUpdate}
-        onError={(e) => markError(e)}
-      />
+      {mountVideo && (
+        <Video
+          key={retryKey}
+          ref={(r) => {
+            videoRef.current = r;
+          }}
+          source={{ uri: sourceUri }}
+          // Défense résiduelle pendant la fenêtre `starting` (tap → démarrage
+          // effectif) : le <video> tout juste monté reste invisible le temps
+          // du chargement, le poster couvre. Le vrai correctif anti-frame-t0
+          // est le montage à la demande (voir en-tête).
+          style={[StyleSheet.absoluteFill, isWeb && !webPlaying && { opacity: 0 }]}
+          resizeMode={ResizeMode.COVER}
+          isLooping={false}
+          shouldPlay={false}
+          useNativeControls={isWeb && webPlaying}
+          positionMillis={isWeb ? undefined : 1000}
+          onPlaybackStatusUpdate={handleStatusUpdate}
+          onFullscreenUpdate={handleFullscreenUpdate}
+          onError={(e) => markError(e)}
+        />
+      )}
       {poster && !webPlaying && (
         <Image
           source={poster}
