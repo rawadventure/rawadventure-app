@@ -9,7 +9,11 @@
  *
  * Clé = nom de fichier mp4 sans extension. `getVideoPoster(uri)` résout
  * automatiquement le poster depuis l'URL — les écrans n'ont rien à faire.
- * Vidéo re-tournée → régénérer le jpg correspondant (ffmpeg -ss 1).
+ * Les jpg sont recadrés en 16:9 (bande centrale en hauteur) pour remplir le
+ * conteneur VideoPreview sans recadrage à l'affichage (choix Stéphane, 21
+ * juillet 2026). Vidéo re-tournée → régénérer le jpg :
+ * ffmpeg -ss 1 -i video.mp4 -vf "crop=540:304:0:328" -q:v 3 poster.jpg
+ * (base : frame source 540x960 verticale ; adapter le crop si autre format).
  */
 
 import type { ImageSourcePropType } from 'react-native';
