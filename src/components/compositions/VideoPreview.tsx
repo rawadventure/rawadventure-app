@@ -30,7 +30,13 @@ import {
   View,
   ViewStyle,
 } from 'react-native';
-import { Video, ResizeMode, type AVPlaybackStatus } from 'expo-av';
+import {
+  Video,
+  ResizeMode,
+  VideoFullscreenUpdate,
+  type AVPlaybackStatus,
+  type VideoFullscreenUpdateEvent,
+} from 'expo-av';
 import { Play, RefreshCw } from 'lucide-react-native';
 import { getInterFamily, radiusV1 } from '../../theme';
 import { getVideoPoster } from '../../lib/video-posters';
@@ -71,6 +77,10 @@ export function VideoPreview({
   // Fullscreen raté au tap (métadonnées pas prêtes) → re-tenter dès que la
   // lecture démarre. Une seule re-tentative.
   const pendingFullscreenRef = useRef(false);
+  // La lecture a réellement démarré au moins une fois — permet de distinguer
+  // la pause pré-lecture (état normal au montage) de la pause post-lecture
+  // (sortie du plein écran, fin de vidéo).
+  const hasPlayedRef = useRef(false);
 
   const clearStartTimeout = () => {
     if (startTimeoutRef.current) {
@@ -135,6 +145,21 @@ export function VideoPreview({
     }
   };
 
+  // Sortie du plein écran (iOS : webkitendfullscreen → PLAYER_DID_DISMISS).
+  // Crochet FIABLE de retour à la preview : expo-av web n'écoute pas
+  // l'événement `pause`, donc aucun status update n'est garanti quand iOS
+  // pause la vidéo en refermant le plein écran — sans ce handler, l'élément
+  // <video> figé (frame quelconque ou surface grise) restait affiché
+  // par-dessus le poster (constat Stéphane, salve du 21 juillet).
+  const handleFullscreenUpdate = (event: VideoFullscreenUpdateEvent) => {
+    if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) return;
+    videoRef.current?.setStatusAsync({ shouldPlay: false }).catch(() => {});
+    hasPlayedRef.current = false;
+    clearStartTimeout();
+    setStarting(false);
+    setWebPlaying(false);
+  };
+
   const handleStatusUpdate = (status: AVPlaybackStatus) => {
     if (!status.isLoaded) {
       // `error` n'est renseigné que sur vraie erreur de chargement — un
@@ -142,8 +167,21 @@ export function VideoPreview({
       if (status.error) markError(status.error);
       return;
     }
-    if (!status.isPlaying) return;
+    if (!status.isPlaying) {
+      // Pause APRÈS une lecture effective : sortie du plein écran (iOS pause
+      // la vidéo) ou fin de la vidéo. Sans ce reset, l'élément <video> web en
+      // pause reste peint en gris par-dessus le poster à jamais (constat
+      // Stéphane, salve du 21 juillet — modale palier 15j). On restaure
+      // l'état preview : poster + bouton play, prêt à relancer.
+      if (hasPlayedRef.current && !status.isBuffering) {
+        hasPlayedRef.current = false;
+        setWebPlaying(false);
+        setStarting(false);
+      }
+      return;
+    }
     // Lecture démarrée — le plafond de démarrage ne s'applique plus.
+    hasPlayedRef.current = true;
     clearStartTimeout();
     setStarting(false);
     if (pendingFullscreenRef.current) {
@@ -181,6 +219,7 @@ export function VideoPreview({
         useNativeControls={isWeb && webPlaying}
         positionMillis={isWeb ? undefined : 1000}
         onPlaybackStatusUpdate={handleStatusUpdate}
+        onFullscreenUpdate={handleFullscreenUpdate}
         onError={(e) => markError(e)}
       />
       {poster && !webPlaying && (

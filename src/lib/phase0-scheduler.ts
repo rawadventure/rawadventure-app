@@ -54,11 +54,12 @@ export function computePhase0NotificationTime(
   accountCreatedAt: Date,
   dayIndex: number,
   hour: number,
+  now: Date = new Date(),
 ): Date | null {
   const target = new Date(accountCreatedAt);
   target.setDate(target.getDate() + dayIndex);
   target.setHours(hour, 0, 0, 0);
-  if (target.getTime() <= Date.now()) {
+  if (target.getTime() <= now.getTime()) {
     return null;
   }
   return target;
