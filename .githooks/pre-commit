@@ -1,0 +1,16 @@
+#!/bin/sh
+# Pre-commit Raw Adventure — bloque le commit si TypeScript ou la suite Jest
+# est en rouge. Activé via : git config core.hooksPath .githooks
+# (à refaire après un clone — voir CLAUDE.md §7 Workflow TDD).
+#
+# Contourner ponctuellement (déconseillé) : git commit --no-verify
+
+set -e
+
+echo "→ Vérification TypeScript (tsc --noEmit)…"
+npx tsc --noEmit
+
+echo "→ Suite de tests (jest)…"
+npx jest --bail --silent
+
+echo "✓ Pre-commit OK — commit autorisé."
