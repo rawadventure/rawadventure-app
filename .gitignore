@@ -59,3 +59,4 @@ AuthKey_*.p8
 # Playwright
 test-results/
 playwright-report/
+.env.e2e

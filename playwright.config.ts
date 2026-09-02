@@ -8,6 +8,19 @@
  * Lancement : npm run test:e2e (PAS dans le pre-commit — trop lent).
  */
 import { defineConfig, devices } from '@playwright/test';
+import * as fs from 'fs';
+import * as path from 'path';
+
+// Charge `.env.e2e` (gitignoré) dans process.env — identifiants du compte de
+// test E2E_TEST_EMAIL / E2E_TEST_PASSWORD pour les runs locaux. En CI, ces
+// valeurs viennent des secrets GitHub. Parseur minimal, pas de dépendance.
+const envFile = path.join(__dirname, '.env.e2e');
+if (fs.existsSync(envFile)) {
+  for (const line of fs.readFileSync(envFile, 'utf8').split('\n')) {
+    const m = line.match(/^([A-Z0-9_]+)=(.*)$/);
+    if (m && !process.env[m[1]]) process.env[m[1]] = m[2].trim();
+  }
+}
 
 const PORT = 8081;
 
