@@ -55,3 +55,7 @@ AuthKey_*.p8
 
 # Playwright CLI local artifacts
 .playwright-cli/
+
+# Playwright
+test-results/
+playwright-report/
