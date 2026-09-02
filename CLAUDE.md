@@ -2,7 +2,7 @@
 
 *Ce fichier est le contexte projet de Claude Code pour le repo Raw Adventure App. Il vit à la racine du repo et est lu en début de chaque session. Sa source de vérité reste les documents du Project Claude.ai (référencés en section 8). Si une info de ce fichier semble contredire un doc Project plus récent, c'est le doc Project qui gagne — il faut alors mettre à jour ce CLAUDE.md.*
 
-*Daté du 8 juillet 2026 — Version 1.4 (patch D38 : position du parcours par validation). À mettre à jour à chaque décision structurelle nouvelle.*
+*Daté du 2 septembre 2026 — Version 1.5 (ajout du Workflow TDD, section 7). À mettre à jour à chaque décision structurelle nouvelle.*
 
 ---
 
@@ -340,6 +340,28 @@ Concrètement, à chaque modification significative (un écran codé, une featur
 
 **Pas de push automatique vers une branche distante.** Tant que GitHub n'est pas configuré, tous les commits restent locaux. Quand GitHub sera connecté (en mode **privé** — Raw Adventure est un produit commercial, pas open source — voir D22), Stéphane confirmera le passage au push manuel après validation.
 
+### Workflow TDD
+
+*Section ajoutée le 2 septembre 2026 (V1.5). La suite de tests vit dans `src/**/__tests__/` (Jest + jest-expo + @testing-library/react-native), les parcours E2E dans `e2e/` (Playwright sur expo web). Outillage partagé dans `src/test-utils/` (horloge épinglée devClock, seed AsyncStorage, mock Supabase chaînable). Commandes : `npx jest` (suite complète, < 10 s), `npm run test:watch`, `npm run test:coverage`, `npm run test:e2e` (lent, à la demande).*
+
+Claude Code applique ces règles à chaque session, sans qu'on les lui rappelle.
+
+**1. Logique métier d'abord en rouge.** Toute nouvelle logique dans `src/lib`, `src/hooks` ou `src/data` (calculs, mécaniques, transitions d'état) commence par un test qui échoue, puis le code qui le fait passer. Pas de logique métier écrite sans son test.
+
+**2. UI pragmatique.** Les écrans se codent directement, mais tout flow porteur de logique (validation, gating, navigation conditionnelle, écran narratif) reçoit un test de flow dans la même session, avec les vrais providers quand c'est possible (pattern `HomeScreenV1.test.tsx`).
+
+**3. Suite complète avant chaque commit.** `npx jest` doit être vert avant de proposer un commit — jamais de commit proposé avec du rouge. Le hook pre-commit (`.githooks/pre-commit` : tsc + jest) le garantit mécaniquement ; après un clone, le réactiver avec `git config core.hooksPath .githooks`.
+
+**4. Chaque bug trouvé = test de régression d'abord.** Qu'il soit trouvé par Stéphane à la main ou par Claude, le bug est d'abord reproduit par un test qui échoue, puis corrigé. Le test reste dans la suite pour toujours.
+
+**5. Nouveau module = nouveau fichier de test.** Et toute décision Dxx à impact mécanique (type D38) doit avoir des tests qui la verrouillent — les tests citent la décision en commentaire.
+
+**6. Tracer bullet.** Toute nouvelle fonctionnalité se construit d'abord en tranche fine de bout en bout (données → logique → écran, version minimale qui traverse l'app et se teste), puis s'épaissit. Pas de gros bloc codé en aveugle avant d'avoir une tranche qui marche et qui est testée.
+
+Conventions techniques de la suite (apprises en la construisant, à respecter) : interactions via `userEvent` de testing-library, jamais `fireEvent` (qui corrompt les tests suivants sous React 19) ; `renderHook`/`render` sont async (les `await`) ; les tests d'écran passent par un gate `loading` reproduisant le RootNavigator (voir `GatedHome` dans `HomeScreenV1.test.tsx`) ; les tests sensibles aux semaines ISO épinglent l'horloge via `pinClockTo` du harnais (jamais dépendants de la date réelle du run) ; les mocks globaux (reanimated, safe-area, expo-av, expo-notifications, Supabase env) vivent dans `jest.setup.ts`.
+
+La CI GitHub Actions (`.github/workflows/tests.yml`) rejoue tsc + jest + Playwright à chaque push sur `main` — filet hors machine, ne remplace pas le pre-commit local.
+
 ### Quand un cadrage manque
 
 Si tu rencontres une décision qui n'est pas dans ce CLAUDE.md ni dans les docs Project — typiquement un détail de calcul (toile d'araignée), de fréquence (notifications), de mapping (profil onboarding → niveau de départ), de prix d'abonnement, de copy précis — **ne pas inventer**. Signaler à Stéphane que la décision est reportée (voir section 9), proposer un placeholder explicite (commentaire `// TODO: décision Dxx reportée à Métriques V1` ou valeur de fallback claire), et continuer sur autre chose.
@@ -467,6 +489,8 @@ Pour aller plus vite quand la mémoire flanche. Détail complet dans la Synthès
 ---
 
 ## 11. Historique des versions de ce CLAUDE.md
+
+**Version 1.5 — 2 septembre 2026.** Ajout de la sous-section « Workflow TDD » en section 7, en sortie du chantier suite de tests (1er-2 septembre 2026). La suite couvre désormais 4 couches : unitaires `src/lib` (historiques), intégration contexts (`ProgressContext` D38/streak/paliers, `SubscriptionContext` FSM/gating), flows écrans (IA-15, HomeScreenV1, PaywallScreen, smoke App) et E2E Playwright (`e2e/`, onboarding sur expo web) — 280 tests Jest en ~9 s plus 4 parcours navigateur. Déclenchement automatique : hook pre-commit `.githooks/` (tsc + jest, bloque le commit si rouge) et CI GitHub Actions à chaque push. Six règles TDD actées (logique en rouge d'abord, UI pragmatique, suite verte avant commit, bug = test de régression d'abord, module = fichier de test, tracer bullet) plus conventions techniques (userEvent, horloge épinglée, gate loading). Aucune décision produit nouvelle — chantier purement technique.
 
 **Version 1.4 — 8 juillet 2026.** Patch pendant la salve de tests manuels pré-ouverture testeurs. Ajout de la décision **D38** (découplage position/streak, implémentée le 17 juin 2026 mais jamais consignée ici — le CLAUDE.md décrivait encore le modèle calendaire de position, ce qui a causé une fausse alerte en session de tests). Section 10 : D19 et D20 annotés pour renvoyer à D38. En-tête daté au 8 juillet. Au passage : le plan de tests `docs/tests/salve-tests-pre-ouverture-testeurs.md` est passé en V1.1 (attendus alignés sur D38) et les messages de reprise/joker sont désormais visibles en PWA (showNotice au lieu d'Alert.alert).
 
