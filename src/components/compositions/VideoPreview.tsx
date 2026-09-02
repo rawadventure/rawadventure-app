@@ -91,10 +91,6 @@ export function VideoPreview({
   // Fullscreen raté au tap (métadonnées pas prêtes) → re-tenter dès que la
   // lecture démarre. Une seule re-tentative.
   const pendingFullscreenRef = useRef(false);
-  // La lecture a réellement démarré au moins une fois — permet de distinguer
-  // la pause pré-lecture (état normal au montage) de la pause post-lecture
-  // (sortie du plein écran, fin de vidéo).
-  const hasPlayedRef = useRef(false);
   // Dernière position de lecture connue (ms) — point de reprise du prochain
   // montage web (le démontage ferait sinon repartir la vidéo du début).
   // Remise à zéro en fin de vidéo.
@@ -191,7 +187,6 @@ export function VideoPreview({
   const handleFullscreenUpdate = (event: VideoFullscreenUpdateEvent) => {
     if (event.fullscreenUpdate !== VideoFullscreenUpdate.PLAYER_DID_DISMISS) return;
     videoRef.current?.setStatusAsync({ shouldPlay: false }).catch(() => {});
-    hasPlayedRef.current = false;
     clearStartTimeout();
     setStarting(false);
     setWebPlaying(false);
@@ -204,28 +199,28 @@ export function VideoPreview({
       if (status.error) markError(status.error);
       return;
     }
-    // Point de reprise du prochain montage web. Fin de vidéo → prochain play
+    // Fin de vidéo → fermeture propre : plein écran refermé s'il est ouvert
+    // (no-op inoffensif inline), retour à l'état preview, prochain play
     // repart du début.
     if (status.didJustFinish) {
       lastPositionMillisRef.current = 0;
-    } else if (status.positionMillis > 0) {
-      lastPositionMillisRef.current = status.positionMillis;
-    }
-    if (!status.isPlaying) {
-      // Pause APRÈS une lecture effective : sortie du plein écran (iOS pause
-      // la vidéo) ou fin de la vidéo. Sans ce reset, l'élément <video> web en
-      // pause reste peint en gris par-dessus le poster à jamais (constat
-      // Stéphane, salve du 21 juillet — modale palier 15j). On restaure
-      // l'état preview : poster + bouton play, prêt à relancer.
-      if (hasPlayedRef.current && !status.isBuffering) {
-        hasPlayedRef.current = false;
-        setWebPlaying(false);
-        setStarting(false);
-      }
+      videoRef.current?.dismissFullscreenPlayer().catch(() => {});
+      clearStartTimeout();
+      setStarting(false);
+      setWebPlaying(false);
       return;
     }
+    if (status.positionMillis > 0) {
+      lastPositionMillisRef.current = status.positionMillis;
+    }
+    // Pause = pause, PAS une fermeture (constat Stéphane, salve du 25
+    // juillet : le reset-sur-pause refermait la vidéo au tap pause des
+    // contrôles et au tap sur l'écran). Le retour à la preview ne passe plus
+    // que par la sortie du plein écran (handleFullscreenUpdate, événement
+    // PLAYER_DID_DISMISS fiable) ou la fin de vidéo ci-dessus — l'utilisateur
+    // peut mettre en pause et reprendre librement avec les contrôles.
+    if (!status.isPlaying) return;
     // Lecture démarrée — le plafond de démarrage ne s'applique plus.
-    hasPlayedRef.current = true;
     clearStartTimeout();
     setStarting(false);
     if (pendingFullscreenRef.current) {
