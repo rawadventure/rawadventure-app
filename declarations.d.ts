@@ -11,3 +11,10 @@ declare module '*.svg' {
   const content: React.FC<SvgProps>;
   export default content;
 }
+
+// react-dom (19.1.0, dépendance web d'Expo) n'embarque pas ses propres types
+// et @types/react-dom n'est pas installé. On ne consomme que flushSync
+// (src/lib/flushSync.web.ts) — déclaré ici a minima.
+declare module 'react-dom' {
+  export function flushSync<R>(fn: () => R): R;
+}
