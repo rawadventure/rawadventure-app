@@ -685,3 +685,127 @@ describe('mode connecté — écritures Supabase', () => {
     expect(result.current.currentPhase).toBe('post_s8');
   });
 });
+
+// ─── Migration locale → distante (Feature Spec §2.10, Sprint B) ──────────────
+
+describe('migration locale → distante (§2.10)', () => {
+  const ISO = '2026-10-15T08:00:00.000Z';
+
+  test('markPendingMigration expose le state et persiste en AsyncStorage', async () => {
+    const { result } = await renderProgress();
+    await act(async () => {
+      await result.current.markPendingMigration('u1', ISO, 'a@b.c');
+    });
+    expect(result.current.pendingMigration).toEqual({
+      userId: 'u1',
+      accountCreatedAt: ISO,
+      email: 'a@b.c',
+    });
+    const raw = await AsyncStorage.getItem('pending_migration');
+    expect(JSON.parse(raw!)).toMatchObject({ userId: 'u1' });
+  });
+
+  test('pendingMigration est restaurée depuis AsyncStorage au boot (reload PWA)', async () => {
+    await AsyncStorage.setItem(
+      'pending_migration',
+      JSON.stringify({ userId: 'u1', accountCreatedAt: ISO, email: 'a@b.c' }),
+    );
+    const { result } = await renderProgress();
+    expect(result.current.pendingMigration).toMatchObject({ userId: 'u1' });
+  });
+
+  test('session arrivée avec userId correspondant → migration déclenchée puis pendingMigration effacée', async () => {
+    // Flow réel : parcours anonyme en mémoire, signup, puis la session arrive.
+    await seedAnonymousStorage({ history: validatedRun(3) });
+    const utils = await renderProgress();
+    await act(async () => {
+      await utils.result.current.markPendingMigration('u1', ISO, 'a@b.c');
+    });
+    expect(sb.calls.filter((c) => c.table === 'profiles')).toHaveLength(0);
+
+    mockUser = { id: 'u1' };
+    await act(async () => {
+      utils.rerender({});
+    });
+
+    // Update du profil distant : onboarding + account_created_at.
+    await waitFor(() => {
+      const updates = sb.calls.filter(
+        (c) => c.table === 'profiles' && c.op === 'update',
+      );
+      expect(updates).toHaveLength(1);
+      expect(updates[0].payload).toMatchObject({
+        onboarding_done: true,
+        account_created_at: ISO,
+      });
+    });
+    // Historique streak migré (3 jours validés en anonyme).
+    await waitFor(() => {
+      const upserts = sb.calls.filter(
+        (c) => c.table === 'streak_history' && c.op === 'upsert',
+      );
+      expect(upserts).toHaveLength(1);
+      expect(upserts[0].payload).toHaveLength(3);
+      expect(
+        (upserts[0].payload as Array<Record<string, unknown>>)[0].user_id,
+      ).toBe('u1');
+    });
+    // pendingMigration consommée (state + AsyncStorage).
+    await waitFor(() =>
+      expect(utils.result.current.pendingMigration).toBeNull(),
+    );
+    expect(await AsyncStorage.getItem('pending_migration')).toBeNull();
+  });
+
+  test('session avec userId NON correspondant → aucune migration', async () => {
+    const utils = await renderProgress();
+    await act(async () => {
+      await utils.result.current.markPendingMigration('u1', ISO);
+    });
+    mockUser = { id: 'autre-user' };
+    await act(async () => {
+      utils.rerender({});
+    });
+    // Laisse les effets tourner, puis vérifie qu'il ne s'est rien passé.
+    await act(async () => {});
+    expect(
+      sb.calls.filter((c) => c.table === 'profiles' && c.op === 'update'),
+    ).toHaveLength(0);
+    expect(utils.result.current.pendingMigration).toMatchObject({
+      userId: 'u1',
+    });
+  });
+
+  test('migration en échec → pendingMigration conservée (retry au prochain load)', async () => {
+    const utils = await renderProgress();
+    await act(async () => {
+      await utils.result.current.markPendingMigration('u1', ISO);
+    });
+
+    // Fait échouer le premier write vers `profiles`.
+    const origFrom = sb.client.from;
+    let attempted = false;
+    sb.client.from = (table: string) => {
+      if (table === 'profiles') {
+        attempted = true;
+        throw new Error('réseau indisponible (simulé)');
+      }
+      return origFrom(table);
+    };
+    try {
+      mockUser = { id: 'u1' };
+      await act(async () => {
+        utils.rerender({});
+      });
+      await waitFor(() => expect(attempted).toBe(true));
+      await act(async () => {});
+      // pendingMigration N'EST PAS effacée — retry possible au prochain load.
+      expect(utils.result.current.pendingMigration).toMatchObject({
+        userId: 'u1',
+      });
+      expect(await AsyncStorage.getItem('pending_migration')).not.toBeNull();
+    } finally {
+      sb.client.from = origFrom;
+    }
+  });
+});

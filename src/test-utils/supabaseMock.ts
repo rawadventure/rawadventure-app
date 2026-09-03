@@ -25,6 +25,16 @@ export type SupabaseCall = {
   payload?: unknown;
 };
 
+export type SupabaseAuthSpies = {
+  signInWithPassword: jest.Mock;
+  signUp: jest.Mock;
+  resetPasswordForEmail: jest.Mock;
+  updateUser: jest.Mock;
+  resend: jest.Mock;
+  verifyOtp: jest.Mock;
+  signOut: jest.Mock;
+};
+
 export type SupabaseMock = {
   client: {
     from: (table: string) => unknown;
@@ -38,6 +48,16 @@ export type SupabaseMock = {
   /** Callbacks realtime enregistrés via channel().on() — pour simuler un
    *  event Postgres Changes : `sb.realtimeCallbacks[0]({ new: row })`. */
   realtimeCallbacks: Array<(payload: { new: unknown }) => void>;
+  /** Session renvoyée par `auth.getSession()` au prochain appel. */
+  setSession: (session: unknown) => void;
+  /** Simule un event `onAuthStateChange` (SIGNED_IN, SIGNED_OUT,
+   *  PASSWORD_RECOVERY, TOKEN_REFRESHED…) vers tous les listeners
+   *  enregistrés, et pose la session comme session courante. */
+  emitAuthEvent: (event: string, session?: unknown) => void;
+  /** Spies jest sur les méthodes auth — pour asserter les appels ou
+   *  configurer un retour (`sb.authSpies.signUp.mockResolvedValueOnce(...)`).
+   *  `reset()` restaure les implémentations par défaut (succès vides). */
+  authSpies: SupabaseAuthSpies;
 };
 
 export function createSupabaseMock(
@@ -48,10 +68,24 @@ export function createSupabaseMock(
   const realtimeCallbacks: Array<(payload: { new: unknown }) => void> = [];
 
   function makeBuilder(table: string) {
+    // Filtres eq() accumulés sur CE builder (un builder par `from()`).
+    // Une ligne-objet qui porte la colonne doit matcher la valeur ; une ligne
+    // scalaire ou sans la colonne passe (rétro-compatibilité des tests
+    // existants qui posent des valeurs simples).
+    const filters: Array<[string, unknown]> = [];
     const read = () => {
       const raw = tables[table];
-      const asArray = Array.isArray(raw) ? raw : raw != null ? [raw] : [];
-      const asSingle = Array.isArray(raw) ? (raw[0] ?? null) : (raw ?? null);
+      let asArray = Array.isArray(raw) ? raw : raw != null ? [raw] : [];
+      if (filters.length > 0) {
+        asArray = asArray.filter((row) =>
+          filters.every(([col, val]) =>
+            row !== null && typeof row === 'object' && col in row
+              ? (row as Record<string, unknown>)[col] === val
+              : true,
+          ),
+        );
+      }
+      const asSingle = asArray[0] ?? null;
       return { asArray, asSingle };
     };
 
@@ -59,7 +93,10 @@ export function createSupabaseMock(
     const chain = () => () => builder;
 
     builder.select = chain();
-    builder.eq = chain();
+    builder.eq = (col: string, val: unknown) => {
+      filters.push([col, val]);
+      return builder;
+    };
     builder.order = chain();
     builder.limit = chain();
     builder.single = async () => ({ data: read().asSingle, error: null });
@@ -86,15 +123,42 @@ export function createSupabaseMock(
     return builder;
   }
 
+  // --- Auth pilotable ---
+  let authSession: unknown = null;
+  const authCallbacks: Array<(event: string, session: unknown) => void> = [];
+
+  const authDefaults: Record<keyof SupabaseAuthSpies, (...a: unknown[]) => Promise<unknown>> = {
+    signInWithPassword: async () => ({
+      data: { user: null, session: null },
+      error: null,
+    }),
+    signUp: async () => ({ data: { user: null, session: null }, error: null }),
+    resetPasswordForEmail: async () => ({ error: null }),
+    updateUser: async () => ({ error: null }),
+    resend: async () => ({ error: null }),
+    verifyOtp: async () => ({ error: null }),
+    signOut: async () => ({ error: null }),
+  };
+  const authSpies = Object.fromEntries(
+    (Object.keys(authDefaults) as Array<keyof SupabaseAuthSpies>).map((k) => [
+      k,
+      jest.fn(authDefaults[k]),
+    ]),
+  ) as SupabaseAuthSpies;
+
   return {
     client: {
       from: (table: string) => makeBuilder(table),
       auth: {
-        getSession: async () => ({ data: { session: null }, error: null }),
-        onAuthStateChange: () => ({
-          data: { subscription: { unsubscribe: () => {} } },
+        getSession: async () => ({
+          data: { session: authSession },
+          error: null,
         }),
-        signOut: async () => ({ error: null }),
+        onAuthStateChange: (cb: (event: string, session: unknown) => void) => {
+          authCallbacks.push(cb);
+          return { data: { subscription: { unsubscribe: () => {} } } };
+        },
+        ...authSpies,
       },
       channel: (_name: string) => {
         const channel = {
@@ -117,10 +181,24 @@ export function createSupabaseMock(
     setTables: (t) => {
       tables = { ...t };
     },
+    setSession: (session) => {
+      authSession = session;
+    },
+    emitAuthEvent: (event, session = null) => {
+      authSession = session;
+      for (const cb of authCallbacks) cb(event, session);
+    },
+    authSpies,
     reset: () => {
       tables = { ...initialTables };
       calls.length = 0;
       realtimeCallbacks.length = 0;
+      authSession = null;
+      authCallbacks.length = 0;
+      for (const k of Object.keys(authSpies) as Array<keyof SupabaseAuthSpies>) {
+        authSpies[k].mockReset();
+        authSpies[k].mockImplementation(authDefaults[k]);
+      }
     },
   };
 }
