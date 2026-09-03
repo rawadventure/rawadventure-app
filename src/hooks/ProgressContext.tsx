@@ -352,7 +352,27 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [accountCreatedAt, setAccountCreatedAtState] = useState<string | null>(null);
 
   // Streak / joker V1
-  const [streakHistory, setStreakHistory] = useState<StreakEntry[]>([]);
+  const [streakHistory, setStreakHistoryState] = useState<StreakEntry[]>([]);
+  // Miroir synchrone de streakHistory. `validateDay` doit lire le streak
+  // COURANT au moment de valider, pas la valeur figée dans sa closure : en mode
+  // connecté, la cohérence calendaire (runCalendarCoherence) casse le streak via
+  // un setState APRÈS des awaits Supabase ; une validation déclenchée pendant
+  // cette fenêtre réseau, avec une référence de validateDay liée avant la
+  // cassure, recalculait newStreak depuis l'ancienne valeur (14 → 15) et
+  // l'entrée du jour, plus récente, écrasait la cassure. La ref est mise à jour
+  // de façon synchrone à chaque écriture de l'historique → base toujours à jour.
+  // (Même pattern que narrativeFlagsRef ci-dessous. Bug salve F4, 2 sept 2026.)
+  const streakHistoryRef = useRef<StreakEntry[]>([]);
+  const setStreakHistory = useCallback(
+    (next: StreakEntry[] | ((prev: StreakEntry[]) => StreakEntry[])) => {
+      setStreakHistoryState((prev) => {
+        const value = typeof next === 'function' ? next(prev) : next;
+        streakHistoryRef.current = value;
+        return value;
+      });
+    },
+    [],
+  );
   const [jokerConsumptions, setJokerConsumptions] = useState<JokerConsumption[]>([]);
   const [tierReaches, setTierReaches] = useState<TierReach[]>([]);
 
@@ -976,8 +996,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         userValidatedManually,
         jokerAvailable,
       });
-      const newStreak = applyStreakIncrement(streak, decision.streakIncrement);
-      const tierReached = tierJustReached(streak, newStreak);
+      // Base = streak COURANT lu depuis l'historique à jour (streakHistoryRef),
+      // pas le memo `streak` figé dans la closure : sinon une cassure de
+      // cohérence survenue depuis la liaison de ce validateDay serait écrasée
+      // (bug F4, voir commentaire sur streakHistoryRef).
+      const base = currentStreakFromHistory(streakHistoryRef.current);
+      const newStreak = applyStreakIncrement(base, decision.streakIncrement);
+      const tierReached = tierJustReached(base, newStreak);
 
       // 1) Écrit l'entrée streak_history
       const entry: StreakEntry = {
@@ -1052,7 +1077,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     [
       currentPhase,
       jokerAvailable,
-      streak,
       persistStreakHistoryEntry,
       persistJokerConsumption,
       persistTierReach,

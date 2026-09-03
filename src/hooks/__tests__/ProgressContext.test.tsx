@@ -339,6 +339,44 @@ describe('cohérence calendaire — résolution des jours manqués', () => {
   });
 });
 
+// ─── Régression : course cohérence (cassure) vs validation (streak périmé) ───
+// Bug salve manuelle 2 sept 2026 (test F4). Scénario : 14 jours validés
+// (streak 14) → absence de 4 jours réels → la cohérence casse le streak à 0,
+// MAIS une validation dont la référence a été capturée AVANT la cassure (handler
+// UI lié pendant la fenêtre réseau de la cohérence en mode connecté) recalcule
+// newStreak à partir du streak périmé (14+1=15) au lieu du streak à jour (0+1=1).
+// L'entrée du jour (date la plus récente) gagne dans currentStreakFromHistory →
+// header affiche 15. Réf mémoire anomalie-streak-f4, décisions D6/D38.
+describe('régression F4 — validation avec streak périmé après cassure de cohérence', () => {
+  test('valider le jour 15 après une cassure (absence 4j) repart de 1, pas de 15', async () => {
+    // 14 jours validés se terminant hier → streak 14, position jour 15.
+    await seedAnonymousStorage({ history: validatedRun(14) });
+    const { result } = await renderProgress();
+    expect(result.current.streak).toBe(14);
+    expect(result.current.currentDay).toBe(15);
+
+    // Capture une référence de validateDay AVANT l'absence : elle ferme sur
+    // streak = 14 (reproduit un handler UI lié avant que la cohérence commit).
+    const staleValidate = result.current.validateDay;
+
+    // Absence de 4 jours réels : la cohérence casse le streak (1 couvert joker,
+    // le reste casse). Position inchangée (D38).
+    await act(async () => advanceDevClock(4));
+    await waitFor(() => expect(result.current.streak).toBe(0));
+    expect(result.current.currentDay).toBe(15); // position pausée (D38)
+
+    // Validation du jour 15 via la référence périmée.
+    let res!: Awaited<ReturnType<typeof result.current.validateDay>>;
+    await act(async () => {
+      res = await staleValidate({ actionsCount: 5, day: 15 });
+    });
+
+    // Le streak doit repartir de 1 (0 cassé + 1), PAS de 15.
+    expect(res.newStreak).toBe(1);
+    await waitFor(() => expect(result.current.streak).toBe(1));
+  });
+});
+
 // ─── Paliers streak (D29 / D30) ──────────────────────────────────────────────
 
 describe('paliers streak — D29 premier franchissement vs redéclenchement', () => {
