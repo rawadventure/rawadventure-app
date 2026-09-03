@@ -1,6 +1,30 @@
 # Salve de tests manuels — avant ouverture aux testeurs externes
 
-*Version 1.1 — 8 juillet 2026. À dérouler sur iPhone, Safari + PWA installée, sur https://app.rawadventure.world (prod). Rédigé d'après le code réellement en prod (post-audit narratif du 6-7 juillet 2026). V1.1 : attendus corrigés selon D38 (position par validation) après la première passe de tests du 8 juillet — voir « Rappel du modèle » ci-dessous.*
+*Version 2.0 — 3 septembre 2026. À dérouler sur iPhone, Safari + PWA installée, sur https://app.rawadventure.world (prod). V1.1 (8 juillet) : attendus corrigés selon D38. V2.0 (3 septembre) : état d'avancement consolidé (blocs A→F validés), échelle de refresh du cache par test, regroupement de tout ce qui touche Stripe dans un bloc final S (contrainte : double validation Stripe, Mimi requise), reprise à G3 sur le compte +demo3.*
+
+## État d'avancement (au 3 septembre 2026)
+
+**Validé les 2-3 septembre (ne pas re-tester)** : blocs **A** (sauf A5/D24), **B**, **C**, **D** (modèle position D38 prouvé), **E** (charnières J3/J7/J11/J14), **F1-F2** (S0.1/S0.2, toile, palier différé D30), **F4** (position OK ; l'anomalie streak relevée est un vrai bug, **corrigé et mergé le 3 septembre** — commit `12fd2e4`, test de régression dans la suite Jest). Lecteur vidéo corrigé et validé (plein écran, pause, miniatures).
+
+**G1 constaté** (paywall J17 bloquant, +demo3 y est resté coincé). **G2 contourné** : le « Mock active subscription » ne survit pas au reload pour un compte connecté (bug DEV n°2, consigné) — +demo3 a été débloqué en posant l'abonnement directement en base Supabase. Le **vrai** franchissement du paywall (paiement carte test Stripe) est déplacé au bloc S.
+
+**Reste à faire, dans l'ordre** : **G3 → G6** puis **H, I, J, A5, K1/K3/K4/K5** (compte **+demo3**, hub Phase 1 ouvert), et en clôture le **bloc S — Stripe avec Mimi** (compte neuf **+demo4**, carte test) suivi de **K2** (nettoyage comptes).
+
+**Comptes** : +demo3 = salve en cours (Stéphane). +demo2 = réservé aux tests Claude. **+test1 = GELÉ au paywall pour la vérif Stripe — ne pas toucher.** +demo4 = à créer au bloc S uniquement.
+
+## Refresh du cache — échelle R0-R4 (à lire avant de commencer)
+
+Chaque test ci-dessous porte un champ **Refresh** qui dit dans quel état de cache le démarrer. Appliquer le niveau AVANT les étapes du test.
+
+| Niveau | Geste | Ce que ça recharge | Ce que ça garde |
+|---|---|---|---|
+| **R0** | Rien — on continue dans la session ouverte | — | Tout |
+| **R1** | Recharger la page (Safari : bouton ↻ ou tirer vers le bas ; PWA : pas de geste natif → passer par R2) | Le contexte JavaScript (states en mémoire) | AsyncStorage (flags narratifs, compte anonyme), session |
+| **R2** | Fermer COMPLÈTEMENT l'app (app switcher, balayer la PWA/l'onglet vers le haut) puis rouvrir | Contexte JS + relance du boot complet (cohérence calendaire, load Supabase) | AsyncStorage, session |
+| **R3** | **Après chaque déploiement** : R2, puis vérifier qu'un changement attendu du déploiement est visible ; sinon re-fermer/rouvrir une 2e fois (le cache HTTP se met à jour au lancement suivant) | Le bundle JS lui-même (nouvelle version de l'app) | AsyncStorage, session |
+| **R4** | Réinstaller la PWA ou vider les données du site (Réglages → Safari → Avancé → Données de site) | TOUT — état vierge | Rien : **détruit AsyncStorage** (flags narratifs, pilier en cours, compte anonyme). Réservé aux tests « compte neuf » |
+
+Trois règles pratiques. **Un.** Quand Claude déploie un correctif pendant la salve, il l'annonce explicitement : « déploiement fait → R3 avant le prochain test » — ne jamais enchaîner un test après déploiement sans R3. **Deux.** Safari et la PWA installée sont deux stockages séparés : un R4 dans Safari ne vide pas la PWA, et inversement. **Trois.** Dans le doute (comportement bizarre, état incohérent), faire R2 avant de conclure à un bug — si le symptôme survit à R2, c'est un vrai signal.
 
 ## Rappel du modèle (D38 — à lire avant les blocs C à I)
 
@@ -11,7 +35,7 @@ L'app a **deux compteurs indépendants** :
 
 Une charnière se joue **à la validation** du jour concerné (pas à l'ouverture du hub). Un seul écran narratif à la fois, priorité : palier > charnière > message joker.
 
-**Hors périmètre de cette salve : Stripe / paiement réel** (vérification séparée prévue demain). Ici on utilise uniquement le bouton DEV « Mock active subscription » pour simuler un abonné.
+**Stripe / paiement réel : regroupé dans le bloc S, en clôture de salve, avec Mimi** (double validation Stripe — Stéphane n'a pas l'accès seul). D'ici là, +demo3 est déjà abonné en base ; ne pas utiliser « Mock active subscription » sur un compte connecté (bug DEV n°2 : le mock ne survit pas au reload).
 
 ---
 
@@ -53,16 +77,17 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 **Rappel important** : les flags narratifs (vidéo J1 vue, charnières vues, S0.1/S0.2 vus) et le pilier en cours sont stockés **dans le navigateur, pas en base**. Un « Reset complet » les efface ; un nettoyage SQL seul ne les efface pas. Et Safari et la PWA installée sont **deux stockages séparés** : un écran narratif « vu » dans Safari se rejouera dans la PWA — c'est normal, pas un bug (accepté V1).
 
-### 0.5 Ordre recommandé
+### 0.5 Ordre recommandé (V2 — reprise du 3 septembre)
 
-1. Blocs A-B avec un **compte neuf, sans triche** (flow réel J1).
-2. Blocs C-D-E-F-G en avançant le temps (clock offset + snapshots) sur ce même compte ou un deuxième.
-3. Blocs H-I-J (vidéo en panne, PWA, divers) à intercaler librement.
-4. Bloc K (checks finaux avant ouverture) en dernier — il inclut la désactivation du panneau DEV.
+1. **G3 → G6** sur +demo3 (hub Phase 1 déjà ouvert, abonnement posé en base).
+2. **H, I, J** (vidéo en panne, PWA, notifications) à intercaler librement.
+3. **A5** (D24) un soir après 20h, sur un alias jetable.
+4. **K1, K3, K4, K5** (checks finaux hors nettoyage comptes).
+5. **Bloc S — Stripe avec Mimi** (paywall réel +demo4, Dashboard, bouton retour), puis **K2** (nettoyage de TOUS les comptes de test).
 
 ---
 
-## Bloc A — Onboarding et création de compte (OTP)
+## Bloc A — Onboarding et création de compte (OTP) — ✅ VALIDÉ 2 sept (sauf A5)
 
 ### A1 — Parcours des 10 étapes d'onboarding
 
@@ -95,7 +120,9 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 - **Étapes** : Profil → « Se déconnecter » → l'app revient à l'entrée → se reconnecter.
 - **Attendu** : retour propre à l'écran d'auth ; à la reconnexion, parcours intact. Si un jour un bandeau « Ta session a expiré. Reconnecte-toi pour reprendre ton parcours. » apparaît spontanément, c'est le comportement prévu de session expirée.
 
-### A5 — Démarrage différé D24 (si testable ce soir-là)
+### A5 — Démarrage différé D24 (si testable ce soir-là) — RESTE À FAIRE
+
+- **Refresh** : R4 (compte neuf, navigation privée ou données de site vidées).
 
 - **Départ** : créer un compte **à moins de 4h du minuit local** (donc après 20h).
 - **Étapes** : finir l'onboarding + OTP après 20h.
@@ -105,7 +132,7 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 ---
 
-## Bloc B — J1 : vidéo de bienvenue et premier check
+## Bloc B — J1 : vidéo de bienvenue et premier check — ✅ VALIDÉ 2 sept
 
 ### B1 — Vidéo de bienvenue (IA-12)
 
@@ -126,7 +153,7 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 ---
 
-## Bloc C — Check sous le seuil, soft-rappel, joker manuel
+## Bloc C — Check sous le seuil, soft-rappel, joker manuel — ✅ VALIDÉ 2 sept
 
 ### C1 — Soft-rappel D26 (< 5/7)
 
@@ -151,7 +178,7 @@ Puis dans l'app : DEV Timeline → « Reset » (clock offset à 0). Pour reparti
 
 ---
 
-## Bloc D — Jours manqués : joker automatique et cassure (audit B1 + D38)
+## Bloc D — Jours manqués : joker automatique et cassure (audit B1 + D38) — ✅ VALIDÉ 2 sept
 
 Ces tests vérifient la « cohérence calendaire » qui tourne à l'ouverture de l'app : les jours réels passés sans validation sont résolus automatiquement **côté streak** (joker/cassure). La **position, elle, ne bouge pas** : on reprend au jour où on s'était arrêté, et le message le dit.
 
@@ -185,7 +212,7 @@ Ces tests vérifient la « cohérence calendaire » qui tourne à l'ouverture de
 
 ---
 
-## Bloc E — Jours-charnière J3 / J7 / J11 / J14
+## Bloc E — Jours-charnière J3 / J7 / J11 / J14 — ✅ VALIDÉ 2 sept
 
 Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation », « P0 J14 avant validation » (J11 : y aller en validant les jours intermédiaires avec +1j entre chaque). **Rappel D38 : la charnière se joue à la VALIDATION du jour concerné**, pas à l'ouverture du hub. Un jour charnière jamais validé = charnière jamais jouée (assumé).
 
@@ -218,7 +245,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ---
 
-## Bloc F — Transition S0.1 / S0.2, onglet Toile, palier 15j différé (D30)
+## Bloc F — Transition S0.1 / S0.2, onglet Toile, palier 15j différé (D30) — ✅ VALIDÉ 2-3 sept (F4 : bug streak corrigé, commit 12fd2e4)
 
 ### F1 — S0.1 au jour 15 : célébration + toile révélée + palier différé (D30)
 
@@ -252,34 +279,45 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ---
 
-## Bloc G — J17 : paywall et Phase 1 (S1 Respiration)
+## Bloc G — J17 : paywall et Phase 1 (S1 Respiration) — EN COURS, reprise à G3 (compte +demo3)
 
-### G1 — Paywall au jour 17 sans abonnement
+### G1 — Paywall au jour 17 sans abonnement — ✅ CONSTATÉ 2 sept
 
 - **Départ** : compte non abonné, arrivé au jour 17 — c'est-à-dire **jour 16 validé** puis « +1j » (17e jour = 17e jour VALIDÉ, pas 17e jour réel — D38).
 - **Attendu** : l'app est **bloquée** sur l'écran paywall (plein écran, pas d'accès aux onglets). CTA « Continuer mon parcours » (ouvre la page d'abonnement web — **ne pas aller au bout du paiement**, c'est le test de demain) et « Plus tard ». Pas de prix affiché dans l'app, pas des mots « payer/abonnement » sur les CTA (règles Apple).
 - **Vérifier** : « Plus tard » — observer où il mène (l'utilisateur reste bloqué hors Phase 1, c'est le comportement attendu tant que non abonné).
 
-### G2 — Déblocage par abonnement simulé
+### G2 — Déblocage par abonnement — ⚠️ CONTOURNÉ 2 sept
+
+- **État réel** : le mock DEV ne survit pas au reload pour un compte connecté (bug DEV n°2). +demo3 a été débloqué en posant l'abonnement en base Supabase. Le déblocage par le VRAI chemin (paiement) = bloc S.
 
 - **Étapes** : activer « Mock active subscription » dans Profil (il faut y accéder AVANT J17, ou via l'état où le paywall permet le retour — sinon poser le mock avant d'avancer le temps).
 - **Attendu** : à J17 abonné, plus de paywall ; le hub Phase 1 s'affiche et le pilier **S1 Respiration démarre automatiquement**.
 
-### G3 — Évaluation initiale S1 (12 questions)
+### G3 — Évaluation initiale S1 (12 questions) — ▶ POINT DE REPRISE
+
+- **Compte** : +demo3. **Refresh** : R2 (fermeture complète + réouverture — on repart d'un boot propre sur le hub Phase 1).
+- **Départ** : hub Phase 1 S1 ; s'il propose la vue d'ensemble du pilier (vidéo intro + programme 7 jours) puis « Continuer », c'est l'ordre voulu (décision 18 juin : PillarOverview AVANT le questionnaire).
 
 - **Attendu** : parcours de 12 questions, échelle 1 à 5, indicateur de progression 12 segments. À la fin : écran récap avec score, niveau diagnostic, proposition de niveau d'engagement (durée cohérence cardiaque 5/10/20 min), vidéo d'intro pilier. On peut choisir son niveau puis démarrer la semaine.
 
 ### G4 — Sessions quotidiennes (3/jour) + niveau adaptatif
+
+- **Compte** : +demo3. **Refresh** : R0 (enchaîner après G3).
 
 - **Attendu** : hub Phase 1 avec 3 sessions (matin/midi/soir) ; ouvrir une session → cercle de respiration animé (durée selon le niveau choisi) ; à la fin, modale « Moins / Pareil / Plus » (le choix ne change PAS le niveau d'entrée, il s'applique à la pratique — D31). Le check quotidien Phase 1 se valide à **1 session sur 3 minimum**, sans soft-rappel.
 - **Vérifier** : valider un jour Phase 1 avec 1 session → streak +1.
 
 ### G5 — Éval finale S1 (J7 du pilier)
 
+- **Compte** : +demo3. **Refresh** : R2 après le snapshot (le snapshot écrase l'état → boot propre nécessaire). ⚠️ Le snapshot DEV « S1 J7 » réinitialise aussi l'abonnement mocké : si le paywall réapparaît, reposer l'abonnement en base (bug DEV n°2), pas le mock.
+
 - **Départ** : snapshot **« S1 J7 avant éval finale »**.
 - **Attendu** : carte/CTA éval finale visible ; refaire les 12 questions → récap final avec comparaison avant/après et mise à jour de la branche Respiration sur la toile (onglet Toile : la branche a bougé).
 
 ### G6 — (Bonus si le temps) Transition S1 → S2 et toile multi-branches
+
+- **Compte** : +demo3. **Refresh** : R2 après chaque snapshot.
 
 - Snapshots « S2 J1 (S1 prefilled) » et « S4 J1 (S1-S3 prefilled) » : vérifier la transition de pilier et la toile avec plusieurs branches peuplées.
 - **Nettoyage bloc G** : « (DEV) Reset complet » + désactiver le mock subscription + SQL § 0.4.
@@ -289,6 +327,8 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 ## Bloc H — Vidéos en panne (audit M4)
 
 ### H1 — Vidéo indisponible + re-tentative
+
+- **Refresh** : R0 (état courant, peu importe l'écran).
 
 - **Départ** : n'importe quel écran avec vidéo (charnière J7, S0.1, paywall…). Activer le **mode Avion** AVANT de lancer la vidéo.
 - **Étapes** : taper play.
@@ -303,11 +343,15 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ### I1 — Installation PWA sur l'écran d'accueil
 
+- **Refresh** : R0 côté Safari ; la PWA installée démarre avec SON stockage vierge (équivalent R4 pour elle — narratifs rejoués + re-login, accepté V1).
+
 - **Étapes** : Safari → partager → « Sur l'écran d'accueil » → ouvrir depuis l'icône.
 - **Attendu** : icône Raw Adventure correcte, app en plein écran sans barre Safari (mode standalone), fond/thème aux couleurs de la marque, orientation portrait. Le login fonctionne dans la PWA.
 - **Rappel** : la PWA a son propre stockage → écrans narratifs revus + re-login nécessaire la première fois. Accepté V1.
 
 ### I2 — Recalcul au retour au premier plan après minuit (audit M1)
+
+- **Refresh** : R0 STRICT — tout l'intérêt du test est de NE PAS recharger : laisser la PWA en arrière-plan et revenir après minuit sans la tuer.
 
 - **Test réaliste** (à programmer un soir) : valider sa journée avant minuit, laisser la PWA ouverte en arrière-plan ; après minuit, revenir sur l'app SANS la tuer.
 - **Attendu** : le hub bascule seul sur le jour suivant du parcours (position +1 car la veille était validée, coches vierges) sans recharger la page.
@@ -315,6 +359,8 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Variante rapide** : changer la date du téléphone est déconseillé (fausse Supabase) — préférer le vrai passage de minuit ou le clock offset DEV.
 
 ### I3 — Rafraîchissement / perte réseau générale
+
+- **Refresh** : le test EST le refresh (R1 puis R2 en plein parcours).
 
 - **Étapes** : recharger la PWA en plein parcours ; couper le réseau puis naviguer entre les onglets.
 - **Attendu** : pas d'écran blanc définitif ; au retour du réseau, l'app se resynchronise. Noter tout état bizarre.
@@ -325,6 +371,8 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ### J1 — Permission et planification
 
+- **Refresh** : R2 (boot propre pour observer le prompt de permission).
+
 - **Étapes** : observer si/quand l'app demande la permission de notifications (au premier lancement du hub).
 - **Attendu théorique** : notifications locales Phase 0 = 2/jour (matin 7h, rappel soir 20h annulé si au moins une action cochée), silence 22h-7h.
 - **⚠️ Zone grise connue** : les notifications sont implémentées avec expo-notifications, pensé pour iOS/Android natif. Sur **PWA iOS**, le support des notifications web est limité (iOS 16.4+, et la planification locale peut ne pas fonctionner du tout). **Le but de ce test est de CONSTATER le comportement réel** : permission demandée ou pas, notification reçue le lendemain matin ou pas. Documenter le résultat — si rien n'arrive sur PWA, c'est une limite technique à acter (pas un bug de logique), et il faudra décider quoi dire aux testeurs.
@@ -334,10 +382,39 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 ## Bloc K — Checks finaux AVANT d'ouvrir aux testeurs
 
 - [ ] **K1 — Désactiver le panneau DEV en prod.** Si `EXPO_PUBLIC_ENABLE_DEV_PANEL=true` est posé sur Vercel pour cette salve, le **retirer et redéployer** avant d'envoyer le lien aux testeurs — sinon ils auront accès au Reset complet, aux snapshots et au mock d'abonnement. Vérifier ensuite sur l'app : Profil sans panneau DEV.
-- [ ] **K2 — Re-nettoyage SQL** de tous les comptes de test (jours futurs, § 0.4) et suppression des comptes jetables (Supabase Auth → Users).
+- [ ] **K2 — Re-nettoyage SQL** de tous les comptes de test (jours futurs, § 0.4) et suppression des comptes jetables (Supabase Auth → Users). **À faire APRÈS le bloc S** (il consomme +demo4 et libère +test1). Mettre ensuite à jour la note d'attribution des comptes.
 - [ ] **K3 — Quota emails** : estimer le nombre de testeurs × 1-2 OTP chacun vs 50/h et 100/jour (Resend gratuit). Au-delà de ~30 testeurs le même jour, risque de plafond — étaler les invitations.
 - [ ] **K4 — Passer une dernière fois le flow compte neuf** (A1→B2) sur la prod re-déployée, sans outils DEV.
 - [ ] **K5 — Brief testeurs** : leur dire que la Phase 1 nécessite un abonnement (bloqué à J17), que certains textes portent la mention `[copy à valider]`, et comment remonter un bug (capture + heure + ce qu'ils faisaient).
+
+---
+
+## Bloc S — Stripe, avec Mimi (clôture de salve)
+
+*Contrainte : la double validation Stripe requiert la présence de Mimi. Tout ce bloc se fait en une seule séance. Prérequis : blocs G→K4 terminés. Référence croisée : vérifs R2/R3/R5 de l'audit Stripe (session du 9 juillet).*
+
+### S1 — Franchissement du paywall par le vrai chemin (compte +demo4)
+
+- **Compte** : créer **+demo4** (compte neuf, onboarding complet). **Refresh** : R4 au départ (contexte vierge).
+- **Départ** : amener +demo4 à J17 via les outils DEV (valider les jours avec +1j entre chaque, ou snapshot « S0.2 J16 » puis valider + « +1j ») → paywall.
+- **Étapes** : « Continuer mon parcours » → page d'abonnement web → **payer avec la carte de test Stripe `4242 4242 4242 4242`** (date d'expiration future quelconque, CVC quelconque, mode test).
+- **Attendu** : paiement accepté ; au retour dans l'app (voir S3 pour le bouton retour), après R2 au besoin, le paywall a disparu et la Phase 1 s'ouvre par le flux nominal. En base : ligne d'abonnement active créée par le webhook.
+
+### S2 — Vérifications Dashboard Stripe (R2, R3)
+
+- **Avec Mimi sur le Dashboard** : vérifier la configuration relevée par l'audit Stripe (points R2 et R3 de la note de vérification — emails de reçu/facture, paramètres du portail client, mode test vs live). Confirmer que le paiement S1 apparaît côté Dashboard avec le bon produit/prix (mensuel ou annuel selon le choix fait).
+- **Vérifier aussi** : Profil → « Gérer mon abonnement » ouvre le portail client Stripe pour +demo4.
+
+### S3 — Bouton « Retour à l'app » (R5)
+
+- **Contexte** : bug connu — le bouton « Retour à l'app » de la page d'abonnement (site vitrine) ne fonctionne pas dans l'in-app browser iOS (fermeture par glissement manuel nécessaire).
+- **Étapes** : au retour de paiement S1, observer le comportement réel du bouton ; noter précisément (rien ne se passe / erreur / autre).
+- **Attendu V1** : si le bouton reste inopérant, le glissement manuel doit ramener dans l'app SANS perte d'état, et le reload au retour doit détecter l'abonnement (pas de boucle paywall).
+
+### S4 — Compte +test1 (gelé)
+
+- **Après S1-S3 validés** : dérouler la vérification prévue sur **+test1** (état gelé « jour 17, non abonné, bloqué au paywall ») si la note de vérif Stripe le prévoit encore, PUIS le libérer. Ensuite seulement : K2 (nettoyage global des comptes).
+
 
 ---
 
@@ -349,7 +426,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 4. **Titre du soft-rappel « Tu peux faire mieux. »** : à faire relire par Mimi & Jacky sous l'angle « non-culpabilisant » (D26) — observation copy, pas un bug fonctionnel.
 5. **Plage de silence notifications 22h-7h dans le code** (D32 dit 22h-8h) : écart assumé dans le code (« attraper les français qui se lèvent 6h-7h ») — à confirmer comme choix ou à réaligner, mais pas bloquant pour la salve.
 6. **Description du preset DEV « P0 J7 » mentionnant un palier 7j** : obsolète (paliers = 15/30/60/100/365). Cosmétique DEV uniquement.
-7. **Stripe/paiement réel** : volontairement hors salve — vérification dédiée demain.
+7. **Stripe/paiement réel** : regroupé dans le bloc S (avec Mimi), en clôture de salve.
 8. **Design des charnières** (relevé Stéphane, 8 juillet) : l'écran charnière utilise le même design que les paliers streak — différenciation visuelle charnière/palier à faire plus tard, pas bloquant V1.
 9. **Ton de la charnière après une journée « au rabais »** (relevé Stéphane, 8 juillet) : une journée validée à 2/7 avec joker déclenche quand même le texte enthousiaste de la charnière (« Le corps commence à répondre ») — mécaniquement voulu (D38), variante de copy à envisager avec Mimi & Jacky.
 10. **CLAUDE.md était en retard sur D38** : la section D20 décrivait encore la position calendaire — patché le 8 juillet (v1.4). Si un doc Project mentionne encore « le calendrier de l'app suit le calendrier réel » pour la position, c'est l'ancien modèle : D38 fait foi (position par validation).
