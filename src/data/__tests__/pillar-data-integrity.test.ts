@@ -148,3 +148,126 @@ describe('S1 Respiration — spécificités Feature Spec S1 §2.2', () => {
     expect(aggregateEvaluation(responses).rawScore).toBe(48);
   });
 });
+
+/**
+ * Verrouillage par pilier S2→S8 — caractérisation des valeurs réelles
+ * (relevées le 3 septembre 2026 dans les fichiers sN-evaluation / sN-program).
+ *
+ * NOTE : la distribution des questions inversées ne suit PAS le pattern
+ * Q6/Q7/Q8 de S1 sur les autres piliers — c'est l'état des fichiers Jacky,
+ * à valider avec lui (signalé à Stéphane le 3 sept 2026). Ces tests
+ * verrouillent l'existant : si un changement est acté, les mettre à jour
+ * en citant la décision.
+ */
+describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
+  const EXPECTED: Record<
+    string,
+    {
+      name: string;
+      sessionType: string;
+      durations: { essentiel: number; progression: number; immersion: number };
+      reversed: number[];
+    }
+  > = {
+    S1: {
+      name: 'Respiration',
+      sessionType: 'coherence_cardiaque',
+      durations: { essentiel: 5, progression: 10, immersion: 20 },
+      reversed: [6, 7, 8],
+    },
+    S2: {
+      name: 'Activité physique',
+      sessionType: 'chrono_libre',
+      durations: { essentiel: 30, progression: 45, immersion: 60 },
+      reversed: [6, 7, 8],
+    },
+    S3: {
+      name: 'Alimentation',
+      sessionType: 'acte_libre',
+      durations: { essentiel: 5, progression: 10, immersion: 20 },
+      reversed: [4, 6, 8, 10, 12],
+    },
+    S4: {
+      name: 'Connexion au vivant',
+      sessionType: 'chrono_libre',
+      durations: { essentiel: 5, progression: 20, immersion: 45 },
+      reversed: [4, 9],
+    },
+    S5: {
+      name: 'Repos et régénération',
+      sessionType: 'acte_libre',
+      durations: { essentiel: 5, progression: 10, immersion: 20 },
+      reversed: [3, 4, 5, 6, 10],
+    },
+    S6: {
+      name: 'Passion et chemin de vie',
+      sessionType: 'chrono_libre',
+      durations: { essentiel: 15, progression: 30, immersion: 60 },
+      reversed: [4, 7, 8, 10],
+    },
+    S7: {
+      name: 'Mindset',
+      sessionType: 'acte_libre',
+      durations: { essentiel: 5, progression: 10, immersion: 20 },
+      reversed: [2, 3, 4, 7, 8, 11],
+    },
+    S8: {
+      name: 'Élimination et détox',
+      sessionType: 'acte_libre',
+      durations: { essentiel: 5, progression: 10, immersion: 20 },
+      reversed: [4, 5, 6],
+    },
+  };
+
+  test('noms et ordre des semaines (D39 — ordre canonique, pas le D8 obsolète)', () => {
+    expect(ALL_PILLARS.map(({ meta }) => meta.name)).toEqual(
+      PILLAR_ORDER_CANONICAL.map((id) => EXPECTED[id].name),
+    );
+  });
+
+  describe.each(ALL_PILLARS)('$id', ({ id, meta }) => {
+    test('questions inversées : ids exacts', () => {
+      expect(
+        [...meta.questions].filter((q) => q.reversed).map((q) => q.id),
+      ).toEqual(EXPECTED[id].reversed);
+    });
+
+    test('sessionType verrouillé (Sprint 15 D — coherence/chrono/acte)', () => {
+      expect(meta.sessionType).toBe(EXPECTED[id].sessionType);
+    });
+
+    test('durées du paramètre principal exactes', () => {
+      expect(meta.durationsMin).toEqual(EXPECTED[id].durations);
+    });
+
+    test('score max avec inversions : 60 − nbInversées × 4', () => {
+      // Tout à 5 : chaque question inversée compte 6−5=1 au lieu de 5.
+      const responses: RawResponse[] = [...meta.questions].map((q) => ({
+        questionId: q.id,
+        value: 5,
+        reversed: q.reversed,
+      }));
+      expect(aggregateEvaluation(responses).rawScore).toBe(
+        60 - EXPECTED[id].reversed.length * 4,
+      );
+    });
+
+    test('convention de nommage des slots de copy (D23)', () => {
+      const n = id.slice(1).toLowerCase();
+      for (const q of meta.questions) {
+        expect(q.copySlot).toBe(`copy.IA-40.s${n}.q${q.id}`);
+      }
+      for (const day of meta.program) {
+        expect(day.copySlot).toBe(`copy.IA-43.s${n}.j${day.id}-explication`);
+      }
+    });
+  });
+
+  test('unicité des slots de copy sur l ensemble des 8 piliers (D23)', () => {
+    const slots = ALL_PILLARS.flatMap(({ meta }) => [
+      ...meta.questions.map((q) => q.copySlot),
+      ...meta.program.map((d) => d.copySlot),
+    ]);
+    expect(new Set(slots).size).toBe(slots.length);
+  });
+});
