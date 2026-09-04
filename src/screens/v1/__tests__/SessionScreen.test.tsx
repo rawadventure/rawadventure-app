@@ -145,16 +145,6 @@ async function renderSession() {
 
 let alertSpy: jest.SpyInstance;
 
-function pressAlertButton(label: string) {
-  const lastCall = alertSpy.mock.calls[alertSpy.mock.calls.length - 1];
-  const buttons = lastCall?.[2] as
-    | Array<{ text: string; onPress?: () => void }>
-    | undefined;
-  const btn = buttons?.find((b) => b.text === label);
-  expect(btn).toBeDefined();
-  btn!.onPress?.();
-}
-
 beforeEach(async () => {
   mockUser = null;
   sb.reset();
@@ -171,7 +161,7 @@ afterEach(() => {
 });
 
 describe('acte_libre (S3) — validation du jour', () => {
-  test('« C\'est fait » → upsert pillar_sessions + validation phase_1 (D6 : 1 session suffit) + Alert → popToTop', async () => {
+  test('« C\'est fait » → upsert pillar_sessions + validation phase_1 (D6 : 1 session suffit) + retour immédiat au hub', async () => {
     await seedPhase1({ pillarId: 'S3' });
     await renderSession();
     expect(screen.getByText(/PILIER S3/)).toBeTruthy();
@@ -199,14 +189,11 @@ describe('acte_libre (S3) — validation du jour', () => {
     );
     expect(screen.getByText('probe:lastPhase:phase_1')).toBeTruthy();
     expect(screen.getByText('probe:streak:17')).toBeTruthy();
-    // Alert de fin de session, OK → retour hub.
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Session validée',
-      expect.any(String),
-      expect.any(Array),
-    );
-    pressAlertButton('OK');
-    expect(mockPopToTop).toHaveBeenCalledTimes(1);
+    // Retour immédiat au hub (demande Stéphane 4 sept, salve G4) — pas
+    // d'Alert : Alert.alert est un no-op sur react-native-web, le popToTop
+    // logé dans son bouton OK ne partait jamais en PWA.
+    await waitFor(() => expect(mockPopToTop).toHaveBeenCalledTimes(1));
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
   test('D27 — jour déjà validé : une 2e session ne revalide pas (pas de double entrée)', async () => {
@@ -226,11 +213,9 @@ describe('acte_libre (S3) — validation du jour', () => {
     );
     // Historique inchangé — la session compte, le jour ne se revalide pas.
     expect(screen.getByText('probe:count:17')).toBeTruthy();
-    expect(alertSpy).toHaveBeenCalledWith(
-      'Session validée',
-      expect.any(String),
-      expect.any(Array),
-    );
+    // Retour immédiat au hub, sans Alert (cf. test précédent).
+    await waitFor(() => expect(mockPopToTop).toHaveBeenCalledTimes(1));
+    expect(alertSpy).not.toHaveBeenCalled();
   });
 
   test('acte_libre : pas de bouton niveau adaptatif (pas de dose à moduler)', async () => {

@@ -185,11 +185,12 @@ export default function SessionScreen() {
         });
         await clearPendingTier();
       } else {
-        Alert.alert(
-          'Session validée',
-          'Bien joué. Ton corps a reçu un signal de plus. [copy à valider]',
-          [{ text: 'OK', onPress: () => navigation.popToTop() }],
-        );
+        // Retour immédiat à la vue de la journée (demande Stéphane 4 sept
+        // 2026, salve G4). L'ancien Alert « Session validée » était en plus
+        // un no-op sur react-native-web : son bouton OK — qui portait le
+        // popToTop — n'apparaissait jamais en PWA. La bannière « Journée
+        // validée (X/3) » du hub sert de confirmation.
+        navigation.popToTop();
       }
     } catch (e: any) {
       Alert.alert('Erreur', e?.message ?? "Impossible d'enregistrer la session.");
