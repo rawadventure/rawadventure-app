@@ -20,7 +20,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp, NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -40,6 +40,7 @@ import {
 } from '../../theme';
 import { getInterFamily } from '../../theme';
 import { supabase } from '../../lib/supabase';
+import { showNotice } from '../../lib/notice';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { getNextPillarId, getPillarMeta } from '../../data/pillar-registry';
@@ -167,16 +168,14 @@ export default function PillarFinalRecapScreen() {
       return;
     }
     const nextMeta = getPillarMeta(nextPillarId);
-    Alert.alert(
+    // showNotice puis retour direct — Alert.alert est un no-op sur
+    // react-native-web : le popToTop logé dans son bouton « Continuer »
+    // ne partait jamais en PWA (régression salve G5, 4 sept 2026).
+    showNotice(
       `Pilier ${pillarId} terminé`,
       `Sept jours posés autour de ${getPillarMeta(pillarId)?.name ?? 'ce pilier'}. La branche est lue, la toile mise à jour.\n\nDemain, on enchaîne avec ${nextPillarId} — ${nextMeta?.name ?? '…'}. Tu commenceras par une évaluation 12 questions pour calibrer la nouvelle semaine.\n\nÀ demain.`,
-      [
-        {
-          text: 'Continuer',
-          onPress: () => navigation.popToTop(),
-        },
-      ],
     );
+    navigation.popToTop();
   };
 
   return (
@@ -263,11 +262,13 @@ export default function PillarFinalRecapScreen() {
         visible={showMentoratProposal}
         onDiscover={() => {
           setShowMentoratProposal(false);
-          Alert.alert(
+          // Même correction que handleContinue : notice + retour direct
+          // (Alert no-op sur web, son OK ne portait jamais le popToTop).
+          showNotice(
             'Mentorat',
             "L'espace mentorat sera ouvert dans une prochaine version. En attendant, contacte Mimi & Jacky par les canaux habituels. [copy à valider]",
-            [{ text: 'OK', onPress: () => navigation.popToTop() }],
           );
+          navigation.popToTop();
         }}
         onLater={() => {
           setShowMentoratProposal(false);
