@@ -26,6 +26,24 @@ export default function TabNavigator() {
   const { currentPhase, currentDay, tabBarHidden } = useProgress();
   const [active, setActive] = useState<TabId>('home');
 
+  // Re-tap sur l'onglet déjà actif → retour à la racine de son stack
+  // (salve G5, 4 sept 2026 : bloqué sur PillarFinalRecap, « Accueil » ne
+  // faisait rien). Les stacks étant démontés au changement d'onglet, le
+  // retour racine se fait par remount (bump de key) — même effet que le
+  // détour historique par un autre onglet.
+  const [stackKeys, setStackKeys] = useState<Record<TabId, number>>({
+    home: 0,
+    toile: 0,
+    profil: 0,
+  });
+  const handleTabChange = (next: TabId) => {
+    if (next === active) {
+      setStackKeys((k) => ({ ...k, [next]: k[next] + 1 }));
+      return;
+    }
+    setActive(next);
+  };
+
   // Onglet Toile masqué en Phase 0 (D5 + D18) — apparaît au S0.1 (J15).
   // Audit M2 (2026-07-06) : currentPhase reste 'phase_0' pendant S0 (J15-J16),
   // donc le test de phase seul masquait l'onglet alors que D18 dit « apparaît
@@ -41,12 +59,14 @@ export default function TabNavigator() {
   return (
     <View style={styles.container}>
       <View style={styles.content}>
-        {active === 'home' && <HomeStack />}
-        {active === 'toile' && showToileTab && <ToileStack />}
-        {active === 'profil' && <ProfilStack />}
+        {active === 'home' && <HomeStack key={`home-${stackKeys.home}`} />}
+        {active === 'toile' && showToileTab && (
+          <ToileStack key={`toile-${stackKeys.toile}`} />
+        )}
+        {active === 'profil' && <ProfilStack key={`profil-${stackKeys.profil}`} />}
       </View>
       {!tabBarHidden && (
-        <TabBar active={active} onChange={setActive} showToileTab={showToileTab} />
+        <TabBar active={active} onChange={handleTabChange} showToileTab={showToileTab} />
       )}
     </View>
   );
