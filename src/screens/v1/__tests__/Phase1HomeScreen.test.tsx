@@ -196,6 +196,29 @@ describe('éval initiale mandatoire (flow 2026-06-18)', () => {
       }),
     );
   });
+
+  test('régression G6 (5 sept) : tap sur une session SANS éval initiale → renvoi vers l éval, pas de session', async () => {
+    // L'utilisateur a échappé au redirect du mount (quitté l'éval en route,
+    // revenu au hub) : le tap session doit re-router vers le flow d'éval.
+    sb.setTables({ pillar_evaluations: [] });
+    await renderHub();
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('PillarOverview', {
+        pillarId: 'S1',
+        fromStart: true,
+      }),
+    );
+    mockNavigate.mockClear();
+    const user = userEvent.setup();
+    await user.press(screen.getByLabelText('Matin, à faire'));
+    expect(mockNavigate).not.toHaveBeenCalledWith('Session', {
+      sessionIndex: 1,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith('PillarOverview', {
+      pillarId: 'S1',
+      fromStart: true,
+    });
+  });
 });
 
 describe('éval finale (J7 et mode Z — D38)', () => {

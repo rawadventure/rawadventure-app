@@ -202,6 +202,19 @@ export default function Phase1HomeScreen() {
   const showFinalEvalCta = isEvaluationDay && dayValidated && !hasFinalEval;
 
   const openSession = (idx: SessionIndex) => {
+    // Gating éval initiale (salve G6, 5 sept 2026) : le redirect au mount ne
+    // suffit pas — un utilisateur qui a quitté l'éval en route puis est
+    // revenu pouvait lancer des sessions sans diagnostic (niveau par défaut,
+    // et récap final cassé faute de score initial). Tap session sans éval →
+    // renvoi vers le flow d'entrée du pilier (présentation → 12 questions,
+    // reprise du questionnaire là où il en était). Pendant le chargement
+    // (null), on ne fait rien.
+    if (hasInitialEval !== true) {
+      if (hasInitialEval === false) {
+        navigation.navigate('PillarOverview', { pillarId, fromStart: true });
+      }
+      return;
+    }
     navigation.navigate('Session', { sessionIndex: idx });
   };
 
