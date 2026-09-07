@@ -294,7 +294,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Étapes** : activer « Mock active subscription » dans Profil (il faut y accéder AVANT J17, ou via l'état où le paywall permet le retour — sinon poser le mock avant d'avancer le temps).
 - **Attendu** : à J17 abonné, plus de paywall ; le hub Phase 1 s'affiche et le pilier **S1 Respiration démarre automatiquement**.
 
-### G3 — Évaluation initiale S1 (12 questions) — ▶ POINT DE REPRISE
+### G3 — Évaluation initiale S1 (12 questions) — ✅ VALIDÉ 4 sept
 
 - **Compte** : +demo3. **Refresh** : R2 (fermeture complète + réouverture — on repart d'un boot propre sur le hub Phase 1).
 - **Départ** : hub Phase 1 S1 ; s'il propose la vue d'ensemble du pilier (vidéo intro + programme 7 jours) puis « Continuer », c'est l'ordre voulu (décision 18 juin : PillarOverview AVANT le questionnaire).
@@ -324,7 +324,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ---
 
-## Bloc H — Vidéos en panne (audit M4)
+## Bloc H — Vidéos en panne (audit M4) — ✅ VALIDÉ 5 sept
 
 ### H1 — Vidéo indisponible + re-tentative
 
@@ -341,7 +341,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ## Bloc I — PWA, retour premier plan, multi-contexte
 
-### I1 — Installation PWA sur l'écran d'accueil
+### I1 — Installation PWA sur l'écran d'accueil — ✅ VALIDÉ 5 sept
 
 - **Refresh** : R0 côté Safari ; la PWA installée démarre avec SON stockage vierge (équivalent R4 pour elle — narratifs rejoués + re-login, accepté V1).
 
@@ -349,7 +349,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Attendu** : icône Raw Adventure correcte, app en plein écran sans barre Safari (mode standalone), fond/thème aux couleurs de la marque, orientation portrait. Le login fonctionne dans la PWA.
 - **Rappel** : la PWA a son propre stockage → écrans narratifs revus + re-login nécessaire la première fois. Accepté V1.
 
-### I2 — Recalcul au retour au premier plan après minuit (audit M1)
+### I2 — Recalcul au retour au premier plan après minuit (audit M1) — ▶ À FAIRE UN SOIR (programmé 5 sept)
 
 - **Refresh** : R0 STRICT — tout l'intérêt du test est de NE PAS recharger : laisser la PWA en arrière-plan et revenir après minuit sans la tuer.
 
@@ -358,7 +358,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Variante jour non validé** : si la veille n'était PAS validée, la position ne bouge pas (D38) — le hub reste sur le même jour, et la cohérence traite le streak (joker/cassure + message « Tu reprends au jour X », cf. Bloc D).
 - **Variante rapide** : changer la date du téléphone est déconseillé (fausse Supabase) — préférer le vrai passage de minuit ou le clock offset DEV.
 
-### I3 — Rafraîchissement / perte réseau générale
+### I3 — Rafraîchissement / perte réseau générale — ✅ VALIDÉ 5 sept
 
 - **Refresh** : le test EST le refresh (R1 puis R2 en plein parcours).
 
@@ -369,7 +369,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ## Bloc J — Notifications
 
-### J1 — Permission et planification
+### J1 — Permission et planification — ✅ VALIDÉ 5 sept (aucun prompt sur PWA, conforme au stub web acté)
 
 - **Refresh** : R2 (boot propre pour observer le prompt de permission).
 
@@ -381,11 +381,11 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ## Bloc K — Checks finaux AVANT d'ouvrir aux testeurs
 
-- [ ] **K1 — Désactiver le panneau DEV en prod.** Si `EXPO_PUBLIC_ENABLE_DEV_PANEL=true` est posé sur Vercel pour cette salve, le **retirer et redéployer** avant d'envoyer le lien aux testeurs — sinon ils auront accès au Reset complet, aux snapshots et au mock d'abonnement. Vérifier ensuite sur l'app : Profil sans panneau DEV.
+- [ ] **K1 — Désactiver le panneau DEV en prod.** ⚠️ À faire APRÈS le bloc S (S1 a besoin des outils DEV pour amener +demo4 à J17). Si `EXPO_PUBLIC_ENABLE_DEV_PANEL=true` est posé sur Vercel pour cette salve, le **retirer et redéployer** avant d'envoyer le lien aux testeurs — sinon ils auront accès au Reset complet, aux snapshots et au mock d'abonnement. Vérifier ensuite sur l'app : Profil sans panneau DEV.
 - [ ] **K2 — Re-nettoyage SQL** de tous les comptes de test (jours futurs, § 0.4) et suppression des comptes jetables (Supabase Auth → Users). **À faire APRÈS le bloc S** (il consomme +demo4 et libère +test1). Mettre ensuite à jour la note d'attribution des comptes.
-- [ ] **K3 — Quota emails** : estimer le nombre de testeurs × 1-2 OTP chacun vs 50/h et 100/jour (Resend gratuit). Au-delà de ~30 testeurs le même jour, risque de plafond — étaler les invitations.
-- [ ] **K4 — Passer une dernière fois le flow compte neuf** (A1→B2) sur la prod re-déployée, sans outils DEV.
-- [ ] **K5 — Brief testeurs** : leur dire que la Phase 1 nécessite un abonnement (bloqué à J17), que certains textes portent la mention `[copy à valider]`, et comment remonter un bug (capture + heure + ce qu'ils faisaient).
+- [x] **K3 — Quota emails** — ✅ 5 sept : 5-10 testeurs prévus × 2 OTP = ≤20 emails, très en-dessous des 50/h Resend. Pas d'étalement nécessaire.
+- [x] **K4 — Flow compte neuf sans outils DEV** — ✅ 5 sept (+demo5, navigation privée, onboarding → OTP → J1 validé).
+- [x] **K5 — Brief testeurs** — ✅ rédigé 5 sept, 3 variantes dans `docs/tests/brief-testeurs.md` (installation iPhone/Android). —  : leur dire que la Phase 1 nécessite un abonnement (bloqué à J17), que certains textes portent la mention `[copy à valider]`, et comment remonter un bug (capture + heure + ce qu'ils faisaient).
 
 ---
 
@@ -411,6 +411,10 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Étapes** : au retour de paiement S1, observer le comportement réel du bouton ; noter précisément (rien ne se passe / erreur / autre).
 - **Attendu V1** : si le bouton reste inopérant, le glissement manuel doit ramener dans l'app SANS perte d'état, et le reload au retour doit détecter l'abonnement (pas de boucle paywall).
 
+### S3bis — Mini-salve Android (à caser avec un appareil Android ou un testeur sentinelle)
+
+- Smoke 30 min sur Android Chrome : onboarding complet + OTP, installation PWA (menu ⋮ → Ajouter à l'écran d'accueil), check quotidien, lecture vidéo, paywall. Jamais testé à ce jour — seul vrai trou de la matrice navigateurs (iOS Safari/PWA couvert par la salve, Chromium desktop couvert par les E2E Playwright de la CI).
+
 ### S4 — Compte +test1 (gelé)
 
 - **Après S1-S3 validés** : dérouler la vérification prévue sur **+test1** (état gelé « jour 17, non abonné, bloqué au paywall ») si la note de vérif Stripe le prévoit encore, PUIS le libérer. Ensuite seulement : K2 (nettoyage global des comptes).
@@ -429,7 +433,8 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 7. **Stripe/paiement réel** : regroupé dans le bloc S (avec Mimi), en clôture de salve.
 8. **Design des charnières** (relevé Stéphane, 8 juillet) : l'écran charnière utilise le même design que les paliers streak — différenciation visuelle charnière/palier à faire plus tard, pas bloquant V1.
 9. **Ton de la charnière après une journée « au rabais »** (relevé Stéphane, 8 juillet) : une journée validée à 2/7 avec joker déclenche quand même le texte enthousiaste de la charnière (« Le corps commence à répondre ») — mécaniquement voulu (D38), variante de copy à envisager avec Mimi & Jacky.
-10. **CLAUDE.md était en retard sur D38** : la section D20 décrivait encore la position calendaire — patché le 8 juillet (v1.4). Si un doc Project mentionne encore « le calendrier de l'app suit le calendrier réel » pour la position, c'est l'ancien modèle : D38 fait foi (position par validation).
+10. **Niveau non modifiable depuis la vue d'ensemble du pilier** (relevé Stéphane, 4 sept) : IA-42 affiche le niveau actuel mais le badge n'est pas cliquable — la modification passe par le récap d'éval ou la session (IA-44). Point d'accrochage UX potentiel, rien à faire pour l'instant.
+11. **CLAUDE.md était en retard sur D38** : la section D20 décrivait encore la position calendaire — patché le 8 juillet (v1.4). Si un doc Project mentionne encore « le calendrier de l'app suit le calendrier réel » pour la position, c'est l'ancien modèle : D38 fait foi (position par validation).
 
 ---
 
