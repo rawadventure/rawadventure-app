@@ -36,7 +36,18 @@ export default defineConfig({
     trace: 'retain-on-failure',
     screenshot: 'only-on-failure',
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  // Matrice multi-navigateurs (5 sept 2026) : les 3 moteurs desktop + 2
+  // profils mobiles émulés (viewport + tactile). WebKit = moteur de Safari
+  // ET de tout navigateur iPhone — la plateforme principale des testeurs.
+  // L'émulation ne couvre pas les versions d'OS : plancher produit
+  // iOS 16.4+ / Android 10+, vérifié par les testeurs réels.
+  projects: [
+    { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
+    { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+    { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+    { name: 'mobile-safari', use: { ...devices['iPhone 13'] } },
+    { name: 'mobile-chrome', use: { ...devices['Pixel 5'] } },
+  ],
   webServer: {
     command: `npx expo start --web --port ${PORT}`,
     url: `http://localhost:${PORT}`,

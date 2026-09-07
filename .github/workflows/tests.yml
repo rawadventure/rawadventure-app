@@ -45,8 +45,8 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Installer Chromium Playwright
-        run: npx playwright install --with-deps chromium
+      - name: Installer les navigateurs Playwright (3 moteurs)
+        run: npx playwright install --with-deps chromium webkit firefox
       - name: Salve E2E
         run: npx playwright test
       - name: Artefacts d'échec (traces + captures)
