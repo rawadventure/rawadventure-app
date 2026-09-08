@@ -398,6 +398,46 @@
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
           "priority": "important"
+        },
+        {
+          "id": "R4-13",
+          "label": "Validation intégrale S2 Activité physique (12Q + diagnostics + programme) — session Jacky",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R4-14",
+          "label": "5 messages diagnostic S1 Respiration ([copy à valider])",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "priority": "important"
+        },
+        {
+          "id": "R4-15",
+          "label": "Densifier questions courtes S4/S5/S7/S8 (matière Jacky brute)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "priority": "important"
+        },
+        {
+          "id": "R4-16",
+          "label": "Copy fin de parcours : récap final (4 variantes), sortie S8, consolidation, mentorat",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "priority": "important"
+        },
+        {
+          "id": "R4-17",
+          "label": "Confirmer questions inversées S3→S8 avec Jacky (distributions par pilier)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "priority": "polish"
         }
       ]
     },
@@ -445,10 +485,10 @@
         },
         {
           "id": "R5-6",
-          "label": "4 vidéos piliers manquantes (S1/S4/S5/S7) (Session 3)",
-          "status": "todo",
+          "label": "4 vidéos piliers S1/S4/S5/S7 — EN LIGNE (vérifié bucket 8 sept), contrôle sujet en salve C4/C7",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-08T11:42:26.475Z",
           "priority": "important"
         },
         {
@@ -948,6 +988,14 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
+          "priority": "bloquant"
+        },
+        {
+          "id": "R9-15",
+          "label": "Salve Phase 1 S1-S8 (docs/tests/salve-phase1-s1-s8.md) — mécanique M + contenu C1-C8 + post-S8",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-08T11:42:26.475Z",
           "priority": "bloquant"
         }
       ]
