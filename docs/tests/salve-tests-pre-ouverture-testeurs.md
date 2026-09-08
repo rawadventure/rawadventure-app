@@ -407,7 +407,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 - **Avec Mimi sur le Dashboard** : vérifier la configuration relevée par l'audit Stripe (points R2 et R3 de la note de vérification — emails de reçu/facture, paramètres du portail client, mode test vs live). Confirmer que le paiement S1 apparaît côté Dashboard avec le bon produit/prix (mensuel ou annuel selon le choix fait).
 - **Vérifier aussi** : Profil → « Gérer mon abonnement » ouvre le portail client Stripe pour +demo4.
 
-### S3 — Bouton « Retour à l'app » (R5) — ✅ CONSTATÉ 7 sept : bouton inopérant (bug connu), glissement manuel OK, pas de boucle paywall au retour — fix côté site vitrine hors salve
+### S3 — Bouton « Retour à l'app » (R5) — ✅ RÉSOLU 8 sept : le bouton est désormais un lien direct vers app.rawadventure.world (commit 2d9cd4c rawadventure-legal) — openExternal web navigue dans le même onglet, le lien ramène donc à l'app (et rend la main à la PWA installée par retour in-scope). Vérifié par Stéphane sur le chemin portail. Deep link natif à réintroduire avec l'app native V2+.
 
 - **Contexte** : bug connu — le bouton « Retour à l'app » de la page d'abonnement (site vitrine) ne fonctionne pas dans l'in-app browser iOS (fermeture par glissement manuel nécessaire).
 - **Étapes** : au retour de paiement S1, observer le comportement réel du bouton ; noter précisément (rien ne se passe / erreur / autre).
