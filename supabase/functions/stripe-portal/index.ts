@@ -133,9 +133,13 @@ Deno.serve(async (req: Request) => {
     }
 
     // Crée session Customer Portal.
+    // locale 'fr' : sans elle le portail s'affiche en anglais (constaté
+    // salve S2, 8 sept 2026). Contenu V1 français uniquement (D23) — le
+    // jour où l'app devient multilingue, dériver de la locale utilisateur.
     const portalSession = await stripe.billingPortal.sessions.create({
       customer: sub.stripe_customer_id,
       return_url: RETURN_URL,
+      locale: 'fr',
     });
 
     return new Response(
