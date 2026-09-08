@@ -393,19 +393,21 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 *Contrainte : la double validation Stripe requiert la présence de Mimi. Tout ce bloc se fait en une seule séance. Prérequis : blocs G→K4 terminés. Référence croisée : vérifs R2/R3/R5 de l'audit Stripe (session du 9 juillet).*
 
-### S1 — Franchissement du paywall par le vrai chemin (compte +demo4)
+### S1 — Franchissement du paywall par le vrai chemin (compte +demo4) — ✅ VALIDÉ 7 sept (paiement 4242 accepté, webhook → ligne subscriptions active vérifiée SQL, Phase 1 ouverte)
 
 - **Compte** : créer **+demo4** (compte neuf, onboarding complet). **Refresh** : R4 au départ (contexte vierge).
 - **Départ** : amener +demo4 à J17 via les outils DEV (valider les jours avec +1j entre chaque, ou snapshot « S0.2 J16 » puis valider + « +1j ») → paywall.
 - **Étapes** : « Continuer mon parcours » → page d'abonnement web → **payer avec la carte de test Stripe `4242 4242 4242 4242`** (date d'expiration future quelconque, CVC quelconque, mode test).
 - **Attendu** : paiement accepté ; au retour dans l'app (voir S3 pour le bouton retour), après R2 au besoin, le paywall a disparu et la Phase 1 s'ouvre par le flux nominal. En base : ligne d'abonnement active créée par le webhook.
 
-### S2 — Vérifications Dashboard Stripe (R2, R3)
+### S2 — Vérifications Dashboard Stripe (R2, R3) — ✅ VALIDÉ 8 sept (avec Mimi)
+
+**Acté le 8 sept** : paiement +demo4 visible avec bon produit/prix ; reçus « paiements réussis » + « remboursements » ACTIVÉS et langue e-mails clients = FRANÇAIS (réglés en mode production, valables live) ; portail client configuré (changement d'offre entre les 3 durées D42, quantité verrouillée, « pas de frais ni de crédits ») ; « Gérer mon abonnement » ouvre le portail EN FRANÇAIS (fix locale fr déployé, edge function stripe-portal v2, commit 261b894) ; **décision D42** : trois durées 49 €/mois, 239 €/6 mois, 399 €/an (révise D11, CLAUDE.md V1.6). Écart test→live restant : basculer les clés Stripe de l'app (test → live) avant l'ouverture aux paiements réels.
 
 - **Avec Mimi sur le Dashboard** : vérifier la configuration relevée par l'audit Stripe (points R2 et R3 de la note de vérification — emails de reçu/facture, paramètres du portail client, mode test vs live). Confirmer que le paiement S1 apparaît côté Dashboard avec le bon produit/prix (mensuel ou annuel selon le choix fait).
 - **Vérifier aussi** : Profil → « Gérer mon abonnement » ouvre le portail client Stripe pour +demo4.
 
-### S3 — Bouton « Retour à l'app » (R5)
+### S3 — Bouton « Retour à l'app » (R5) — ✅ CONSTATÉ 7 sept : bouton inopérant (bug connu), glissement manuel OK, pas de boucle paywall au retour — fix côté site vitrine hors salve
 
 - **Contexte** : bug connu — le bouton « Retour à l'app » de la page d'abonnement (site vitrine) ne fonctionne pas dans l'in-app browser iOS (fermeture par glissement manuel nécessaire).
 - **Étapes** : au retour de paiement S1, observer le comportement réel du bouton ; noter précisément (rien ne se passe / erreur / autre).
@@ -417,7 +419,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 
 ### S4 — Compte +test1 (gelé)
 
-- **Après S1-S3 validés** : dérouler la vérification prévue sur **+test1** (état gelé « jour 17, non abonné, bloqué au paywall ») si la note de vérif Stripe le prévoit encore, PUIS le libérer. Ensuite seulement : K2 (nettoyage global des comptes).
+- ✅ 8 sept : la vérification Stripe s'est faite intégralement via +demo4 (S1-S2) — l'état gelé de +test1 n'a plus d'utilité. **+test1 LIBÉRÉ**, à supprimer au nettoyage K2.
 
 
 ---
