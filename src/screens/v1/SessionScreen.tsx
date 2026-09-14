@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Alert, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, AppState, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import Animated, {
@@ -32,6 +32,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { Button, Modal, LevelSelector } from '../../components/primitives';
+import { useKeepAwakeWhile } from '../../hooks/useKeepAwake';
 import { TierReachedModal } from '../../components/compositions';
 import type { TierId } from '../../lib/streak';
 import {
@@ -340,6 +341,78 @@ function labelOf(level: EngagementLevel): string {
   return 'Immersion';
 }
 
+// ─── Décompte robuste à la veille ─────────────────────────────────────────────
+
+/**
+ * Décompte basé sur l'horloge murale (Date.now), pas sur les ticks.
+ *
+ * Régression salve M2 (11 sept 2026) : iOS gèle le JS quand l'écran se met
+ * en veille — un compteur décrémenté par setInterval s'arrête et la fin de
+ * session n'arrive jamais (aucune écriture pillar_sessions). Ici le temps
+ * restant est recalculé depuis `startedAtMs` à chaque tick ET au retour au
+ * premier plan (AppState → Page Visibility sur react-native-web) : une
+ * veille traversée compte comme du temps pratiqué et la session se valide
+ * au réveil si l'échéance est passée.
+ *
+ * Volontairement Date.now() et non devNow() : un saut d'horloge DEV (+1j)
+ * en cours de session ne doit pas auto-compléter la session.
+ */
+function useWallClockCountdown(
+  totalSeconds: number,
+  onComplete: (durationSec: number) => void,
+) {
+  const [active, setActive] = useState(false);
+  const [secondsLeft, setSecondsLeft] = useState(0);
+  const startedAtMsRef = React.useRef<number | null>(null);
+  const completedRef = React.useRef(false);
+  const onCompleteRef = React.useRef(onComplete);
+  onCompleteRef.current = onComplete;
+
+  const elapsedSeconds = React.useCallback(() => {
+    if (startedAtMsRef.current == null) return 0;
+    return Math.floor((Date.now() - startedAtMsRef.current) / 1000);
+  }, []);
+
+  const recompute = React.useCallback(() => {
+    if (startedAtMsRef.current == null || completedRef.current) return;
+    const left = Math.max(totalSeconds - elapsedSeconds(), 0);
+    setSecondsLeft(left);
+    if (left <= 0) {
+      completedRef.current = true;
+      // Différer onComplete pour éviter setState pendant render parent.
+      setTimeout(() => onCompleteRef.current(totalSeconds), 0);
+    }
+  }, [totalSeconds, elapsedSeconds]);
+
+  useEffect(() => {
+    if (!active) return;
+    const id = setInterval(recompute, 1000);
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') recompute();
+    });
+    return () => {
+      clearInterval(id);
+      sub.remove();
+    };
+  }, [active, recompute]);
+
+  const start = () => {
+    startedAtMsRef.current = Date.now();
+    completedRef.current = false;
+    setSecondsLeft(totalSeconds);
+    setActive(true);
+  };
+
+  const terminate = () => {
+    if (completedRef.current) return;
+    completedRef.current = true;
+    setActive(false);
+    onCompleteRef.current(Math.min(elapsedSeconds(), totalSeconds));
+  };
+
+  return { active, secondsLeft, start, terminate };
+}
+
 // ─── Sub-component 1 : Cohérence cardiaque (S1) ───────────────────────────────
 
 type CoherenceProps = {
@@ -361,27 +434,13 @@ function CoherenceCardiaqueSession({
 }: CoherenceProps) {
   const styles = React.useMemo(() => makeStyles(palette), [palette]);
   const totalSeconds = durationMin * 60;
-  const [active, setActive] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(0);
+  const { active, secondsLeft, start, terminate } = useWallClockCountdown(
+    totalSeconds,
+    onComplete,
+  );
+  useKeepAwakeWhile(active);
   const [phaseLabel, setPhaseLabel] = useState<'Inspire' | 'Expire' | 'Prêt'>('Prêt');
   const scale = useSharedValue(1);
-
-  useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          // Différer onComplete pour éviter setState pendant render parent.
-          setTimeout(() => onComplete(totalSeconds), 0);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
 
   useEffect(() => {
     if (active) {
@@ -425,15 +484,6 @@ function CoherenceCardiaqueSession({
     transform: [{ scale: scale.value }],
   }));
 
-  const handleStart = () => {
-    setSecondsLeft(totalSeconds);
-    setActive(true);
-  };
-  const handleTerminate = () => {
-    setActive(false);
-    onComplete(totalSeconds - secondsLeft);
-  };
-
   const min = Math.floor(secondsLeft / 60);
   const sec = secondsLeft % 60;
   const timerLabel = active
@@ -455,11 +505,11 @@ function CoherenceCardiaqueSession({
       <View style={styles.actions}>
         {!active ? (
           <>
-            <Button label={`Lancer (${durationMin} min)`} onPress={handleStart} fullWidth size="large" context={pillarKey} />
+            <Button label={`Lancer (${durationMin} min)`} onPress={start} fullWidth size="large" context={pillarKey} />
             <Button label="Marquer comme faite" variant="secondary" onPress={() => onComplete(0)} loading={saving} fullWidth context={pillarKey} />
           </>
         ) : (
-          <Button label="Terminer maintenant" variant="secondary" onPress={handleTerminate} loading={saving} fullWidth context={pillarKey} />
+          <Button label="Terminer maintenant" variant="secondary" onPress={terminate} loading={saving} fullWidth context={pillarKey} />
         )}
       </View>
     </>
@@ -478,34 +528,11 @@ function ChronoLibreSession({
 }: CoherenceProps) {
   const styles = React.useMemo(() => makeStyles(palette), [palette]);
   const totalSeconds = durationMin * 60;
-  const [active, setActive] = useState(false);
-  const [secondsLeft, setSecondsLeft] = useState(0);
-
-  useEffect(() => {
-    if (!active) return;
-    const id = setInterval(() => {
-      setSecondsLeft((s) => {
-        if (s <= 1) {
-          clearInterval(id);
-          // Différer onComplete pour éviter setState pendant render parent.
-          setTimeout(() => onComplete(totalSeconds), 0);
-          return 0;
-        }
-        return s - 1;
-      });
-    }, 1000);
-    return () => clearInterval(id);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [active]);
-
-  const handleStart = () => {
-    setSecondsLeft(totalSeconds);
-    setActive(true);
-  };
-  const handleTerminate = () => {
-    setActive(false);
-    onComplete(totalSeconds - secondsLeft);
-  };
+  const { active, secondsLeft, start, terminate } = useWallClockCountdown(
+    totalSeconds,
+    onComplete,
+  );
+  useKeepAwakeWhile(active);
 
   const min = Math.floor(secondsLeft / 60);
   const sec = secondsLeft % 60;
@@ -525,11 +552,11 @@ function ChronoLibreSession({
       <View style={styles.actions}>
         {!active ? (
           <>
-            <Button label={`Lancer le chrono (${durationMin} min)`} onPress={handleStart} fullWidth size="large" context={pillarKey} />
+            <Button label={`Lancer le chrono (${durationMin} min)`} onPress={start} fullWidth size="large" context={pillarKey} />
             <Button label="Marquer comme faite" variant="secondary" onPress={() => onComplete(0)} loading={saving} fullWidth context={pillarKey} />
           </>
         ) : (
-          <Button label="Terminer maintenant" variant="secondary" onPress={handleTerminate} loading={saving} fullWidth context={pillarKey} />
+          <Button label="Terminer maintenant" variant="secondary" onPress={terminate} loading={saving} fullWidth context={pillarKey} />
         )}
       </View>
     </>

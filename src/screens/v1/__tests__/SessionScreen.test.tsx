@@ -391,3 +391,83 @@ describe('timer (chrono_libre S2)', () => {
     });
   });
 });
+
+describe('timer et veille iOS — régression bug salve M2 (11 sept 2026)', () => {
+  // Bug : sur PWA iPhone, la mise en veille gèle le JS ; l'ancien timer
+  // comptait des ticks setInterval au lieu du temps réel, donc la fin de
+  // session n'arrivait jamais et rien n'était validé. Le timer doit dériver
+  // le temps restant de l'horloge murale (Date.now), pas des ticks.
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  test('veille pendant toute la session : horloge murale écoulée sans ticks → validation au premier tick du réveil', async () => {
+    await seedPhase1({ pillarId: 'S1', engagement: 'essentiel' });
+    await renderSession();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    await user.press(screen.getByText('Lancer (5 min)'));
+
+    const { act } = require('@testing-library/react-native');
+    // Gel de la veille : l'horloge avance de 5 min, AUCUN tick ne se produit.
+    await act(async () => {
+      jest.setSystemTime(Date.now() + 5 * 60_000);
+      // Réveil : le premier tick d'intervalle repart.
+      await jest.advanceTimersByTimeAsync(1000);
+    });
+
+    await waitFor(() => {
+      const upserts = sb.calls.filter((c) => c.table === 'pillar_sessions');
+      expect(upserts).toHaveLength(1);
+      expect(
+        (upserts[0].payload as Record<string, unknown>).duration_seconds,
+      ).toBe(300);
+    });
+    await waitFor(() => expect(mockPopToTop).toHaveBeenCalledTimes(1));
+  });
+
+  test('« Terminer maintenant » après gel partiel : duration_seconds = temps réel écoulé, pas le nombre de ticks', async () => {
+    await seedPhase1({ pillarId: 'S2', engagement: 'essentiel' });
+    await renderSession();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    await user.press(screen.getByText('Lancer le chrono (30 min)'));
+
+    const { act } = require('@testing-library/react-native');
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(3000); // 3 ticks réels
+      jest.setSystemTime(Date.now() + 117_000); // puis gel de ~2 min
+    });
+    await user.press(screen.getByText('Terminer maintenant'));
+
+    await waitFor(() => {
+      const upserts = sb.calls.filter((c) => c.table === 'pillar_sessions');
+      expect(upserts).toHaveLength(1);
+      expect(
+        (upserts[0].payload as Record<string, unknown>).duration_seconds,
+      ).toBe(120);
+    });
+  });
+
+  test('expiration naturelle tick par tick (cohérence cardiaque 5 min) → onComplete(300) + retour hub', async () => {
+    await seedPhase1({ pillarId: 'S1', engagement: 'essentiel' });
+    await renderSession();
+    const user = userEvent.setup({ advanceTimers: jest.advanceTimersByTime });
+    await user.press(screen.getByText('Lancer (5 min)'));
+
+    const { act } = require('@testing-library/react-native');
+    await act(async () => {
+      await jest.advanceTimersByTimeAsync(5 * 60_000);
+    });
+
+    await waitFor(() => {
+      const upserts = sb.calls.filter((c) => c.table === 'pillar_sessions');
+      expect(upserts).toHaveLength(1);
+      expect(
+        (upserts[0].payload as Record<string, unknown>).duration_seconds,
+      ).toBe(300);
+    });
+    await waitFor(() => expect(mockPopToTop).toHaveBeenCalledTimes(1));
+  });
+});
