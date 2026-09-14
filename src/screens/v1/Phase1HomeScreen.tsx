@@ -45,7 +45,7 @@ import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { supabase } from '../../lib/supabase';
 import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
-import { getPillarMeta } from '../../data/pillar-registry';
+import { getNextPillarId, getPillarMeta } from '../../data/pillar-registry';
 import { todayLocalDate } from '../../lib/calendar';
 import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
@@ -182,6 +182,24 @@ export default function Phase1HomeScreen() {
       });
     }
   }, [isDayAfterJ7, hasInitialEval, hasFinalEval, navigation, pillarId]);
+
+  // Bascule vers le pilier suivant — régression salve M5 (14 sept 2026).
+  // Le lendemain de J7, éval finale faite, rien ne menait au pilier suivant :
+  // currentPillarId ne bouge qu'à l'enregistrement de l'éval initiale du
+  // pilier ciblé (startPillarWeek dans PillarEvaluationScreen), et aucun code
+  // n'y conduisait — le hub restait sur « Semaine SN terminée » à vie.
+  // On ouvre la présentation du pilier suivant (IA-42 fromStart → 12
+  // questions → startPillarWeek pose le nouveau pilier). S8 : pas de
+  // suivant, la sortie de Phase 1 est gérée par le récap final (IA-22).
+  useEffect(() => {
+    if (!isDayAfterJ7 || !hasFinalEval) return;
+    const nextPillarId = getNextPillarId(pillarId);
+    if (!nextPillarId) return;
+    navigation.navigate('PillarOverview', {
+      pillarId: nextPillarId,
+      fromStart: true,
+    });
+  }, [isDayAfterJ7, hasFinalEval, pillarId, navigation]);
 
   useEffect(() => {
     void fetchTodaySessions();

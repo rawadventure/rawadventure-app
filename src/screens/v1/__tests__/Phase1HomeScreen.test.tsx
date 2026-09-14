@@ -283,6 +283,72 @@ describe('éval finale (J7 et mode Z — D38)', () => {
   });
 });
 
+describe('bascule vers le pilier suivant — régression salve M5 (14 sept 2026)', () => {
+  // Bug : le lendemain de J7, éval finale faite, le hub restait sur
+  // « Semaine S1 terminée » à vie — aucun code ne menait à l'éval initiale
+  // du pilier suivant (seul chemin qui pose currentPillarId via
+  // startPillarWeek). Attendu (M5 / ex-G6) : le hub ouvre la présentation
+  // du pilier suivant (IA-42 fromStart → 12 questions → startPillarWeek).
+  test('lendemain de J7 + éval finale faite → ouverture du pilier suivant (PillarOverview S2 fromStart)', async () => {
+    mockDayInPillarWeek = 7;
+    mockPillarStartedAt = `${daysAgo(8)}T08:00:00.000Z`;
+    mockStreakHistory = validatedRun(7, daysAgo(1), 'phase_1');
+    sb.setTables({ pillar_evaluations: [INITIAL_EVAL, FINAL_EVAL] });
+    await renderHub();
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('PillarOverview', {
+        pillarId: 'S2',
+        fromStart: true,
+      }),
+    );
+    // Pas de re-forçage de l'éval finale S1 (elle est faite).
+    expect(mockNavigate).not.toHaveBeenCalledWith('PillarEvaluation', {
+      pillarId: 'S1',
+      evaluationType: 'final',
+    });
+  });
+
+  test('J7 encore en cours (session validée aujourd hui) + éval finale faite → pas de bascule, card « Semaine terminée »', async () => {
+    mockDayInPillarWeek = 7;
+    mockPillarStartedAt = `${daysAgo(7)}T08:00:00.000Z`;
+    mockStreakHistory = validatedRun(7, today(), 'phase_1');
+    sb.setTables({
+      pillar_evaluations: [INITIAL_EVAL, FINAL_EVAL],
+      pillar_sessions: [sessionRow(1)],
+    });
+    await renderHub();
+    await waitFor(() =>
+      expect(screen.getByText('Semaine S1 terminée')).toBeTruthy(),
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'PillarOverview',
+      expect.objectContaining({ fromStart: true }),
+    );
+  });
+
+  test('S8 terminé (pas de pilier suivant) → aucune bascule PillarOverview (la sortie S8 est gérée ailleurs)', async () => {
+    mockCurrentPillarId = 'S8';
+    mockDayInPillarWeek = 7;
+    mockPillarStartedAt = `${daysAgo(8)}T08:00:00.000Z`;
+    mockStreakHistory = validatedRun(7, daysAgo(1), 'phase_1');
+    sb.setTables({
+      pillar_evaluations: [
+        { ...INITIAL_EVAL, pillar_id: 'S8' },
+        { ...FINAL_EVAL, pillar_id: 'S8' },
+      ],
+    });
+    await renderHub();
+    // Laisse les effets se poser puis vérifie l'absence de navigation.
+    await waitFor(() =>
+      expect(screen.getByText('Semaine S8 terminée')).toBeTruthy(),
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'PillarOverview',
+      expect.objectContaining({ fromStart: true }),
+    );
+  });
+});
+
 describe('gating DEV (posture reset V1, §2.11)', () => {
   test('hors mode DEV : aucun bouton (DEV)', async () => {
     await renderHub();
