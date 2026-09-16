@@ -1142,6 +1142,14 @@
           "priority": "hors-scope",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R10-6",
+          "label": "Test ressenti avant/après séance (IA-43) — V2 (arbitrage A1, 17 sept)",
+          "status": "blocked",
+          "priority": "hors-scope",
+          "sessionId": null,
+          "updatedAt": "2026-09-16T16:02:32.615619Z"
         }
       ]
     }

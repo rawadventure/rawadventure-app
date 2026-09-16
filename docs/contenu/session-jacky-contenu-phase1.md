@@ -1,23 +1,19 @@
 # Session Jacky — Contenu Phase 1 (ordre du jour)
 
-*Version 1.0 — 17 septembre 2026. Préparé en sortie de salve Phase 1 (terminée le 17 sept : mécanique verte, 8 piliers de contenu passés, grilles complètes dans `docs/tests/salve-phase1-s1-s8.md`). Ce document est l'ordre du jour de la session de validation avec Jacky. Source des demandes : `docs/contenu/arbitrages-et-demandes-phase1.md` (le détail y reste). Durée estimée : **90 minutes**, sans le mapping 112 cases (session dédiée déjà en cours, R4-12).*
+*Version 1.1 — 17 septembre 2026 (arbitrages A1/A2/A3/A5 tranchés, préambule soldé). Préparé en sortie de salve Phase 1 (terminée le 17 sept : mécanique verte, 8 piliers de contenu passés, grilles complètes dans `docs/tests/salve-phase1-s1-s8.md`). Ce document est l'ordre du jour de la session de validation avec Jacky. Source des demandes : `docs/contenu/arbitrages-et-demandes-phase1.md` (le détail y reste). Durée estimée : **85 minutes**, sans le mapping 112 cases (session dédiée déjà en cours, R4-12).*
 
 ---
 
-## 0. Avant la session — arbitrages Stéphane (Partie A, à trancher seul)
+## 0. Préambule — arbitrages Stéphane : tous tranchés (17 sept)
 
-Quatre cases encore vides dans le doc d'arbitrages. Les trancher avant, pour n'apporter à Jacky que ce qui le concerne.
+| # | Question | Décision |
+|---|---|---|
+| A1 | Test de ressenti avant/après séance | **V2** — rien à cadrer en session |
+| A2 | Vidéo d'intro de pilier | **Libre comme maintenant**, non bloquante |
+| A3 | Message de fin de séance | **Silence conservé** — pas de copy à produire |
+| A5 | Durées S3/S5/S7/S8 | **Assumées** (invisibles en UI, tâches quotidiennes) |
 
-| # | Question | Avis Claude (rappel) | Décision |
-|---|---|---|---|
-| A1 | Test de ressenti avant/après session : V1 ou V2 ? | Principe 2 incarné, mais vrai chantier — trancher le principe, cadrer le format minimal avec Jacky si V1 | ☐ |
-| A2 | Vidéo d'intro de pilier : étape bloquante ou libre sur la vue d'ensemble ? | L'ordre actuel la met en début de semaine — le sujet est sa mise en avant | ☐ |
-| A3 | Message de fin de session : silence actuel ou mot sobre de Mimi & Jacky ? | Réintroduire un bandeau court non bloquant, copy Jacky | ☐ |
-| A5 | Durées S3/S5/S7/S8 héritées de S1 | **Salve C3 : aucune durée affichée en acte libre — invisible utilisateur.** Recommandation : assumer, calibrage Jacky non urgent | ☐ |
-
-*(A4 — questions inversées — ne demande pas d'arbitrage Stéphane : confirmation directe Jacky, point 4 ci-dessous.)*
-
----
+Conséquence : l'ancien point 7 (« selon les arbitrages ») disparaît — la session tient en 6 points.
 
 ## 1. S2 Activité physique — validation résiduelle (~20 min, priorité 1)
 
@@ -54,14 +50,6 @@ Seuls les textes du palier 7 jours ont été validés. Support : brief paliers.
 ## 6. Copy de fin de parcours (~15 min)
 
 Une dizaine de `[copy à valider]` visibles en prod, vus en salve P1/P2 (fond jugé bon) : messages de différentiel du récap final (4 variantes), écran de sortie S8 (« Et maintenant… », « Aller plus loin… », « Voici ce que tu peux faire maintenant… »), intro consolidation, proposition mentorat.
-
-## 7. Selon les arbitrages du § 0 (~variable)
-
-- A1 tranché « V1 » → format minimal du test avant/après (une question de ressenti, pas un questionnaire).
-- A3 tranché « message » → 1 message de fin de session par pilier (ou un générique) + micro-messages J3/J5/J7 de S1.
-- A5 tranché « calibrage » → durées Essentiel/Progression/Immersion pour S3, S5, S7, S8.
-
----
 
 ## Hors session (rappels, pas de temps Jacky nécessaire)
 

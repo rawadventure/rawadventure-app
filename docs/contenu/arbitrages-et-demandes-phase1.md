@@ -14,8 +14,8 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 **Avis Claude.** C'est le principe 2 incarné (« le ressenti prime sur la théorie ») et la promesse différenciante de la Phase 1. Mais c'est un vrai chantier (mécanique + copy des échelles de ressenti + stockage) et D34/D36 montrent une prudence assumée sur tout ce qui alourdit le quotidien. Recommandation : trancher le **principe** maintenant (V1 ou V2), et si V1, cadrer le format minimal avec Jacky (une seule question de ressenti, pas un questionnaire).
 
-- **Tranché par Stéphane :** _______________
-- **→ Jacky (si non tranché) :** faut-il le test avant/après en V1, et sous quelle forme minimale ?
+- **Tranché par Stéphane (17 sept 2026) : V2.** Pas de test de ressenti avant/après en V1 — le format se cadrera avec Jacky au moment de la V2.
+- ~~→ Jacky~~ : plus rien à demander en session.
 
 ### A2 — Placement de la vidéo d'intro de pilier
 
@@ -23,8 +23,8 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 **Avis Claude.** L'ordre actuel (vue d'ensemble AVANT le questionnaire, décision du 18 juin) met déjà la vidéo en début de semaine — le vrai sujet est de savoir si elle est assez mise en avant (autoplay proposé ? étape à part entière ?). À vérifier pendant la salve : est-ce qu'on la regarde naturellement ?
 
-- **Tranché par Stéphane :** _______________
-- **→ Jacky/Mimi (si non tranché) :** la vidéo d'intro doit-elle être une étape bloquante du début de semaine ?
+- **Tranché par Stéphane (17 sept 2026) : libre, comme maintenant.** La vidéo reste sur la vue d'ensemble, non bloquante.
+- ~~→ Jacky/Mimi~~ : plus rien à demander en session.
 
 ### A3 — Message de fin de session
 
@@ -32,8 +32,8 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 **Avis Claude.** Le silence est défendable (sobriété, principe 4 : moins d'une minute), mais un mot sobre de Mimi & Jacky après l'effort est un moment de lien peu coûteux. Recommandation : réintroduire un message court non bloquant (bandeau, pas de modale), copy à produire par Jacky.
 
-- **Tranché par Stéphane :** _______________
-- **→ Jacky (si copy nécessaire) :** 1 message de fin de session par pilier (ou un générique), + micro-messages J3/J5/J7 de S1.
+- **Tranché par Stéphane (17 sept 2026) : silence conservé.** Pas de message de fin de séance, pas de copy Jacky à produire.
+- ~~→ Jacky~~ : plus rien à demander en session.
 
 ### A4 — Questions inversées S3 → S8 : simple confirmation
 
@@ -41,7 +41,7 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 **Avis Claude.** Il ne reste qu'une confirmation de fond à Jacky : ces distributions sont-elles voulues (ou des artefacts de sa matière V0) ? Une question de 5 minutes en session, avec la liste ci-dessus sous les yeux.
 
-- **Tranché par Stéphane :** _______________
+- **Tranché par Stéphane :** sans objet — confirmation directe Jacky.
 - **→ Jacky :** confirmer les distributions ci-dessus, pilier par pilier.
 
 ### A5 — Durées de session par défaut sur S3, S5, S7, S8
@@ -50,8 +50,8 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 **Avis Claude.** Pour un acte libre, la durée affichée sert surtout de cadre indicatif — soit on l'assume, soit on la masque pour ces piliers, soit Jacky donne un calibrage. À juger pendant la salve (grille « Session » des blocs C3/C5/C7/C8) : si l'affichage ne choque pas, assumer.
 
-- **Tranché par Stéphane :** _______________
-- **→ Jacky (si calibrage voulu) :** durées Essentiel/Progression/Immersion pour S3, S5, S7, S8.
+- **Tranché par Stéphane (17 sept 2026) : assumer.** Ce sont des tâches quotidiennes à faire, les durées héritées sont invisibles en UI (salve C3) — pas de calibrage demandé.
+- ~~→ Jacky~~ : plus rien à demander en session.
 
 ---
 
@@ -65,7 +65,7 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 2. **S1 Respiration — les 5 messages de diagnostic.** Seuls textes de données pilier encore en `[copy à valider]` (Coûteuse / Instable / Adaptation / Fonctionnelle / Régulatrice). *(Nouvelle tâche kanban R4.)*
 3. **Questions courtes S4, S5, S7, S8.** Formulations reprises telles quelles de sa matière V0, peu discriminantes (« Je me sens calme naturellement. »). Lui proposer de les densifier — avec les annotations de la salve (blocs C4/C5/C7/C8) comme matière. *(Nouvelle tâche kanban R4.)* **Signaux salve C4 (16 sept)** : Q9 S4 « Je suis souvent stimulé mentalement » (inversée) se lit comme de la stimulation positive — reformuler avec « trop stimulé » + contexte écrans/publicité/sollicitations ; Q12 S4 « Je ressens une vraie présence dans mes journées » — clarifier (présence à quoi : au vivant, à soi ?).
 4. **Mapping 112 cases diagnostic × pilier** — déjà en cours avec lui (R4-12), à poursuivre.
-5. **Confirmation des questions inversées** (Partie A4) et, selon les arbitrages A1/A3/A5 : format du test avant/après, messages de fin de session, durées S3/S5/S7/S8.
+5. **Confirmation des questions inversées** (Partie A4). *(Les suites conditionnelles A1/A3/A5 sont caduques — tout tranché le 17 sept : avant/après en V2, silence de fin de séance conservé, durées assumées.)*
 6. **Textes des paliers 15/30/60/100/365** — encore à valider (brief paliers, seuls les textes du 7j fusionné l'ont été).
 7. **Copy des écrans de fin de parcours** : messages de différentiel du récap final (4 variantes), écran de sortie S8, intro consolidation, proposition mentorat — une dizaine de `[copy à valider]` visibles en prod sur ces écrans. *(Nouvelle tâche kanban R4.)*
 
