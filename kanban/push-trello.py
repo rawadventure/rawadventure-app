@@ -58,6 +58,22 @@ DOC_REFS = {
 # Logique pure (testée dans test_push_trello.py, aucun appel réseau)
 # ---------------------------------------------------------------------------
 
+OWNER_LABELS = {
+    "claude": "Claude",
+    "stephane": "Stéphane",
+    "mimi-jacky": "Mimi & Jacky",
+    "externe": "Externe (délai)",
+}
+
+
+def fmt_estimate(hours):
+    """0.5 → « 30min », 1 → « 1h », 1.5 → « 1h30 », 8 → « 8h »."""
+    whole = int(hours)
+    if whole == 0:
+        return "30min"
+    return f"{whole}h30" if hours - whole else f"{whole}h"
+
+
 def desired_state(blocks):
     """État attendu du tableau, par identifiant de tâche (Rx-y).
 
@@ -70,9 +86,16 @@ def desired_state(blocks):
             title = f"{t['id']} · {t['label']}"
             if t.get("priority") == "bloquant":
                 title += " [bloquant]"
+            if t.get("estimateH"):
+                title += f" · ~{fmt_estimate(t['estimateH'])}"
             desc_lines = [f"Bloc : {blk['id']} — {blk['title']}"]
             if t.get("priority"):
                 desc_lines.append(f"Priorité : {t['priority']}")
+            if t.get("estimateH"):
+                desc_lines.append(f"Estimation : {fmt_estimate(t['estimateH'])}")
+            if t.get("owner"):
+                desc_lines.append(
+                    f"Qui : {OWNER_LABELS.get(t['owner'], t['owner'])}")
             if t["id"] in DOC_REFS:
                 desc_lines.append(f"Docs : {DOC_REFS[t['id']]}")
             out[t["id"]] = {

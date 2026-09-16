@@ -60,3 +60,6 @@ AuthKey_*.p8
 test-results/
 playwright-report/
 .env.e2e
+
+# Python
+__pycache__/

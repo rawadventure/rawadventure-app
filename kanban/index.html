@@ -222,6 +222,16 @@
       polish:       { label: '🟢 Polish',    color: '#5fae5e', rank: 2 },
       'hors-scope': { label: '⏸️ Hors-scope', color: '#777',   rank: 4 }
     };
+
+    // Qui fait la tâche (badge court sur la carte). Claude implicite : pas de badge.
+    const OWNER_SHORT = { stephane: 'Stéphane', 'mimi-jacky': 'M&J', externe: 'ext.' };
+
+    // 0.5 → « 30min », 1.5 → « 1h30 », 8 → « 8h »
+    function fmtHours(h) {
+      const whole = Math.floor(h);
+      if (whole === 0) return '30min';
+      return h - whole ? `${whole}h30` : `${whole}h`;
+    }
     const prioRank = (p) => (PRIO[p] ? PRIO[p].rank : 3);
 
     let roadmap = { blocks: [] };
@@ -275,7 +285,10 @@
         const container = document.querySelector(`.cards[data-status="${st}"]`);
         for (const { task, block } of buckets[st]) container.appendChild(buildCard(task, block));
         counts[st] = buckets[st].length;
-        document.querySelector(`[data-count="${st}"]`).textContent = counts[st];
+        // Total d'heures estimées de la colonne (hors « Fait »).
+        const hours = buckets[st].reduce((s, e) => s + (e.task.estimateH || 0), 0);
+        document.querySelector(`[data-count="${st}"]`).textContent =
+          st !== 'done' && hours ? `${counts[st]} · ~${fmtHours(hours)}` : counts[st];
       }
 
       renderProgress();
@@ -297,9 +310,12 @@
       const prio = PRIO[task.priority]
         ? `<span class="prio" style="display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;color:#fff;background:${PRIO[task.priority].color}">${PRIO[task.priority].label}</span>`
         : '';
+      const est = task.estimateH
+        ? `<span class="est" style="display:inline-block;margin-left:6px;font-size:10px;font-weight:600;padding:1px 6px;border-radius:8px;color:#cfd8cf;background:#3a453a">~${fmtHours(task.estimateH)}${OWNER_SHORT[task.owner] ? ' · ' + OWNER_SHORT[task.owner] : ''}</span>`
+        : '';
 
       el.innerHTML = `
-        <span class="tag">${block.id}</span>${prio}
+        <span class="tag">${block.id}</span>${prio}${est}
         <div class="label">${escapeHtml(task.label)}</div>
         ${subtasks}
         ${meta}

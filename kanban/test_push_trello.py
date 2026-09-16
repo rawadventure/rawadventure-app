@@ -17,6 +17,7 @@ spec.loader.exec_module(push_trello)
 plan_sync = push_trello.plan_sync
 desired_state = push_trello.desired_state
 card_task_id = push_trello.card_task_id
+fmt_estimate = push_trello.fmt_estimate
 
 BLOCKS = [
     {"id": "R1", "title": "App — parcours", "tasks": [
@@ -54,6 +55,45 @@ class DesiredStateTest(unittest.TestCase):
         self.assertEqual(d["R1-1"]["list"], "Fait")
         self.assertEqual(d["R1-3"]["list"], "À faire")
         self.assertEqual(d["R10-1"]["list"], "Hors-scope V1")
+
+    def test_estimation_dans_titre_et_description(self):
+        blocks = [{"id": "R2", "title": "Abonnement", "tasks": [
+            {"id": "R2-15", "label": "Fix portail", "status": "doing",
+             "priority": "important", "estimateH": 1, "owner": "claude"}]}]
+        d = desired_state(blocks)
+        self.assertEqual(d["R2-15"]["title"], "R2-15 · Fix portail · ~1h")
+        self.assertIn("Estimation : 1h", d["R2-15"]["desc"])
+        self.assertIn("Qui : Claude", d["R2-15"]["desc"])
+
+    def test_estimation_apres_bloquant(self):
+        blocks = [{"id": "R6", "title": "Build", "tasks": [
+            {"id": "R6-17", "label": "Build iOS", "status": "todo",
+             "priority": "bloquant", "estimateH": 4, "owner": "claude"}]}]
+        d = desired_state(blocks)
+        self.assertEqual(d["R6-17"]["title"],
+                         "R6-17 · Build iOS [bloquant] · ~4h")
+
+    def test_owner_mimi_jacky_et_externe(self):
+        blocks = [{"id": "R4", "title": "Contenu", "tasks": [
+            {"id": "R4-8", "label": "Copy paywall", "status": "review",
+             "priority": "bloquant", "estimateH": 1, "owner": "mimi-jacky"},
+            {"id": "R4-9", "label": "Avocat", "status": "todo",
+             "priority": None, "estimateH": 4, "owner": "externe"}]}]
+        d = desired_state(blocks)
+        self.assertIn("Qui : Mimi & Jacky", d["R4-8"]["desc"])
+        self.assertIn("Qui : Externe (délai)", d["R4-9"]["desc"])
+
+    def test_sans_estimation_titre_inchange(self):
+        # Rétro-compatible : une tâche sans estimateH garde l'ancien format.
+        d = desired_state(BLOCKS)
+        self.assertEqual(d["R1-2"]["title"], "R1-2 · Tâche en cours [bloquant]")
+        self.assertNotIn("Estimation", d["R1-2"]["desc"])
+
+    def test_fmt_estimate(self):
+        self.assertEqual(fmt_estimate(0.5), "30min")
+        self.assertEqual(fmt_estimate(1), "1h")
+        self.assertEqual(fmt_estimate(1.5), "1h30")
+        self.assertEqual(fmt_estimate(8), "8h")
 
     def test_renvoi_docs(self):
         blocks = [{"id": "R9", "title": "Tests", "tasks": [

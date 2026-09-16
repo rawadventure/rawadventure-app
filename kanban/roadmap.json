@@ -235,7 +235,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "stephane"
         },
         {
           "id": "R2-15",
@@ -243,7 +245,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R2-16",
@@ -251,7 +255,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "claude"
         }
       ]
     },
@@ -294,14 +300,18 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R3-6",
           "label": "Test device permission denied",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 1,
+          "owner": "claude"
         }
       ]
     },
@@ -365,7 +375,9 @@
           "status": "review",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-9",
@@ -373,7 +385,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-10",
@@ -381,7 +395,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 1,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-11",
@@ -389,7 +405,9 @@
           "status": "review",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-12",
@@ -397,7 +415,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-13",
@@ -405,7 +425,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-09-08T11:42:26.475Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-14",
@@ -413,7 +435,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-09-08T11:42:26.475Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 1,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-15",
@@ -421,7 +445,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-09-08T11:42:26.475Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-16",
@@ -429,7 +455,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-09-08T11:42:26.475Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R4-17",
@@ -437,7 +465,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-09-08T11:42:26.475Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 1,
+          "owner": "mimi-jacky"
         }
       ]
     },
@@ -473,7 +503,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R5-5",
@@ -481,7 +513,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R5-6",
@@ -497,7 +531,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "mimi-jacky"
         }
       ]
     },
@@ -518,7 +554,9 @@
           "label": "Séparer les clés Supabase test / production",
           "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z"
+          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R6-3",
@@ -603,7 +641,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "externe"
         },
         {
           "id": "R6-15",
@@ -611,7 +651,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "externe"
         },
         {
           "id": "R6-16",
@@ -619,7 +661,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "stephane"
         },
         {
           "id": "R6-17",
@@ -627,7 +671,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 4,
+          "owner": "claude"
         },
         {
           "id": "R6-18",
@@ -635,7 +681,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 3,
+          "owner": "claude"
         },
         {
           "id": "R6-19",
@@ -643,7 +691,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R6-20",
@@ -651,7 +701,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R6-21",
@@ -659,7 +711,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 1,
+          "owner": "stephane"
         },
         {
           "id": "R6-22",
@@ -667,7 +721,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R6-23",
@@ -675,7 +731,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R6-24",
@@ -683,7 +741,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "claude"
         },
         {
           "id": "R6-25",
@@ -691,7 +751,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R6-26",
@@ -699,7 +761,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "claude"
         },
         {
           "id": "R6-27",
@@ -707,7 +771,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 1,
+          "owner": "stephane"
         },
         {
           "id": "R6-28",
@@ -715,7 +781,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 2,
+          "owner": "externe"
         },
         {
           "id": "R6-29",
@@ -793,7 +861,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 4,
+          "owner": "externe"
         },
         {
           "id": "R7-10",
@@ -801,7 +871,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 1,
+          "owner": "stephane"
         }
       ]
     },
@@ -858,7 +930,9 @@
           "status": "review",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "mimi-jacky"
         },
         {
           "id": "R8-8",
@@ -866,7 +940,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important"
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "claude"
         },
         {
           "id": "R8-9",
@@ -874,14 +950,18 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R8-10",
           "label": "Auth → Rate limiting",
           "status": "review",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 0.5,
+          "owner": "claude"
         }
       ]
     },
@@ -937,42 +1017,54 @@
           "label": "Test E2E onboarding → J1 device réel",
           "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R9-8",
           "label": "Test E2E J1 → J14 + paliers",
           "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 3,
+          "owner": "claude"
         },
         {
           "id": "R9-9",
           "label": "Test signup + email confirm flow",
           "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R9-10",
           "label": "Test reset password flow",
           "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R9-11",
           "label": "Test edge cases (joker, charnière, cassure streak)",
           "status": "review",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 1,
+          "owner": "claude"
         },
         {
           "id": "R9-12",
           "label": "Test notifications iOS device",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z"
+          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "estimateH": 2,
+          "owner": "claude"
         },
         {
           "id": "R9-13",
@@ -980,7 +1072,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "polish"
+          "priority": "polish",
+          "estimateH": 3,
+          "owner": "claude"
         },
         {
           "id": "R9-14",
@@ -988,7 +1082,9 @@
           "status": "todo",
           "sessionId": null,
           "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "stephane"
         },
         {
           "id": "R9-15",
@@ -996,7 +1092,9 @@
           "status": "doing",
           "sessionId": null,
           "updatedAt": "2026-09-14T10:33:59.520864Z",
-          "priority": "bloquant"
+          "priority": "bloquant",
+          "estimateH": 8,
+          "owner": "claude"
         }
       ]
     },

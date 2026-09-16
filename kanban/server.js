@@ -357,6 +357,8 @@ function buildReleaseBlocks(prev) {
     if (p) {
       if (p.status === task.status) task.updatedAt = p.updatedAt; // pas de churn si inchangé
       if (p.sessionId) task.sessionId = p.sessionId;              // garde la session ouverte
+      if (p.estimateH != null) task.estimateH = p.estimateH;      // estimation d'heures conservée
+      if (p.owner) task.owner = p.owner;                          // qui fait la tâche
     }
     blocks[sec.id].tasks.push(task);
   }
@@ -403,7 +405,7 @@ app.post('/sync', (req, res) => {
   const prevRelease = {};
   for (const b of roadmap.blocks) {
     if (/^R\d/.test(b.id)) {
-      for (const t of b.tasks) prevRelease[t.id] = { status: t.status, updatedAt: t.updatedAt, sessionId: t.sessionId };
+      for (const t of b.tasks) prevRelease[t.id] = { status: t.status, updatedAt: t.updatedAt, sessionId: t.sessionId, estimateH: t.estimateH, owner: t.owner };
     }
   }
   // Retire les blocs générés (R-*) et la roadmap dev périmée (Z-*).
