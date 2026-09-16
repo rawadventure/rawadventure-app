@@ -179,7 +179,11 @@ describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
       name: 'Activité physique',
       sessionType: 'chrono_libre',
       durations: { essentiel: 30, progression: 45, immersion: 60 },
-      reversed: [6, 7, 8],
+      // Matière Jacky enrichie du 16 sept 2026 (« ÉVALUATION DE DÉPART ») :
+      // Q5 « raide ou bloqué » et Q6 « manque d'énergie » inversées. Q7
+      // « je transpire facilement » codée directe — sens à trancher Jacky
+      // (arbitrage Stéphane 16 sept).
+      reversed: [5, 6],
     },
     S3: {
       name: 'Alimentation',
@@ -260,6 +264,43 @@ describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
       for (const day of meta.program) {
         expect(day.copySlot).toBe(`copy.IA-43.s${n}.j${day.id}-explication`);
       }
+    });
+  });
+
+  // Réalignement S2 sur la matière Jacky enrichie (16 sept 2026, salve C2) :
+  // les 12 questions et les 5 labels de diagnostic viennent du doc
+  // « ÉVALUATION DE DÉPART — CONDITION PHYSIQUE » fourni par Stéphane.
+  // Les messages 2-3 phrases restent des drafts Claude (à valider Jacky).
+  describe('S2 — textes issus de la matière Jacky (16 sept 2026)', () => {
+    const s2 = ALL_PILLARS.find(({ id }) => id === 'S2')!.meta;
+
+    test('les 12 questions sont celles du doc Jacky, verbatim et dans son ordre', () => {
+      expect([...s2.questions].map((q) => q.text)).toEqual([
+        'Je bouge physiquement presque tous les jours.',
+        'Je me sens en forme physiquement dans ma journée.',
+        'J\'ai de l\'énergie pour marcher, monter des escaliers ou porter des charges.',
+        'Mon corps récupère bien après un effort.',
+        'Je me sens souvent raide ou bloqué physiquement.',
+        'Je manque régulièrement d\'énergie pour faire du sport ou bouger.',
+        'Je transpire facilement quand je fais un effort.',
+        'Je sens que mon souffle est bon quand je marche ou cours.',
+        'Je me sens solide physiquement.',
+        'Je prends plaisir à bouger mon corps.',
+        'J\'ai l\'impression que mon corps devient plus fort ou plus endurant.',
+        'Je me sens vivant et dynamique physiquement.',
+      ]);
+    });
+
+    test('les 5 labels de diagnostic sont ceux des NIVEAUX du doc Jacky', () => {
+      expect(
+        ([1, 2, 3, 4, 5] as const).map((lvl) => s2.diagnostics[lvl].label),
+      ).toEqual([
+        'Corps déconditionné',
+        'Remise en mouvement nécessaire',
+        'Base physique présente',
+        'Condition physique fonctionnelle',
+        'Corps dynamique et adaptable',
+      ]);
     });
   });
 

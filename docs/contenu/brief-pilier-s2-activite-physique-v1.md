@@ -1,6 +1,6 @@
 # Brief contenu — Pilier S2 Activité physique V1
 
-**Statut** : Drafts Claude basés sur matière Jacky V0 (`docs/matiere-jacky/V0_PILIER 2 — ACTIVITÉ PHYSIQUE.docx`). 12 questions évaluation + diagnostics inférés — à valider Jacky en session dédiée.
+**Statut** (mis à jour 16 sept 2026, salve C2) : réaligné sur la **matière Jacky enrichie** (`docs/matiere-jacky/V0_PILIER 2 — ACTIVITÉ PHYSIQUE.docx`, version du 16 sept avec section « ÉVALUATION DE DÉPART »). 12 questions et labels des 5 niveaux = **Jacky, actés**. Restent à valider Jacky : les 5 messages de diagnostic (drafts Claude), le sens de Q7 (transpiration), le calibrage des durées 30/45/60.
 **Cible code** :
 - `src/data/s2-evaluation.ts` (12 questions + diagnostic 5 niveaux)
 - `src/data/s2-program.ts` (programme 7 jours)
@@ -18,45 +18,45 @@
   - Progression : 45 min
   - Immersion : 60 min
 
-## 12 questions évaluation (drafts Claude)
+## 12 questions évaluation (Jacky, verbatim — doc du 16 sept 2026)
 
-Échelle 1-5 (`1 = jamais / très loin de moi` à `5 = presque toujours`).
+Échelle 1-5 (`1 = jamais / très loin de moi` à `5 = toujours / très proche de moi`).
 
 | # | Question | Inversion |
 |---|---|---|
-| Q1 | Je bouge mon corps tous les jours, ne serait-ce qu'un peu. | Non |
-| Q2 | Je marche au moins 30 minutes par jour. | Non |
-| Q3 | Je me sens à l'aise dans mon corps en mouvement. | Non |
-| Q4 | J'ai une activité physique structurée au moins 2 fois par semaine. | Non |
-| Q5 | Je récupère rapidement après un effort modéré. | Non |
-| Q6 | Je m'essouffle facilement à l'effort. | Oui |
-| Q7 | Je ressens des tensions ou raideurs corporelles régulières. | Oui |
-| Q8 | J'évite les escaliers ou les efforts physiques quotidiens. | Oui |
-| Q9 | J'ai assez de force pour porter mes affaires sans gêne. | Non |
-| Q10 | Mon équilibre est stable, je ne trébuche pas facilement. | Non |
-| Q11 | Je connais mes limites physiques et je les respecte. | Non |
-| Q12 | Mon corps me semble fluide quand je bouge. | Non |
+| Q1 | Je bouge physiquement presque tous les jours. | Non |
+| Q2 | Je me sens en forme physiquement dans ma journée. | Non |
+| Q3 | J'ai de l'énergie pour marcher, monter des escaliers ou porter des charges. | Non |
+| Q4 | Mon corps récupère bien après un effort. | Non |
+| Q5 | Je me sens souvent raide ou bloqué physiquement. | Oui |
+| Q6 | Je manque régulièrement d'énergie pour faire du sport ou bouger. | Oui |
+| Q7 | Je transpire facilement quand je fais un effort. | **Non — sens à trancher Jacky** |
+| Q8 | Je sens que mon souffle est bon quand je marche ou cours. | Non |
+| Q9 | Je me sens solide physiquement. | Non |
+| Q10 | Je prends plaisir à bouger mon corps. | Non |
+| Q11 | J'ai l'impression que mon corps devient plus fort ou plus endurant. | Non |
+| Q12 | Je me sens vivant et dynamique physiquement. | Non |
 
-## Diagnostic 5 niveaux (drafts Claude — voix Mimi/Jacky)
+## Diagnostic 5 niveaux (labels Jacky actés — messages drafts Claude à valider)
 
-### Niveau 1 — Sédentaire
-- **Label** : `Sédentaire`
+### Niveau 1 — Corps déconditionné
+- **Label** : `Corps déconditionné`
 - **Message** : `Ton corps a peu bougé ces derniers temps. Pas de jugement — c'est exactement le terrain où une semaine de mouvement doux change le plus de choses.`
 
-### Niveau 2 — Mouvement irrégulier
-- **Label** : `Mouvement irrégulier`
+### Niveau 2 — Remise en mouvement nécessaire
+- **Label** : `Remise en mouvement nécessaire`
 - **Message** : `Tu bouges, mais sans régularité. Cette semaine va te donner une base stable et un rythme reproductible.`
 
-### Niveau 3 — Activité d'entretien
-- **Label** : `Activité d'entretien`
+### Niveau 3 — Base physique présente
+- **Label** : `Base physique présente`
 - **Message** : `Tu maintiens un niveau d'activité correct. La semaine va t'aider à ajouter de la qualité au mouvement, pas juste de la quantité.`
 
-### Niveau 4 — Bonne base active
-- **Label** : `Bonne base active`
+### Niveau 4 — Condition physique fonctionnelle
+- **Label** : `Condition physique fonctionnelle`
 - **Message** : `Tu as une base solide. Cette semaine va t'aider à affiner — chercher la finesse plutôt que l'intensité.`
 
-### Niveau 5 — Corps acquis
-- **Label** : `Corps acquis`
+### Niveau 5 — Corps dynamique et adaptable
+- **Label** : `Corps dynamique et adaptable`
 - **Message** : `Ton corps est entraîné, ton mouvement est intégré. La semaine consolide en jouant sur la variété et la récupération.`
 
 ## Programme 7 jours (rotation Jacky)

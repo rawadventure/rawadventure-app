@@ -61,7 +61,7 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 ### B1 — Session de travail avec Jacky (validations texte, par priorité)
 
-1. **S2 Activité physique — validation intégrale.** Les 12 questions, les 5 diagnostics et le programme 7 jours sont des drafts Claude inférés de sa matière brute, jamais validés. C'est le seul pilier dans ce cas. Lui soumettre le brief `brief-pilier-s2-activite-physique-v1.md` annoté par la salve (bloc C2). *(Nouvelle tâche kanban R4.)*
+1. **S2 Activité physique — validation résiduelle.** *(Réduit le 16 sept 2026 : la matière Jacky enrichie — section « ÉVALUATION DE DÉPART » — a été intégrée au code : 12 questions et labels des 5 niveaux = Jacky, actés.)* Restent à valider avec lui : (a) les **5 messages de diagnostic** (drafts Claude sous ses labels), (b) le **sens de Q7** « Je transpire facilement quand je fais un effort » (codée directe en attendant — bon ou mauvais signe ?), (c) le **calibrage des durées** codées 30/45/60 min vs ses paliers par type de séance (20-90 min). Lui soumettre le brief `brief-pilier-s2-activite-physique-v1.md` annoté par la salve (bloc C2). *(Tâche kanban R4-13.)*
 2. **S1 Respiration — les 5 messages de diagnostic.** Seuls textes de données pilier encore en `[copy à valider]` (Coûteuse / Instable / Adaptation / Fonctionnelle / Régulatrice). *(Nouvelle tâche kanban R4.)*
 3. **Questions courtes S4, S5, S7, S8.** Formulations reprises telles quelles de sa matière V0, peu discriminantes (« Je me sens calme naturellement. »). Lui proposer de les densifier — avec les annotations de la salve (blocs C4/C5/C7/C8) comme matière. *(Nouvelle tâche kanban R4.)*
 4. **Mapping 112 cases diagnostic × pilier** — déjà en cours avec lui (R4-12), à poursuivre.

@@ -993,9 +993,9 @@
         {
           "id": "R9-15",
           "label": "Salve Phase 1 S1-S8 (docs/tests/salve-phase1-s1-s8.md) — mécanique M + contenu C1-C8 + post-S8",
-          "status": "todo",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-14T10:33:59.520864Z",
           "priority": "bloquant"
         }
       ]
