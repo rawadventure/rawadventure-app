@@ -212,8 +212,8 @@ Ne pas rejouer pour la mécanique. La partie CONTENU de l'éval S1 se fait au C1
 | M3 | OK (14 sept) | Joker « Streak conservé… », cassure au 2e jour manqué, position D38 inchangée ✔. Rappel : +1j vit en mémoire — jamais fermer l'app pendant M3/M5. |
 | M4 | OK (14 sept) | Récap avant/après ✔, branche Respiration mise à jour ✔, contre-test « pires » non culpabilisant ✔ (copy notée au doc d'arbitrages). |
 | M5 | OK (16 sept) | Bug trouvé/corrigé : bascule S1→S2 inexistante (hub bloqué sur « Semaine terminée », angle mort des presets) → effet PillarOverview fromStart (`fa5ab15`), vérifié en réel : S2 démarre, toile conservée, streak continu. |
-| P1 | | |
-| P2 | | |
+| P1 | OK (17 sept) | Éval finale S8 → récap → écran de sortie S8 joué. Copy vus : « Et maintenant… », « Aller plus loin… », « Voici ce que tu peux faire maintenant… » — fond jugé bon par Stéphane, versions propres via Jacky (B1.7). Pas de hard-sell constaté. |
+| P2 | OK (17 sept) | Consolidation libre navigable (pilier au choix, sessions rejouables), toile 8 branches lisible, proposition mentorat sans pression (D9), abonnement = valeur maintenue. Fin de salve : SQL § 0.3 exécuté (0 ligne future restante), Reset clock fait, +demo3 laissé sur snapshot « S1 J1 fresh ». |
 
 ### Grille contenu (OK / à retoucher / à réécrire)
 
