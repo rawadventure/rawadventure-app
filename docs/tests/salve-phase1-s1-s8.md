@@ -208,10 +208,10 @@ Ne pas rejouer pour la mécanique. La partie CONTENU de l'éval S1 se fait au C1
 
 | ID | OK / KO / Non testé | Notes |
 |---|---|---|
-| M2 | | |
-| M3 | | |
-| M4 | | |
-| M5 | | |
+| M2 | OK (14 sept) | Bug trouvé/corrigé : veille iOS gelait le timer par ticks → refonte horloge murale + wake lock (`bb9a802`), vérifié en réel (verrouillage forcé compris). Adaptatif D31 ✔ (badge inchangé), retour hub silencieux ✔. |
+| M3 | OK (14 sept) | Joker « Streak conservé… », cassure au 2e jour manqué, position D38 inchangée ✔. Rappel : +1j vit en mémoire — jamais fermer l'app pendant M3/M5. |
+| M4 | OK (14 sept) | Récap avant/après ✔, branche Respiration mise à jour ✔, contre-test « pires » non culpabilisant ✔ (copy notée au doc d'arbitrages). |
+| M5 | OK (16 sept) | Bug trouvé/corrigé : bascule S1→S2 inexistante (hub bloqué sur « Semaine terminée », angle mort des presets) → effet PillarOverview fromStart (`fa5ab15`), vérifié en réel : S2 démarre, toile conservée, streak continu. |
 | P1 | | |
 | P2 | | |
 
@@ -220,7 +220,7 @@ Ne pas rejouer pour la mécanique. La partie CONTENU de l'éval S1 se fait au C1
 | Pilier | Vidéo intro (bon sujet ?) | 12 questions | Diagnostics (bas / haut) | Programme 7 jours | Session (type + durées) | Notes |
 |---|---|---|---|---|---|---|
 | C1 S1 Respiration | | | | | | |
-| C2 S2 Activité physique | | | | | | |
+| C2 S2 Activité physique | OK (16 sept) | OK — réalignées Jacky le 16 sept (`c8bce17`), verbatim doc « ÉVALUATION DE DÉPART » | À valider Jacky : messages drafts Claude sous labels Jacky ; profil haut 47/60 → niveau 4 (calcul vérifié exact) | OK — suit la semaine type Jacky | OK — chrono 30 min crédible | Q7 « transpire » : Stéphane l'a cotée comme négative → sens à trancher Jacky (codée directe). Seuil niveau 5 (>50/60) très exigeant : « 4 partout » = niveau 4 — calibrage à confirmer Jacky (cohérent principe 8). Docx repo S2 était périmé — les 6 autres vérifiés identiques aux sources Stéphane (16 sept). |
 | C3 S3 Alimentation | | | | | | |
 | C4 S4 Connexion au vivant | | | | | | |
 | C5 S5 Repos & régénération | | | | | | |
