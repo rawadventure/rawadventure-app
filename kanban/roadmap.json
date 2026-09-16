@@ -242,9 +242,9 @@
         {
           "id": "R2-15",
           "label": "Fix Stripe Customer Portal URL Privacy",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "important",
           "estimateH": 1,
           "owner": "claude"
@@ -252,9 +252,9 @@
         {
           "id": "R2-16",
           "label": "Durcir le webhook (retry, logs, alertes)",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "claude"
@@ -297,9 +297,9 @@
         {
           "id": "R3-5",
           "label": "Demander l'autorisation des notifications au bon moment (J1)",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "important",
           "estimateH": 2,
           "owner": "claude"
@@ -372,9 +372,9 @@
         {
           "id": "R4-8",
           "label": "Copy paywall final",
-          "status": "review",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-09-08T18:00:00.000Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "mimi-jacky"
@@ -382,9 +382,9 @@
         {
           "id": "R4-9",
           "label": "Description App Store (Reader App) FR + EN",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "mimi-jacky"
@@ -402,9 +402,9 @@
         {
           "id": "R4-11",
           "label": "Email templates Supabase (reset + signup confirm)",
-          "status": "review",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-07-06T18:00:00.000Z",
           "priority": "important",
           "estimateH": 0.5,
           "owner": "mimi-jacky"
@@ -412,9 +412,9 @@
         {
           "id": "R4-12",
           "label": "Métriques V1 mapping 112 cases diagnostic × pilier",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "mimi-jacky"
@@ -552,9 +552,9 @@
         {
           "id": "R6-2",
           "label": "Séparer les clés Supabase test / production",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-03T04:55:43.050Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "estimateH": 2,
           "owner": "claude"
         },
@@ -638,19 +638,19 @@
         {
           "id": "R6-14",
           "label": "Débloquer Apple ID anti-fraud (admin@)",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "externe"
         },
         {
           "id": "R6-15",
-          "label": "Compte Apple Developer (DUNS à demander)",
+          "label": "Compte Apple Developer (DUNS reçu : 37-422-7883)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:15:42.364862Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "externe"
@@ -718,10 +718,10 @@
         {
           "id": "R6-22",
           "label": "Universal Links iOS / App Links Android (prep)",
-          "status": "doing",
+          "status": "blocked",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
-          "priority": "important",
+          "updatedAt": "2026-09-08T18:00:00.000Z",
+          "priority": "hors-scope",
           "estimateH": 2,
           "owner": "claude"
         },
@@ -927,9 +927,9 @@
         {
           "id": "R8-7",
           "label": "Email templates FR (reset + signup confirm)",
-          "status": "review",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-07-06T18:00:00.000Z",
           "priority": "important",
           "estimateH": 0.5,
           "owner": "mimi-jacky"
@@ -957,9 +957,9 @@
         {
           "id": "R8-10",
           "label": "Auth → Rate limiting",
-          "status": "review",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-07-06T18:00:00.000Z",
           "estimateH": 0.5,
           "owner": "claude"
         }
@@ -1015,45 +1015,45 @@
         {
           "id": "R9-7",
           "label": "Test E2E onboarding → J1 device réel",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-02T18:00:00.000Z",
           "estimateH": 2,
           "owner": "claude"
         },
         {
           "id": "R9-8",
           "label": "Test E2E J1 → J14 + paliers",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-02T18:00:00.000Z",
           "estimateH": 3,
           "owner": "claude"
         },
         {
           "id": "R9-9",
           "label": "Test signup + email confirm flow",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-05T18:00:00.000Z",
           "estimateH": 1,
           "owner": "claude"
         },
         {
           "id": "R9-10",
           "label": "Test reset password flow",
-          "status": "doing",
+          "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-16T15:30:00.000Z",
           "estimateH": 1,
           "owner": "claude"
         },
         {
           "id": "R9-11",
           "label": "Test edge cases (joker, charnière, cassure streak)",
-          "status": "review",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-03T18:00:00.000Z",
           "estimateH": 1,
           "owner": "claude"
         },

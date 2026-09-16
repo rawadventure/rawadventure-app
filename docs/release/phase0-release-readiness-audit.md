@@ -64,8 +64,8 @@
 | Logout depuis Profil | ✅ |  | Présent ProfilTabScreen |
 | E2E paywall testé iOS simu | ✅ |  | 6 juin : Checkout → webhook → Supabase update → realtime → Phase 1 affiché |
 | Stripe LIVE setup (product + prices + pricing table + webhook + portal) | ❌ | bloquant | Dupliquer depuis TEST en mode live. Accès Mimi requis |
-| Fix Stripe Customer Portal URL Privacy | 🔶 | important | Champ disabled en TEST tant que LIVE/identité pas validée |
-| Durcir le webhook (retry, logs, alertes) | 🔶 | important | Idempotency OK, durcir avant LIVE |
+| Fix Stripe Customer Portal URL Privacy | ❌ | important | Dépend de Stripe LIVE (portail configuré FR le 8 sept, champ privacy activable qu'en LIVE) |
+| Durcir le webhook (retry, logs, alertes) | ❌ | important | Idempotency OK, durcir avant LIVE |
 
 ---
 
@@ -77,7 +77,7 @@
 | Plage silence 22h-7h (D32) | ✅ |  | shiftOutOfSilence |
 | 28 notifs Phase 0 schedulées | ✅ |  | Matin 7h + soir 20h conditionnel |
 | Annulation reminder soir au coche | ✅ |  | cancelTodayReminder |
-| Demander l'autorisation des notifications au bon moment (J1) | 🔶 | important | Via DEV button, ajouter prompt natif J1 launch |
+| Demander l'autorisation des notifications au bon moment (J1) | ❌ | important | Attend le build natif — PWA sans notifs (stub web) |
 | Test device permission denied | ❌ |  | À tester |
 
 ---
@@ -93,11 +93,11 @@
 | HomeScreenV1 messageDuJour | ✅ |  | Validé Mimi |
 | WelcomeVideoScreen titre + sous-titre | ✅ |  | Validé Mimi |
 | 28 notifications Phase 0 | ✅ |  | Validé Mimi 3 juin 2026 |
-| Copy paywall final | 🟡 | bloquant | Présent PaywallScreen, à faire valider par Mimi |
-| Description App Store (Reader App) FR + EN | 🔶 | bloquant | Drafts docs/release/, à finaliser |
+| Copy paywall final | ✅ | bloquant | Validé — Mimi a déroulé le paywall réel au bloc S (7-8 sept) |
+| Description App Store (Reader App) FR + EN | ❌ | bloquant | Drafts docs/release/, à finaliser |
 | Copy bandeaux lapse / past_due | ❌ | important | À drafter + valider Mimi |
-| Email templates Supabase (reset + signup confirm) | 🟡 | important | Draftés, à coller dans Dashboard Supabase |
-| Métriques V1 mapping 112 cases diagnostic × pilier | 🔶 | important | Structure documentée, contenu à remplir avec Jacky (Phase 1) |
+| Email templates Supabase (reset + signup confirm) | ✅ | important | En prod depuis le 6 juillet (OTP via Resend) |
+| Métriques V1 mapping 112 cases diagnostic × pilier | ❌ | important | Structure documentée, contenu à remplir avec Jacky (Phase 1) |
 
 ---
 
@@ -120,7 +120,7 @@
 | Élément | Statut | Prio | Notes |
 |---|---|---|---|
 | Repo GitHub privé (D22) | ✅ |  | `rawadventure/rawadventure-app`, main + 9 branches Sprint |
-| Env vars Supabase prod vs dev | 🔶 |  | .env existe mais pas de séparation prod/dev |
+| Env vars Supabase prod vs dev | ❌ |  | .env existe mais pas de séparation prod/dev |
 | EAS Build config + projet créé | ✅ |  | eas.json 3 profils + projectId, sanity build cloud iOS OK |
 | Dev build iOS fonctionnel | ✅ |  | `npx expo run:ios` OK |
 | App icon + splash screen | ✅ |  | Portraits Mimi+Jacky cartoonisés |
@@ -132,7 +132,7 @@
 | JS fallback bouton « Retourner dans l'app » | ✅ |  | checkout-success + account-returned, contourne SFSafariViewController |
 | Sentry crash reporting installé | ✅ |  | @sentry/react-native + plugin + init guard DSN + Sentry.wrap |
 | DUNS HK approuvé | ✅ |  | **10 juin 2026 : identity verification approved by D&B HK** (submitted 8 juin). DUNS Number à recevoir incessamment, débloque Apple Dev + Google Play |
-| Débloquer Apple ID anti-fraud (admin@) | 🔶 | bloquant | admin@rawadventure.world bloqué anti-fraud, attente 24-48h |
+| Débloquer Apple ID anti-fraud (admin@) | ❌ | bloquant | Pas encore relancé (16 sept) — goulot beta, à lancer en priorité |
 | Compte Apple Developer Organization | ❌ | bloquant | Inscription possible dès réception DUNS Number (suite à approbation) |
 | Compte Google Play Console | ❌ | bloquant | Idem, inscription possible dès réception DUNS Number |
 | Build prod iOS + submit TestFlight | ❌ | bloquant | Post-Apple Dev. Team ID + ASC App ID requis |
@@ -140,7 +140,7 @@
 | Apple Team ID + remplir AASA file | ❌ | bloquant | Active Universal Links iOS, post-Apple Dev |
 | SHA256 Android + remplir assetlinks.json | ❌ | bloquant | Active App Links Android, post-Play Console |
 | Email support@rawadventure.world | ❌ | bloquant | Créer via Proton ou OVH (~30min), requis Apple review |
-| Universal Links iOS / App Links Android (prep) | 🔶 | important | Config app + AASA/assetlinks placeholders prêts, à remplir post-comptes |
+| Universal Links iOS / App Links Android (prep) | ⏸ | hors-scope | Deep link natif reporté V2+ (acté 8 sept — retour app = lien direct) |
 | Sentry compte + DSN + premier crash test prod | 🔶 | important | DSN ajouté .env, validation au premier build prod |
 | Sentry user context (setUser dans AuthContext) | ❌ | important | Grouper crashes par user, ~30min |
 | Sentry sourcemaps upload EAS hook | ❌ | important | Avant submit App Store, stack traces lisibles |
@@ -178,10 +178,10 @@
 | Auth password min length 6 | ✅ |  | Défaut Supabase |
 | Edge Function stripe-webhook + idempotency | ✅ |  | table stripe_webhook_events, dedup retries validé E2E |
 | Realtime postgres_changes + trigger handle_new_user | ✅ |  | Channel subscriptions:user:{id} testé end-to-end |
-| Email templates FR (reset + signup confirm) | 🟡 | important | À coller drafts dans Dashboard |
+| Email templates FR (reset + signup confirm) | ✅ | important | En prod depuis le 6 juillet (OTP via Resend) |
 | Audit RLS policies complet | 🔶 | important | subscriptions OK, autres tables à auditer (~2h) |
 | Storage buckets vidéos additionnelles | ❌ | polish | Si besoin déplacer du bucket actuel |
-| Auth → Rate limiting | 🟡 |  | À vérifier defaults OK |
+| Auth → Rate limiting | ✅ |  | Réglé le 6 juillet (50/h, setup Resend) |
 
 ---
 
@@ -195,11 +195,11 @@
 | Test idempotency webhook (dedup retries) | ✅ |  | 8 juin : resend event 2x → 2e skipped |
 | Test JS fallback bouton « Retourner dans l'app » | ✅ |  | 8 juin : workaround SFSafariViewController OK |
 | Test reset complet | ✅ |  | Sprint 20 |
-| Test E2E onboarding → J1 device réel | 🔶 |  | Simu OK, device réel pending TestFlight |
-| Test E2E J1 → J14 + paliers | 🔶 |  | Simu OK via DEV buttons, device réel pending |
-| Test signup + email confirm flow | 🔶 |  | UI OK, deep link device à valider |
-| Test reset password flow | 🔶 |  | Idem deep link |
-| Test edge cases (joker, charnière, cassure streak) | 🟡 |  | DEV buttons OK, scénarios full à dérouler |
+| Test E2E onboarding → J1 device réel | ✅ |  | Validé salve iPhone PWA (sept) ; re-passe natif via TestFlight |
+| Test E2E J1 → J14 + paliers | ✅ |  | Validé salve iPhone PWA (blocs D/E/F, sept) ; re-passe natif via TestFlight |
+| Test signup + email confirm flow | ✅ |  | K4 : +demo5 flow complet sans DEV le 5 sept |
+| Test reset password flow | ❌ |  | Bug connu : forgot via Alert.alert muet sur web, à corriger puis re-tester |
+| Test edge cases (joker, charnière, cassure streak) | ✅ |  | Blocs D/E/F4 de la salve + fix streak 12fd2e4 |
 | Test notifications iOS device | ❌ |  | À faire avec build dev |
 | Test Android device complet | ❌ | polish | Post-Play Console |
 | TestFlight beta (5-10 testeurs) | ❌ | bloquant | Compte Apple Dev requis |
