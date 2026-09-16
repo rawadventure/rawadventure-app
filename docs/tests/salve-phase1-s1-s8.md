@@ -221,8 +221,8 @@ Ne pas rejouer pour la mécanique. La partie CONTENU de l'éval S1 se fait au C1
 |---|---|---|---|---|---|---|
 | C1 S1 Respiration | | | | | | |
 | C2 S2 Activité physique | OK (16 sept) | OK — réalignées Jacky le 16 sept (`c8bce17`), verbatim doc « ÉVALUATION DE DÉPART » | À valider Jacky : messages drafts Claude sous labels Jacky ; profil haut 47/60 → niveau 4 (calcul vérifié exact) | OK — suit la semaine type Jacky | OK — chrono 30 min crédible | Q7 « transpire » : Stéphane l'a cotée comme négative → sens à trancher Jacky (codée directe). Seuil niveau 5 (>50/60) très exigeant : « 4 partout » = niveau 4 — calibrage à confirmer Jacky (cohérent principe 8). Docx repo S2 était périmé — les 6 autres vérifiés identiques aux sources Stéphane (16 sept). |
-| C3 S3 Alimentation | | | | | | |
-| C4 S4 Connexion au vivant | | | | | | |
+| C3 S3 Alimentation | OK (16 sept) | OK | OK — bas « Alimentation contraignante » (niv. 1), haut « régénérante » (niv. 5) : les 5 inversions Q4/6/8/10/12 fonctionnent, extrêmes atteints | OK | OK — acte libre, aucune durée affichée à l'écran | Durées héritées S1 : invisibles en UI (non-sujet utilisateur, arbitrage Partie A dédramatisé). Toile 2 branches ✔. |
+| C4 S4 Connexion au vivant | OK (16 sept) — mapping vérifié, parle bien du vivant | À retoucher : Q9 (« stimulé mentalement » se lit positif — ajouter « trop » + contexte écrans/pub) et Q12 (« vraie présence » floue) — consignées pour Jacky | OK — bas « Très déconnecté » (niv. 1), haut « Très connecté » (niv. 5), inversions Q4/Q9 OK | OK | OK — chrono 5/20/45 crédible | Veille pendant l'éval : reprise des réponses OK (cache par question), redémarrage par l'accueil = comportement iOS PWA, pas un bug — acté sans changement de code. |
 | C5 S5 Repos & régénération | | | | | | |
 | C6 S6 Passion | | | | | | |
 | C7 S7 Mindset | | | | | | |
