@@ -89,4 +89,4 @@ Pour chaque point : contexte, avis Claude, et deux cases à remplir pendant ou a
 
 ---
 
-*Prochaine étape : dérouler la salve (`docs/tests/salve-phase1-s1-s8.md`), remplir les cases de la Partie A et annoter la Partie B, puis planifier la session Jacky avec ce document comme ordre du jour.*
+*Salve déroulée et terminée le 17 septembre 2026 (grilles dans le doc de salve). L'ordre du jour de la session Jacky est prêt : `docs/contenu/session-jacky-contenu-phase1.md` — ce document reste la référence de détail des demandes.*
