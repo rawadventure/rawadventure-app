@@ -20,6 +20,9 @@
  *  - STRIPE_WEBHOOK_SECRET    : whsec_... (signing secret de l'endpoint Stripe)
  *  - SUPABASE_URL             : auto-injecté
  *  - SUPABASE_SERVICE_ROLE_KEY : auto-injecté (bypass RLS pour write)
+ *  - RESEND_API_KEY           : optionnelle — active les alertes email
+ *  - ALERT_EMAIL              : optionnelle — destinataire des alertes
+ *                               (défaut admin@rawadventure.world)
  *
  * Mapping price_id → plan via lookup_key :
  *  - `ra_monthly`    → 'monthly'
@@ -32,12 +35,16 @@
  *  - Priorité 3 : match par email dans auth.users
  *  - Sinon : log warning + skip update (orphan)
  *
- * Idempotency :
+ * Idempotency (durci le 17 sept 2026, R2-16) :
  *  Table `stripe_webhook_events` (event_id PRIMARY KEY) dédupe les retries
- *  Stripe (network failures, 5xx, etc.). INSERT ON CONFLICT DO NOTHING au
- *  début du handler — atomique au niveau Postgres. Si rowCount=0 → event
- *  déjà traité → skip + 200 OK pour stopper les retries. Cf migration
+ *  Stripe. INSERT ON CONFLICT au début du handler — atomique Postgres. Un
+ *  event n'est considéré comme doublon QUE si `processed_at` est posé
+ *  (traitement réussi) ; un row présent avec processed_at NULL = tentative
+ *  précédente échouée → le retry Stripe est retraité. Cf migration
  *  supabase/migrations/20260608_stripe_webhook_events.sql.
+ *
+ * Alertes (R2-16) : email best-effort via Resend sur échec de traitement,
+ * paiement orphelin et prix non mappé. Sans RESEND_API_KEY : silencieux.
  */
 
 // @ts-ignore — Deno imports
@@ -53,6 +60,11 @@ const STRIPE_WEBHOOK_SECRET = Deno.env.get('STRIPE_WEBHOOK_SECRET')!;
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 // @ts-ignore
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+// Optionnelle — active les alertes email (durcissement R2-16). Absente → silencieux.
+// @ts-ignore
+const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY');
+// @ts-ignore
+const ALERT_EMAIL = Deno.env.get('ALERT_EMAIL') ?? 'admin@rawadventure.world';
 
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2024-11-20.acacia',
@@ -62,6 +74,33 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
+
+/**
+ * Alerte email best-effort (durcissement R2-16, 17 sept 2026). Resend est déjà
+ * en place pour les OTP (domaine rawadventure.world vérifié). Sans clé ou en
+ * cas d'échec d'envoi : silencieux — une alerte ne doit jamais casser le
+ * traitement d'un event.
+ */
+async function sendAlert(subject: string, detail: string): Promise<void> {
+  if (!RESEND_API_KEY) return;
+  try {
+    await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${RESEND_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        from: 'Raw Adventure Webhook <alertes@rawadventure.world>',
+        to: [ALERT_EMAIL],
+        subject: `[stripe-webhook] ${subject}`,
+        text: detail,
+      }),
+    });
+  } catch (e) {
+    console.error('sendAlert failed (non bloquant)', e);
+  }
+}
 
 type Plan = 'monthly' | 'semestrial' | 'annual';
 const LOOKUP_KEY_TO_PLAN: Record<string, Plan> = {
@@ -84,6 +123,11 @@ async function planFromPriceId(priceId: string): Promise<Plan | null> {
     }
     if (price.recurring?.interval === 'year') return 'annual';
     console.warn(`Cannot map price ${priceId} (lookup_key=${lookupKey}) to plan`);
+    await sendAlert(
+      'Prix Stripe non mappé',
+      `Le price ${priceId} (lookup_key=${lookupKey}) ne correspond à aucun plan ` +
+        `(ra_monthly/ra_semestrial/ra_annual). L'abonnement sera enregistré avec plan=null.`,
+    );
     return null;
   } catch (e) {
     console.error('planFromPriceId error', e);
@@ -110,7 +154,12 @@ async function findUserId(opts: {
   }
 
   if (opts.customerEmail) {
-    const { data: users, error } = await supabase.auth.admin.listUsers();
+    // perPage explicite : le défaut (50) faisait échouer le rapprochement par
+    // email dès que la base dépassait 50 comptes (durcissement R2-16).
+    const { data: users, error } = await supabase.auth.admin.listUsers({
+      page: 1,
+      perPage: 1000,
+    });
     if (!error && users) {
       const match = users.users.find(
         (u: any) =>
@@ -175,6 +224,14 @@ async function handleCheckoutCompleted(session: any) {
     console.warn(
       'checkout.session.completed: no user_id found for session',
       session.id,
+    );
+    await sendAlert(
+      'Paiement orphelin — user introuvable',
+      `checkout.session.completed ${session.id} : aucun user_id trouvé ` +
+        `(client_reference_id=${session.client_reference_id ?? 'null'}, ` +
+        `email=${session.customer_email ?? session.customer_details?.email ?? 'null'}, ` +
+        `customer=${session.customer ?? 'null'}). Un client a payé sans être ` +
+        `rattaché à un compte — rapprochement manuel nécessaire dans Supabase.`,
     );
     return;
   }
@@ -324,8 +381,31 @@ Deno.serve(async (req: Request) => {
   console.log('Stripe event received:', event.type, event.id);
 
   // ── Idempotency : INSERT ON CONFLICT DO NOTHING (atomique Postgres) ──
-  // Si le row existe déjà → Stripe a retry un event qu'on a déjà traité.
-  // On retourne 200 OK pour stopper les retries Stripe.
+  // Si le row existe déjà, deux cas (durcissement R2-16, 17 sept 2026) :
+  //  - processed_at posé → event réellement traité → 200, stoppe les retries.
+  //  - processed_at NULL → la tentative précédente a ÉCHOUÉ en cours de
+  //    traitement (le row est créé avant le traitement). Le retry Stripe doit
+  //    retraiter — l'ancien code le rejetait comme doublon et l'event était
+  //    perdu pour toujours.
+  const dedupedResponse = () =>
+    new Response(JSON.stringify({ received: true, deduped: true }), {
+      headers: { 'Content-Type': 'application/json' },
+      status: 200,
+    });
+
+  const alreadyProcessed = async (): Promise<boolean> => {
+    const { data: row } = await supabase
+      .from('stripe_webhook_events')
+      .select('processed_at')
+      .eq('event_id', event.id)
+      .maybeSingle();
+    if (row?.processed_at) return true;
+    console.warn(
+      `Event ${event.id} present but never processed (previous attempt failed) — reprocessing`,
+    );
+    return false;
+  };
+
   const { data: insertedRows, error: insertErr } = await supabase
     .from('stripe_webhook_events')
     .insert({
@@ -335,25 +415,23 @@ Deno.serve(async (req: Request) => {
     .select('event_id');
 
   if (insertErr) {
-    // Si conflict explicite (PK duplicate) → déjà traité, OK.
     if (insertErr.code === '23505') {
-      console.log(`Event ${event.id} already processed, skipping`);
-      return new Response(JSON.stringify({ received: true, deduped: true }), {
-        headers: { 'Content-Type': 'application/json' },
-        status: 200,
-      });
+      // Conflict PK : row existant — traité avec succès, ou tentative ratée ?
+      if (await alreadyProcessed()) {
+        console.log(`Event ${event.id} already processed, skipping`);
+        return dedupedResponse();
+      }
+    } else {
+      // Autre erreur DB → on log mais on continue (préfère traiter
+      // deux fois plutôt que perdre un event).
+      console.error('Idempotency insert error', insertErr);
     }
-    // Autre erreur DB → on log mais on continue (préfère traiter
-    // deux fois plutôt que perdre un event).
-    console.error('Idempotency insert error', insertErr);
   } else if (!insertedRows || insertedRows.length === 0) {
-    // Cas safety : insert n'a pas erroré mais aucune ligne créée → déjà
-    // existant. Skip.
-    console.log(`Event ${event.id} already processed (no row inserted), skipping`);
-    return new Response(JSON.stringify({ received: true, deduped: true }), {
-      headers: { 'Content-Type': 'application/json' },
-      status: 200,
-    });
+    // Insert sans erreur mais aucune ligne créée → row existant.
+    if (await alreadyProcessed()) {
+      console.log(`Event ${event.id} already processed (no row inserted), skipping`);
+      return dedupedResponse();
+    }
   }
 
   try {
@@ -389,11 +467,18 @@ Deno.serve(async (req: Request) => {
     });
   } catch (err: any) {
     console.error('Handler error:', err);
-    // Marque l'event en erreur pour permettre debug / retry manuel.
+    // Marque l'event en erreur pour debug. processed_at reste NULL → le
+    // retry Stripe (500 ci-dessous) sera retraité, pas rejeté en doublon.
     await supabase
       .from('stripe_webhook_events')
       .update({ error: String(err?.message ?? err).slice(0, 1000) })
       .eq('event_id', event.id);
+    await sendAlert(
+      `Échec de traitement — ${event.type}`,
+      `Event ${event.id} (${event.type}) a échoué : ${String(err?.message ?? err).slice(0, 500)}\n\n` +
+        `Stripe va retenter automatiquement (jusqu'à 3 jours). Si l'erreur persiste, ` +
+        `voir la table stripe_webhook_events (processed_at NULL + colonne error).`,
+    );
     return new Response(`Handler error: ${err.message}`, { status: 500 });
   }
 });
