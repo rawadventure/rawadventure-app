@@ -382,7 +382,7 @@ Utiliser les snapshots « P0 J3 avant validation », « P0 J7 avant validation �
 ## Bloc K — Checks finaux AVANT d'ouvrir aux testeurs
 
 - [ ] **K1 — Désactiver le panneau DEV en prod.** ⚠️ À faire APRÈS le bloc S (S1 a besoin des outils DEV pour amener +demo4 à J17). Si `EXPO_PUBLIC_ENABLE_DEV_PANEL=true` est posé sur Vercel pour cette salve, le **retirer et redéployer** avant d'envoyer le lien aux testeurs — sinon ils auront accès au Reset complet, aux snapshots et au mock d'abonnement. Vérifier ensuite sur l'app : Profil sans panneau DEV.
-- [ ] **K2 — Re-nettoyage SQL** de tous les comptes de test (jours futurs, § 0.4) et suppression des comptes jetables (Supabase Auth → Users). **À faire APRÈS le bloc S** (il consomme +demo4 et libère +test1). Mettre ensuite à jour la note d'attribution des comptes.
+- [x] **K2 — FAIT le 18 sept 2026.** Audit SQL : zéro ligne future sur tous les comptes. +test1 : déjà absent. +demo1 (vétéran de juillet, hors note d'attribution) supprimé sur décision Stéphane. Restent : +demo2 (Claude), +demo3 (Stéphane, S1 J1 fresh + abo), +demo4 (réserve, abo Stripe TEST actif). Note d'attribution mise à jour.
 - [x] **K3 — Quota emails** — ✅ 5 sept : 5-10 testeurs prévus × 2 OTP = ≤20 emails, très en-dessous des 50/h Resend. Pas d'étalement nécessaire.
 - [x] **K4 — Flow compte neuf sans outils DEV** — ✅ 5 sept (+demo5, navigation privée, onboarding → OTP → J1 validé).
 - [x] **K5 — Brief testeurs** — ✅ rédigé 5 sept, 3 variantes dans `docs/tests/brief-testeurs.md` (installation iPhone/Android). —  : leur dire que la Phase 1 nécessite un abonnement (bloqué à J17), que certains textes portent la mention `[copy à valider]`, et comment remonter un bug (capture + heure + ce qu'ils faisaient).

@@ -637,20 +637,20 @@
         },
         {
           "id": "R6-14",
-          "label": "Débloquer Apple ID anti-fraud (admin@)",
-          "status": "todo",
+          "label": "Apple ID admin@ créé le 18 sept (anti-fraude contourné : Safari iPhone 4G)",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-16T15:30:00.000Z",
+          "updatedAt": "2026-09-18T10:55:25.348768Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "externe"
         },
         {
           "id": "R6-15",
-          "label": "Compte Apple Developer (DUNS reçu : 37-422-7883)",
-          "status": "todo",
+          "label": "Compte Apple Developer — dossier Organization soumis 18 sept, vérification Apple en cours",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-09-16T15:15:42.364862Z",
+          "updatedAt": "2026-09-18T11:19:40.304883Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "externe"
