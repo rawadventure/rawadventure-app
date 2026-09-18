@@ -252,9 +252,9 @@
         {
           "id": "R2-16",
           "label": "Durcir le webhook (retry, logs, alertes)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-16T15:30:00.000Z",
+          "updatedAt": "2026-09-18T09:56:00.000Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "claude"
@@ -422,9 +422,9 @@
         {
           "id": "R4-13",
           "label": "Validation intégrale S2 Activité physique (12Q + diagnostics + programme) — session Jacky",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-18T09:53:07.000Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "mimi-jacky"
@@ -432,9 +432,9 @@
         {
           "id": "R4-14",
           "label": "5 messages diagnostic S1 Respiration ([copy à valider])",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-18T09:53:07.000Z",
           "priority": "important",
           "estimateH": 1,
           "owner": "mimi-jacky"
@@ -442,9 +442,9 @@
         {
           "id": "R4-15",
           "label": "Densifier questions courtes S4/S5/S7/S8 (matière Jacky brute)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-18T09:53:07.000Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "mimi-jacky"
@@ -452,9 +452,9 @@
         {
           "id": "R4-16",
           "label": "Copy fin de parcours : récap final (4 variantes), sortie S8, consolidation, mentorat",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-18T09:53:07.000Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "mimi-jacky"
@@ -462,9 +462,9 @@
         {
           "id": "R4-17",
           "label": "Confirmer questions inversées S3→S8 avec Jacky (distributions par pilier)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-08T11:42:26.475Z",
+          "updatedAt": "2026-09-18T09:53:07.000Z",
           "priority": "polish",
           "estimateH": 1,
           "owner": "mimi-jacky"
@@ -658,9 +658,9 @@
         {
           "id": "R6-16",
           "label": "Compte Google Play",
-          "status": "todo",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-18T09:56:00.000Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "stephane"
