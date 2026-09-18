@@ -5,8 +5,9 @@
  * (V0_PILIER 8 — ÉLIMINATION & DÉTOX.docx) — 12 questions et 5 niveaux
  * livrés explicitement par Jacky.
  *
- * Pattern Type A — 3 questions inversées (Q4 lourd/chargé, Q5 ballonnements,
- * Q6 selles sèches).
+ * Pattern Type A — 5 questions inversées (Q4 lourd/chargé, Q5 ballonnements,
+ * Q6 selles sèches, Q11 urines toujours claires, Q12 douleurs/brûlures) —
+ * Q11/Q12 reformulées et passées inversées en session Jacky 18 sept 2026.
  */
 
 import type { S1Question, S1Diagnostic } from './s1-evaluation';
@@ -14,7 +15,7 @@ import type { S1Question, S1Diagnostic } from './s1-evaluation';
 export const S8_EVALUATION_QUESTIONS: readonly S1Question[] = [
   { id: 1, text: 'Mon transit est régulier.', reversed: false, copySlot: 'copy.IA-40.s8.q1' },
   { id: 2, text: 'Je vais à la selle facilement.', reversed: false, copySlot: 'copy.IA-40.s8.q2' },
-  { id: 3, text: 'Mon ventre est confortable.', reversed: false, copySlot: 'copy.IA-40.s8.q3' },
+  { id: 3, text: 'Mon ventre est confortable et sans douleur.', reversed: false, copySlot: 'copy.IA-40.s8.q3' },
   { id: 4, text: 'Je me sens souvent lourd ou chargé.', reversed: true, copySlot: 'copy.IA-40.s8.q4' },
   { id: 5, text: 'J\'ai des ballonnements.', reversed: true, copySlot: 'copy.IA-40.s8.q5' },
   { id: 6, text: 'J\'ai parfois des selles sèches ou difficiles à évacuer.', reversed: true, copySlot: 'copy.IA-40.s8.q6' },
@@ -22,8 +23,10 @@ export const S8_EVALUATION_QUESTIONS: readonly S1Question[] = [
   { id: 8, text: 'Je consomme régulièrement des jus, fruits ou légumes riches en eau.', reversed: false, copySlot: 'copy.IA-40.s8.q8' },
   { id: 9, text: 'Mon énergie est stable.', reversed: false, copySlot: 'copy.IA-40.s8.q9' },
   { id: 10, text: 'Ma digestion est fluide.', reversed: false, copySlot: 'copy.IA-40.s8.q10' },
-  { id: 11, text: 'Je ressens que mon corps élimine correctement.', reversed: false, copySlot: 'copy.IA-40.s8.q11' },
-  { id: 12, text: 'Je me sens léger dans mon ventre.', reversed: false, copySlot: 'copy.IA-40.s8.q12' },
+  // Q11 inversée : urines TOUJOURS claires = sur-hydratation, minéraux dilués
+  // (session Jacky 18 sept 2026).
+  { id: 11, text: 'Mes urines sont tout le temps claires.', reversed: true, copySlot: 'copy.IA-40.s8.q11' },
+  { id: 12, text: 'J\'ai des douleurs ou brûlures quand j\'urine.', reversed: true, copySlot: 'copy.IA-40.s8.q12' },
 ] as const;
 
 /** Diagnostic 5 niveaux S8 (matière Jacky V0). */

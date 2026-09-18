@@ -20,10 +20,10 @@ export const S4_EVALUATION_QUESTIONS: readonly S1Question[] = [
   { id: 6, text: 'Je me sens connecté à mon environnement.', reversed: false, copySlot: 'copy.IA-40.s4.q6' },
   { id: 7, text: 'Je ressens mon corps facilement.', reversed: false, copySlot: 'copy.IA-40.s4.q7' },
   { id: 8, text: 'Je me sens calme naturellement.', reversed: false, copySlot: 'copy.IA-40.s4.q8' },
-  { id: 9, text: 'Je suis souvent stimulé mentalement.', reversed: true, copySlot: 'copy.IA-40.s4.q9' },
+  { id: 9, text: 'Je suis souvent trop stimulé mentalement (écrans, publicité, sollicitations).', reversed: true, copySlot: 'copy.IA-40.s4.q9' },
   { id: 10, text: 'Je prends du temps pour observer.', reversed: false, copySlot: 'copy.IA-40.s4.q10' },
   { id: 11, text: 'Je suis en contact avec des éléments naturels (terre, eau, vent…).', reversed: false, copySlot: 'copy.IA-40.s4.q11' },
-  { id: 12, text: 'Je ressens une vraie présence dans mes journées.', reversed: false, copySlot: 'copy.IA-40.s4.q12' },
+  { id: 12, text: 'Je distingue la différence entre les environnements qui me conviennent et ceux qui me dérangent.', reversed: false, copySlot: 'copy.IA-40.s4.q12' },
 ] as const;
 
 /** Diagnostic 5 niveaux S4 (matière Jacky V0). */

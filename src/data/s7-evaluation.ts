@@ -22,7 +22,7 @@ export const S7_EVALUATION_QUESTIONS: readonly S1Question[] = [
   { id: 5, text: 'J\'arrive à prendre du recul.', reversed: false, copySlot: 'copy.IA-40.s7.q5' },
   { id: 6, text: 'Je vois facilement du positif.', reversed: false, copySlot: 'copy.IA-40.s7.q6' },
   { id: 7, text: 'Je ressens du stress régulièrement.', reversed: true, copySlot: 'copy.IA-40.s7.q7' },
-  { id: 8, text: 'Mon mental tourne beaucoup.', reversed: true, copySlot: 'copy.IA-40.s7.q8' },
+  { id: 8, text: 'Je n\'arrive pas à stopper mon mental.', reversed: true, copySlot: 'copy.IA-40.s7.q8' },
   { id: 9, text: 'Je me sens stable émotionnellement.', reversed: false, copySlot: 'copy.IA-40.s7.q9' },
   { id: 10, text: 'Je peux changer mon état rapidement.', reversed: false, copySlot: 'copy.IA-40.s7.q10' },
   { id: 11, text: 'Je reste longtemps dans le négatif.', reversed: true, copySlot: 'copy.IA-40.s7.q11' },

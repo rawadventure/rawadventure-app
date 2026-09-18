@@ -47,30 +47,30 @@ export const S1_DIAGNOSTICS: Record<1 | 2 | 3 | 4 | 5, S1Diagnostic> = {
     level: 1,
     label: 'Coûteuse',
     message:
-      'Ta respiration est aujourd\'hui coûteuse — le corps lutte pour maintenir l\'apport en air. C\'est exactement le terrain où une semaine de pratique change le plus de choses. [copy à valider]',
+      'Ta respiration est aujourd\'hui coûteuse — le corps lutte pour maintenir l\'apport en air. C\'est exactement le terrain où une semaine de pratique change le plus de choses.',
   },
   2: {
     level: 2,
     label: 'Instable',
     message:
-      'Ta respiration est instable. Elle alterne entre des moments fluides et des moments contraints. Cette semaine va te donner des repères pour stabiliser. [copy à valider]',
+      'Ta respiration est instable. Elle alterne entre des moments fluides et des moments contraints. Cette semaine va te donner des repères pour stabiliser.',
   },
   3: {
     level: 3,
     label: 'Respi en mode adaptation',
     message:
-      'Ta respiration est en mode adaptation. Ni en alerte, ni vraiment libre — elle fait son travail mais sans réserve. Cette semaine va t\'aider à élargir le terrain. [copy à valider]',
+      'Ta respiration est en mode adaptation. Ni en alerte, ni vraiment libre — elle fait son travail mais sans réserve. Cette semaine va t\'aider à élargir le terrain.',
   },
   4: {
     level: 4,
     label: 'Fonctionnelle',
     message:
-      'Ta respiration est fonctionnelle. Bonne base. La semaine va te permettre d\'affiner et d\'aller chercher de la finesse. [copy à valider]',
+      'Ta respiration est fonctionnelle. Bonne base. La semaine va te permettre d\'affiner et d\'aller chercher de la finesse.',
   },
   5: {
     level: 5,
     label: 'Régulatrice',
     message:
-      'Ta respiration est régulatrice — elle te sert d\'outil pour gérer ton état. La semaine va consolider cette compétence. [copy à valider]',
+      'Ta respiration est régulatrice — elle te sert d\'outil pour gérer ton état. La semaine va consolider cette compétence.',
   },
 };
