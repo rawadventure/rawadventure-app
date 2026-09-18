@@ -151,12 +151,12 @@ export default function PillarFinalRecapScreen() {
 
   const deltaMessage =
     delta > 5
-      ? "Sept jours de pratique ont déplacé ton score de manière nette. Le corps a enregistré la consigne. [copy à valider]"
+      ? "Sept jours de pratique ont déplacé ton score de manière nette. Le corps a enregistré la consigne."
       : delta > 1
-        ? "Tu as gagné en finesse cette semaine. Les changements sont parfois subtils mais réels. [copy à valider]"
+        ? "Tu as gagné en finesse cette semaine. Les changements sont parfois subtils mais réels."
         : delta < -1
-          ? "Le score a baissé — cela arrive et n'est pas un échec. Les 12 questions captent un instantané, ton ressenti compte plus que ce chiffre. [copy à valider]"
-          : "Stable cette semaine. La régularité est déjà une forme de progrès. [copy à valider]";
+          ? "Le score a baissé — cela arrive et n'est pas un échec. Les 12 questions captent un instantané, ton ressenti compte plus que ce chiffre."
+          : "Stable cette semaine. La régularité est déjà une forme de progrès.";
 
   const handleContinue = () => {
     if (!nextPillarId) {
@@ -266,7 +266,7 @@ export default function PillarFinalRecapScreen() {
           // (Alert no-op sur web, son OK ne portait jamais le popToTop).
           showNotice(
             'Mentorat',
-            "L'espace mentorat sera ouvert dans une prochaine version. En attendant, contacte Mimi & Jacky par les canaux habituels. [copy à valider]",
+            "L'espace mentorat sera ouvert dans une prochaine version. En attendant, contacte Mimi & Jacky par les canaux habituels.",
           );
           navigation.popToTop();
         }}

@@ -181,8 +181,8 @@ describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
       durations: { essentiel: 30, progression: 45, immersion: 60 },
       // Matière Jacky enrichie du 16 sept 2026 (« ÉVALUATION DE DÉPART ») :
       // Q5 « raide ou bloqué » et Q6 « manque d'énergie » inversées. Q7
-      // « je transpire facilement » codée directe — sens à trancher Jacky
-      // (arbitrage Stéphane 16 sept).
+      // « je transpire facilement » directe — tranché par Jacky en session
+      // du 18 sept 2026 (transpirer = bon signe, thermorégulation).
       reversed: [5, 6],
     },
     S3: {
@@ -219,7 +219,9 @@ describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
       name: 'Élimination et détox',
       sessionType: 'acte_libre',
       durations: { essentiel: 5, progression: 10, immersion: 20 },
-      reversed: [4, 5, 6],
+      // Session Jacky 18 sept 2026 : Q11 « urines tout le temps claires »
+      // et Q12 « douleurs ou brûlures » ajoutées en inversées.
+      reversed: [4, 5, 6, 11, 12],
     },
   };
 
@@ -301,6 +303,49 @@ describe('verrouillage par pilier S1→S8 (caractérisation)', () => {
         'Condition physique fonctionnelle',
         'Corps dynamique et adaptable',
       ]);
+    });
+  });
+
+  // Reformulations actées en session Jacky du 18 sept 2026 (compte-rendu
+  // docs/contenu/compte-rendu-session-jacky.md) — textes verrouillés.
+  describe('reformulations session Jacky 18 sept 2026', () => {
+    const byId = (pid: string) =>
+      ALL_PILLARS.find(({ id }) => id === pid)!.meta;
+
+    test('S4 Q9 « trop stimulé » et Q12 « environnements »', () => {
+      const s4 = byId('S4');
+      expect(s4.questions.find((q) => q.id === 9)!.text).toBe(
+        'Je suis souvent trop stimulé mentalement (écrans, publicité, sollicitations).',
+      );
+      expect(s4.questions.find((q) => q.id === 12)!.text).toBe(
+        'Je distingue la différence entre les environnements qui me conviennent et ceux qui me dérangent.',
+      );
+    });
+
+    test('S7 Q8 « stopper mon mental »', () => {
+      expect(byId('S7').questions.find((q) => q.id === 8)!.text).toBe(
+        'Je n\'arrive pas à stopper mon mental.',
+      );
+    });
+
+    test('S8 Q3 / Q11 / Q12 reformulées', () => {
+      const s8 = byId('S8');
+      expect(s8.questions.find((q) => q.id === 3)!.text).toBe(
+        'Mon ventre est confortable et sans douleur.',
+      );
+      expect(s8.questions.find((q) => q.id === 11)!.text).toBe(
+        'Mes urines sont tout le temps claires.',
+      );
+      expect(s8.questions.find((q) => q.id === 12)!.text).toBe(
+        'J\'ai des douleurs ou brûlures quand j\'urine.',
+      );
+    });
+
+    test('S1 : messages de diagnostic validés — plus aucun [copy à valider]', () => {
+      const s1 = byId('S1');
+      for (const level of [1, 2, 3, 4, 5] as const) {
+        expect(s1.diagnostics[level].message).not.toContain('[copy à valider]');
+      }
     });
   });
 

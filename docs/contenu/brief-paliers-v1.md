@@ -1,6 +1,6 @@
 # Brief contenu — Paliers streak (IA-50 + IA-51) V1
 
-**Statut** : Palier 7j validé Mimi 2026-05-27 (fusion charnière J7). Paliers 15/30/60/100/365 à valider Mimi/Jacky. Vidéos à tourner (Brief Session 1).
+**Statut** : Palier 7j validé Mimi 2026-05-27 (fusion charnière J7). **Paliers 15/30/60/100/365 validés Jacky en session du 18 sept 2026** (15j body reformulé « Phase initiale d'exploration », tagline « Exploration traversée. » ; 30/60/100/365 + redéclenchement + footnote tels quels — voir `compte-rendu-session-jacky.md`). Vidéos à tourner (Brief Session 1).
 **Cible code** :
 - `src/components/compositions/TierReachedModal.tsx` (modale palier)
 - `src/screens/v1/PaliersGalleryScreen.tsx` (galerie IA-51)
@@ -28,23 +28,23 @@ Pour chaque palier, produire :
   - Script texte : [à compléter Mimi/Jacky — Brief Session 1]
 - **Titre premier franchissement** : `Sept jours.`
 - **Body premier franchissement** : `Ton corps a enregistré le rythme — il commence à l'attendre. Ce que tu ressens maintenant, note-le. C'est ton point de départ réel.`
-- **Tagline galerie** : [à valider — actuel : "Première semaine bouclée."]
+- **Tagline galerie** : `Le rythme est posé.` (validée Jacky 2026-09-18)
 
 ### Palier 15j
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (body reformulé en session).
 
 - **Vidéo** `media.tier.15j.video` :
   - Format 9:16, durée 30s
   - Script intention : cap deux semaines, sortie Phase 0, bascule mode dirigé
   - Script texte : [à compléter Mimi/Jacky — Brief Session 1]
 - **Titre** : `Quinze jours.`
-- **Body** : `Tu as traversé la Phase 0. Le terrain est posé. À partir de maintenant, on isole chaque pilier pour aller plus loin. Ce qui était observation devient pratique structurée.`
-- **Tagline galerie** : `Phase 0 traversée.`
+- **Body** : `Tu as traversé la Phase initiale d'exploration. À partir de maintenant, on isole chaque pilier pour aller plus loin. Ce qui était observation devient pratique structurée.`
+- **Tagline galerie** : `Exploration traversée.`
 
 ### Palier 30j
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (tel quel).
 
 - **Vidéo** `media.tier.30j.video` (30s, 9:16)
 - **Titre** : `Un mois.`
@@ -53,7 +53,7 @@ Pour chaque palier, produire :
 
 ### Palier 60j
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (tel quel).
 
 - **Vidéo** `media.tier.60j.video` (30s, 9:16)
 - **Titre** : `Soixante jours.`
@@ -62,7 +62,7 @@ Pour chaque palier, produire :
 
 ### Palier 100j
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (tel quel).
 
 - **Vidéo** `media.tier.100j.video` (30s, 9:16)
 - **Titre** : `Cent jours.`
@@ -71,7 +71,7 @@ Pour chaque palier, produire :
 
 ### Palier 1 an (365j)
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (tel quel).
 
 - **Vidéo** `media.tier.365.video` (30s, 9:16 — la plus chargée symboliquement)
 - **Titre** : `Un an.`
@@ -80,11 +80,11 @@ Pour chaque palier, produire :
 
 ### Mise à jour palier 7j — tagline galerie
 
-- **Tagline galerie draft Claude** : `Le rythme est posé.` (remplace placeholder V0 "Première semaine bouclée.")
+- **Tagline galerie** : `Le rythme est posé.` (validée Jacky 2026-09-18, remplace placeholder V0 "Première semaine bouclée.")
 
 ## Variante redéclenchement (D29)
 
-**Statut** : Draft Claude — à valider Mimi/Jacky.
+**Statut** : Validé Jacky 2026-09-18 (tel quel).
 
 1 seul message générique court pour TOUS les paliers re-franchis après cassure (modale allégée, pas de vidéo).
 
@@ -92,7 +92,7 @@ Pour chaque palier, produire :
 
 ## Footnote galerie IA-51
 
-**Statut** : Placeholder V1 acceptable — Mimi/Jacky peuvent affiner.
+**Statut** : Validé Jacky 2026-09-18.
 
 - **Texte actuel** : `Les paliers déjà atteints restent acquis même si le streak repart à zéro — ce qui est posé est posé.`
 

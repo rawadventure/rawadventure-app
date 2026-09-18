@@ -63,7 +63,7 @@ export default function S8ExitScreen({
           <Text style={styles.title}>Dix semaines.{'\n'}Tu y es.</Text>
           <Text style={styles.subtitle}>
             Phase 0 + 8 piliers travaillés un par un. Le terrain est posé.
-            Ta toile reflète ce que tu as construit. [copy à valider]
+            Ta toile reflète ce que tu as construit.
           </Text>
         </View>
 
@@ -92,7 +92,7 @@ export default function S8ExitScreen({
             Tu entres en mode consolidation libre. Pas de programme imposé —
             tu choisis quels piliers tu veux pratiquer, à ton rythme. Ton
             abonnement reste actif pour conserver l'accès à toute la pratique.
-            [copy à valider]
+           
           </Text>
         </View>
 
@@ -102,7 +102,7 @@ export default function S8ExitScreen({
           <Text style={styles.blockBody}>
             Si tu veux un accompagnement personnalisé avec Mimi & Jacky pour
             consolider et adapter à ta vie, le mentorat 1-to-1 est ouvert.
-            Pas d'urgence — quand tu seras prêt. [copy à valider]
+            Pas d'urgence — quand tu seras prêt.
           </Text>
           {onMentoratInterest && (
             <Button

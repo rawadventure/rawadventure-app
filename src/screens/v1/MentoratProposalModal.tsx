@@ -45,7 +45,7 @@ export default function MentoratProposalModal({
         <Text style={styles.title}>Tu as posé les bases.</Text>
         <Text style={styles.body}>
           Si tu veux aller plus loin, accompagné, on en parle. Pas de pression,
-          juste une porte ouverte. [copy à valider]
+          juste une porte ouverte.
         </Text>
         <View style={styles.actions}>
           <Button

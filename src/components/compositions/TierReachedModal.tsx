@@ -77,32 +77,34 @@ const TIER_VIDEO_URL: Record<TierId, string | null> = {
   365: `${SUPABASE_VIDEOS_BASE}/palier-365j.mp4`,
 };
 
-/** Message court de premier franchissement par palier (placeholders V1). */
+/** Messages de premier franchissement — validés session Jacky 18 sept 2026
+ * (compte-rendu docs/contenu/compte-rendu-session-jacky.md, brief-paliers-v1). */
 const TIER_FIRST_MESSAGE: Record<TierId, { title: string; body: string }> = {
   15: {
     title: 'Quinze jours.',
-    body: "Tu as traversé la Phase 0. Les bases sont posées. [copy à valider]",
+    body: "Tu as traversé la Phase initiale d'exploration. À partir de maintenant, on isole chaque pilier pour aller plus loin. Ce qui était observation devient pratique structurée.",
   },
   30: {
     title: 'Un mois.',
-    body: "Le cap symbolique du mois. Tu n'es plus dans le démarrage. [copy à valider]",
+    body: "Trente jours de continuité. Tu n'es plus dans le démarrage. Le corps a intégré une routine — il l'attend, il s'y appuie. C'est ce qu'on cherchait depuis le début.",
   },
   60: {
     title: 'Soixante jours.',
-    body: "Deux mois de continuité. La pratique devient ton normal. [copy à valider]",
+    body: "Deux mois. La pratique est devenue ton normal. Tu ne te demandes plus pourquoi — tu fais. C'est ce moment où le corps précède le mental.",
   },
   100: {
     title: 'Cent jours.',
-    body: "Un chiffre rond et lourd. Tu as construit quelque chose de solide. [copy à valider]",
+    body: "Cent jours. Tu as construit quelque chose de solide. Le rythme n'est plus une consigne, c'est une partie de toi. À ce stade, c'est toi qui sais.",
   },
   365: {
     title: 'Un an.',
-    body: "Trois cent soixante-cinq jours. Ce n'est plus un défi, c'est une vie. [copy à valider]",
+    body: "Trois cent soixante-cinq jours. Ce n'est plus un défi, c'est une vie. Tu as fait ce que peu de gens font — pas en intensité, en durée. Et c'est exactement ça qui change tout.",
   },
 };
 
-/** Message court de redéclenchement (D29 variante allégée). */
-const TIER_REPEAT_MESSAGE = "Tu as repassé ce palier. La constance se rebâtit.";
+/** Message court de redéclenchement (D29 variante allégée) — validé 18 sept 2026. */
+const TIER_REPEAT_MESSAGE =
+  "Tu as repassé ce palier. La constance se rebâtit — un jour après l'autre.";
 
 export function TierReachedModal({
   visible,

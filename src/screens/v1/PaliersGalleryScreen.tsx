@@ -51,12 +51,13 @@ const TIER_LABEL: Record<TierId, string> = {
   365: '1 an',
 };
 
+// Taglines validées session Jacky 18 sept 2026 (brief-paliers-v1).
 const TIER_TAGLINE: Record<TierId, string> = {
-  15: 'Cap des deux semaines.',
-  30: 'Un mois de pratique.',
-  60: 'Deux mois de continuité.',
-  100: 'Cap des trois chiffres.',
-  365: 'Une année complète.',
+  15: 'Exploration traversée.',
+  30: 'Le rythme devient ton normal.',
+  60: 'La pratique précède le mental.',
+  100: 'Quelque chose de solide.',
+  365: 'Plus un défi, une vie.',
 };
 
 function formatDate(iso: string): string {
@@ -180,7 +181,7 @@ export default function PaliersGalleryScreen() {
 
         <Text style={styles.footnote}>
           Les paliers déjà atteints restent acquis même si le streak repart à
-          zéro — ce qui est posé est posé. [copy à valider]
+          zéro — ce qui est posé est posé.
         </Text>
       </ScrollView>
 

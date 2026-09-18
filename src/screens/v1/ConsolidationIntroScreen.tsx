@@ -36,22 +36,22 @@ const AFFORDANCES: Affordance[] = [
   {
     icon: Compass,
     title: 'Revisiter chaque pilier',
-    body: "Les 8 piliers travaillés restent ouverts. Tu tap dans la Toile pour relire la fiche, refaire une session, ou juste te repérer. [copy à valider]",
+    body: "Les 8 piliers travaillés restent ouverts. Tu tap dans la Toile pour relire la fiche, refaire une session, ou juste te repérer.",
   },
   {
     icon: RotateCcw,
     title: 'Refaire des sessions',
-    body: "Cohérence cardiaque, fenêtre digestive, mouvement — tu choisis quand et combien. Pas de programme imposé. [copy à valider]",
+    body: "Cohérence cardiaque, fenêtre digestive, mouvement — tu choisis quand et combien. Pas de programme imposé.",
   },
   {
     icon: Flame,
     title: 'Streak qui continue',
-    body: "Une session par jour suffit à entretenir ton streak. Les paliers continuent de se débloquer. [copy à valider]",
+    body: "Une session par jour suffit à entretenir ton streak. Les paliers continuent de se débloquer.",
   },
   {
     icon: BookOpen,
     title: 'Contenu bonus',
-    body: "L'espace bonus reste accessible — vidéos, podcasts, lectures — au rythme de ton abonnement. [copy à valider]",
+    body: "L'espace bonus reste accessible — vidéos, podcasts, lectures — au rythme de ton abonnement.",
   },
 ];
 
@@ -67,7 +67,7 @@ export default function ConsolidationIntroScreen({
           <Text style={styles.title}>Voici ce que tu peux{'\n'}faire maintenant.</Text>
           <Text style={styles.subtitle}>
             Le programme guidé est fini. Tout reste à disposition — tu choisis
-            ce que tu pratiques et à quel rythme. [copy à valider]
+            ce que tu pratiques et à quel rythme.
           </Text>
         </View>
 
