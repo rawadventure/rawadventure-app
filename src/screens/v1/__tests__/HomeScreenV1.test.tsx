@@ -12,6 +12,7 @@
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
+  act,
   render,
   screen,
   userEvent,
@@ -64,6 +65,7 @@ import {
   unpinClock,
   validatedRun,
 } from '../../../test-utils/harness';
+import { advanceDevClock } from '../../../lib/devClock';
 
 const { __supabaseMock: sb } = jest.requireMock('../../../lib/supabase') as {
   __supabaseMock: import('../../../test-utils/supabaseMock').SupabaseMock;
@@ -367,5 +369,54 @@ describe('CTA paywall fin de Phase 0 (J14-J16, non abonné)', () => {
     });
     await renderHome();
     expect(screen.queryByText("Découvrir l'abonnement")).toBeNull();
+  });
+});
+
+describe('F-01 (audit Lou) — transition de phase sans démontage', () => {
+  // Régression rules-of-hooks : le hub Phase 0 déclarait ses hooks APRÈS les
+  // returns précoces Phase 1 / post-S8. Quand currentPhase bascule pendant que
+  // le composant reste monté (validation du J16 → J17 + auto-start S1), le
+  // nombre de hooks change entre deux renders → « Rendered fewer hooks than
+  // expected ». Le fix F-01 (routeur mince + Phase0HomeScreen) rend la
+  // transition sûre.
+  test('validation du J16 → bascule Phase 1 montée : pas d erreur React, Phase1HomeScreen rendu', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(15),
+      tierReaches: [
+        {
+          tier_id: 15,
+          first_reached_at: '2026-10-13T08:00:00.000Z',
+          last_reached_at: '2026-10-13T08:00:00.000Z',
+          reach_count: 1,
+        },
+      ],
+      narrativeFlags: {
+        ...WELCOME_SEEN,
+        j3_charniere: 'x',
+        j7_charniere: 'x',
+        j11_charniere: 'x',
+        j14_charniere: 'x',
+        s0_1_screen: 'x',
+        s0_2_screen: 'x',
+      },
+    });
+    await renderHome();
+    expect(screen.getByText('S0.2 · Roadmap')).toBeTruthy();
+
+    const user = await checkActions(5);
+    await user.press(screen.getAllByText('Valider ma journée')[0]);
+    const validateButtons = screen.getAllByText('Valider ma journée');
+    await user.press(validateButtons[validateButtons.length - 1]);
+    await waitFor(() => expect(screen.getByText('Journée validée')).toBeTruthy());
+
+    // Passage de minuit, app restée ouverte (cas 23h59 → 00h00) : currentDay
+    // 16 → 17, currentPhase bascule phase_1, l'auto-start S1 pose
+    // currentPillarId. Le hub doit router vers Phase1HomeScreen sans crash.
+    await act(async () => {
+      advanceDevClock(1);
+    });
+    await waitFor(() =>
+      expect(screen.getByText('PHASE1_HOME_STUB')).toBeTruthy(),
+    );
   });
 });

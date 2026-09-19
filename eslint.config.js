@@ -27,10 +27,12 @@ module.exports = defineConfig([
     rules: {
       // Copy français : apostrophes et guillemets dans le JSX partout — règle inadaptée.
       'react/no-unescaped-entities': 'off',
-      // TODO vague 2 (découpage HomeScreenV1 / ProgressContext, audit Lou § 1.2) :
-      // repasser ces 4 règles en 'error' une fois la dette existante corrigée
-      // (~33 violations au 16 sept 2026, épicentre HomeScreenV1 hooks conditionnels).
-      'react-hooks/rules-of-hooks': 'warn',
+      // F-01 soldé (routeur HomeScreenV1 + Phase0HomeScreen) : zéro violation,
+      // règle verrouillée en error — le pre-commit bloque toute réintroduction.
+      'react-hooks/rules-of-hooks': 'error',
+      // TODO F-05/F-06 (découpage ProgressContext + file narrative, audit Lou) :
+      // repasser ces 3 règles en 'error' une fois les 13 violations restantes
+      // corrigées (set-state-in-effect ×8, refs ×3, immutability ×1 au 19 sept).
       'react-hooks/set-state-in-effect': 'warn',
       'react-hooks/refs': 'warn',
       'react-hooks/immutability': 'warn',
