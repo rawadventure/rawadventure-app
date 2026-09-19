@@ -44,6 +44,14 @@ export type SupabaseMock = {
   };
   calls: SupabaseCall[];
   setTables: (tables: Record<string, unknown>) => void;
+  /** Fait échouer la PROCHAINE opération matchant table+op : la requête
+   *  résout `{ data: null, error }` (supabase-js ne throw pas). Consommé
+   *  au premier match ; empilable (un appel par échec voulu). */
+  failNext: (
+    table: string,
+    op: SupabaseCall['op'] | 'select',
+    error?: { message: string },
+  ) => void;
   reset: () => void;
   /** Callbacks realtime enregistrés via channel().on() — pour simuler un
    *  event Postgres Changes : `sb.realtimeCallbacks[0]({ new: row })`. */
@@ -66,6 +74,18 @@ export function createSupabaseMock(
   let tables: Record<string, unknown> = { ...initialTables };
   const calls: SupabaseCall[] = [];
   const realtimeCallbacks: Array<(payload: { new: unknown }) => void> = [];
+  const failures: Array<{
+    table: string;
+    op: SupabaseCall['op'] | 'select';
+    error: { message: string };
+  }> = [];
+
+  /** Consomme et renvoie l'échec programmé pour table+op, sinon null. */
+  function takeFailure(table: string, op: SupabaseCall['op'] | 'select') {
+    const idx = failures.findIndex((f) => f.table === table && f.op === op);
+    if (idx === -1) return null;
+    return failures.splice(idx, 1)[0].error;
+  }
 
   function makeBuilder(table: string) {
     // Filtres eq() accumulés sur CE builder (un builder par `from()`).
@@ -91,6 +111,9 @@ export function createSupabaseMock(
 
     const builder: Record<string, unknown> = {};
     const chain = () => () => builder;
+    // Opération portée par CE builder — 'select' tant qu'aucune écriture
+    // n'a été chaînée. Sert au matching failNext à la résolution.
+    let currentOp: SupabaseCall['op'] | 'select' = 'select';
 
     builder.select = chain();
     builder.eq = (col: string, val: unknown) => {
@@ -99,27 +122,45 @@ export function createSupabaseMock(
     };
     builder.order = chain();
     builder.limit = chain();
-    builder.single = async () => ({ data: read().asSingle, error: null });
-    builder.maybeSingle = async () => ({ data: read().asSingle, error: null });
+    builder.single = async () => {
+      const failure = takeFailure(table, currentOp);
+      if (failure) return { data: null, error: failure };
+      return { data: read().asSingle, error: null };
+    };
+    builder.maybeSingle = async () => {
+      const failure = takeFailure(table, currentOp);
+      if (failure) return { data: null, error: failure };
+      return { data: read().asSingle, error: null };
+    };
     builder.insert = (payload: unknown) => {
       calls.push({ table, op: 'insert', payload });
+      currentOp = 'insert';
       return builder;
     };
     builder.update = (payload: unknown) => {
       calls.push({ table, op: 'update', payload });
+      currentOp = 'update';
       return builder;
     };
     builder.upsert = (payload: unknown) => {
       calls.push({ table, op: 'upsert', payload });
+      currentOp = 'upsert';
       return builder;
     };
     builder.delete = () => {
       calls.push({ table, op: 'delete' });
+      currentOp = 'delete';
       return builder;
     };
-    // thenable : `await supabase.from(t)...` résout { data, error: null }.
-    builder.then = (resolve: (v: { data: unknown; error: null }) => unknown) =>
-      Promise.resolve(resolve({ data: read().asArray, error: null }));
+    // thenable : `await supabase.from(t)...` résout { data, error } —
+    // error non-null si un failNext(table, op) était programmé.
+    builder.then = (
+      resolve: (v: { data: unknown; error: { message: string } | null }) => unknown,
+    ) => {
+      const failure = takeFailure(table, currentOp);
+      if (failure) return Promise.resolve(resolve({ data: null, error: failure }));
+      return Promise.resolve(resolve({ data: read().asArray, error: null }));
+    };
     return builder;
   }
 
@@ -181,6 +222,9 @@ export function createSupabaseMock(
     setTables: (t) => {
       tables = { ...t };
     },
+    failNext: (table, op, error = { message: 'mock failure' }) => {
+      failures.push({ table, op, error });
+    },
     setSession: (session) => {
       authSession = session;
     },
@@ -192,6 +236,7 @@ export function createSupabaseMock(
     reset: () => {
       tables = { ...initialTables };
       calls.length = 0;
+      failures.length = 0;
       realtimeCallbacks.length = 0;
       authSession = null;
       authCallbacks.length = 0;

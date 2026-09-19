@@ -37,6 +37,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../lib/supabase';
 import { useAuth } from './AuthContext';
 import { devNow } from '../lib/devClock';
+import { isDevToolsEnabled } from '../lib/devToolsEnabled';
 
 export type SubscriptionStatus =
   | 'free'
@@ -65,6 +66,10 @@ const DEFAULT_STATE: SubscriptionState = {
 };
 
 const STORAGE_KEY = 'subscription_state';
+// F-09 : le mock DEV vit sous sa propre clé, lue UNIQUEMENT quand les dev
+// tools sont actifs. Il prime alors sur Supabase (survit au reload — bug DEV
+// n°2 de la salve de tests) et n'écrit jamais côté serveur.
+const MOCK_STORAGE_KEY = 'subscription_state_mock';
 
 interface SubscriptionContextType {
   state: SubscriptionState;
@@ -125,12 +130,16 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
   /**
    * Charge depuis Supabase si user connecté, sinon depuis AsyncStorage.
    *
-   * Cas particuliers :
+   * Cas particuliers (F-09 audit Lou : le client ne modifie JAMAIS la table
+   * `subscriptions` — seul le webhook Stripe en service role écrit) :
+   *  - Dev tools actifs + mock local présent → le mock prime (test gating)
    *  - User non connecté (anonyme onboarding) → AsyncStorage uniquement
-   *  - User connecté + row Supabase absente → cas exceptionnel (trigger
-   *    on_auth_user_created devrait l'avoir créée). On insère 'free' par
-   *    sécurité.
+   *  - User connecté + row Supabase absente → free (la création de la row
+   *    appartient au trigger on_auth_user_created, pas au client)
    *  - User connecté + row présente → source de vérité Supabase
+   *  - Erreur de chargement → état conservé (le fallback local n'existe
+   *    qu'en dev tools : en prod un état AsyncStorage est manipulable
+   *    depuis la console navigateur — pas une source d'autorisation)
    */
   const load = useCallback(async (opts?: { silent?: boolean }) => {
     // `silent` : rafraîchit sans lever le flag global `loading`. Évite que le
@@ -140,6 +149,15 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     // non-silent (affiche bien le LoadingScreen au démarrage).
     if (!opts?.silent) setLoading(true);
     try {
+      // Mock DEV : prime sur toute autre source tant que dev tools actifs.
+      if (isDevToolsEnabled()) {
+        const rawMock = await AsyncStorage.getItem(MOCK_STORAGE_KEY);
+        if (rawMock) {
+          setState(JSON.parse(rawMock) as SubscriptionState);
+          return;
+        }
+      }
+
       if (!user) {
         // Mode anonyme : AsyncStorage
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
@@ -156,18 +174,20 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
 
       if (error) {
         console.warn('SubscriptionContext load error', error);
-        // Fallback AsyncStorage local
-        const raw = await AsyncStorage.getItem(STORAGE_KEY);
-        setState(raw ? (JSON.parse(raw) as SubscriptionState) : DEFAULT_STATE);
+        if (isDevToolsEnabled()) {
+          // Confort dev offline : dernier état synchronisé.
+          const raw = await AsyncStorage.getItem(STORAGE_KEY);
+          setState(raw ? (JSON.parse(raw) as SubscriptionState) : DEFAULT_STATE);
+        }
+        // Hors dev : état en mémoire conservé, un reload() ultérieur
+        // (ouverture Paywall, retour premier plan) retentera.
         return;
       }
 
       if (!data) {
-        // Trigger pas passé pour cet user — sécurité : crée la row 'free'
-        await supabase.from('subscriptions').insert({
-          user_id: user.id,
-          status: 'free',
-        });
+        // Trigger on_auth_user_created pas encore passé pour cet user —
+        // on reste free côté client, la row arrivera côté serveur (F-09 :
+        // pas d'insert client, la policy RLS est SELECT only).
         setState(DEFAULT_STATE);
         await persistLocal(DEFAULT_STATE);
         return;
@@ -227,45 +247,23 @@ export function SubscriptionProvider({ children }: { children: ReactNode }) {
     };
   }, [user, persistLocal]);
 
+  // F-09 : mock strictement local (clé dédiée, lue par load() en dev tools
+  // uniquement). Plus aucune écriture Supabase côté client — la table
+  // `subscriptions` n'est modifiée que par le webhook Stripe (service role).
   const setMockSubscriptionState = useCallback(
     async (next: Partial<SubscriptionState>) => {
+      if (!isDevToolsEnabled()) return;
       const merged = { ...state, ...next };
       setState(merged);
-      await persistLocal(merged);
-      // En DEV, on écrit aussi côté Supabase si user connecté pour cohérence.
-      // Permet de tester le gating Phase 1+ avec un état réaliste.
-      if (user) {
-        await supabase
-          .from('subscriptions')
-          .update({
-            status: merged.status,
-            plan: merged.plan,
-            started_at: merged.startedAt,
-            renews_at: merged.renewsAt,
-            cancelled_at: merged.cancelledAt,
-          })
-          .eq('user_id', user.id);
-      }
+      await AsyncStorage.setItem(MOCK_STORAGE_KEY, JSON.stringify(merged));
     },
-    [state, user, persistLocal],
+    [state],
   );
 
   const resetSubscription = useCallback(async () => {
     setState(DEFAULT_STATE);
-    await AsyncStorage.removeItem(STORAGE_KEY);
-    if (user) {
-      await supabase
-        .from('subscriptions')
-        .update({
-          status: 'free',
-          plan: null,
-          started_at: null,
-          renews_at: null,
-          cancelled_at: null,
-        })
-        .eq('user_id', user.id);
-    }
-  }, [user]);
+    await AsyncStorage.multiRemove([STORAGE_KEY, MOCK_STORAGE_KEY]);
+  }, []);
 
   // clockEpoch force recompute quand mock clock change (DEV tools uniquement).
   const [clockEpoch, setClockEpoch] = useState(0);

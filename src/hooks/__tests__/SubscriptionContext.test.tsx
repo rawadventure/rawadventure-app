@@ -21,6 +21,13 @@ jest.mock('../AuthContext', () => ({
   useAuth: () => ({ user: mockUser }),
 }));
 
+// Pilotable par test : true par défaut (comme __DEV__ en Jest), false pour
+// vérifier le comportement production (F-09 : mock/fallback dev-only).
+let mockDevToolsEnabled = true;
+jest.mock('../../lib/devToolsEnabled', () => ({
+  isDevToolsEnabled: () => mockDevToolsEnabled,
+}));
+
 import {
   SubscriptionProvider,
   useSubscription,
@@ -57,6 +64,7 @@ function subRow(overrides: Partial<Record<string, unknown>> = {}) {
 
 beforeEach(async () => {
   mockUser = null;
+  mockDevToolsEnabled = true;
   sb.reset();
   jest.clearAllMocks();
   await AsyncStorage.clear();
@@ -175,15 +183,15 @@ describe('mode connecté (Supabase)', () => {
     expect(JSON.parse(raw!).status).toBe('active');
   });
 
-  test('row absente : insert free par sécurité (trigger raté)', async () => {
+  // F-09 (audit Lou) : la création de la row appartient au trigger
+  // on_auth_user_created côté Supabase — le client ne doit JAMAIS écrire
+  // dans `subscriptions` (policy RLS = SELECT only). Row absente = free.
+  test('row absente : état free, AUCUN insert client (F-09)', async () => {
     sb.setTables({ subscriptions: [] });
     const { result } = await renderSubscription();
     expect(result.current.state.status).toBe('free');
-    const inserts = sb.calls.filter(
-      (c) => c.table === 'subscriptions' && c.op === 'insert',
-    );
-    expect(inserts).toHaveLength(1);
-    expect((inserts[0].payload as Record<string, unknown>).status).toBe('free');
+    const writes = sb.calls.filter((c) => c.table === 'subscriptions');
+    expect(writes).toHaveLength(0);
   });
 
   test('event realtime : mise à jour du state sans reload', async () => {
@@ -224,7 +232,7 @@ describe('mode connecté (Supabase)', () => {
     expect(result.current.isActive).toBe(true);
   });
 
-  test('resetSubscription : retour à free local + update Supabase', async () => {
+  test('resetSubscription : retour à free local, AUCUNE écriture Supabase (F-09)', async () => {
     sb.setTables({ subscriptions: subRow() });
     const { result } = await renderSubscription();
     expect(result.current.isActive).toBe(true);
@@ -233,9 +241,75 @@ describe('mode connecté (Supabase)', () => {
     });
     expect(result.current.state.status).toBe('free');
     expect(result.current.isActive).toBe(false);
-    const updates = sb.calls.filter(
-      (c) => c.table === 'subscriptions' && c.op === 'update',
+    const writes = sb.calls.filter(
+      (c) => c.table === 'subscriptions' && c.op !== 'select',
     );
-    expect(updates.length).toBeGreaterThanOrEqual(1);
+    expect(writes).toHaveLength(0);
+  });
+});
+
+describe('F-09 (audit Lou) — le client ne modifie jamais `subscriptions`', () => {
+  beforeEach(() => {
+    mockUser = { id: 'user-1' };
+  });
+
+  test('setMockSubscriptionState (DEV) : état local uniquement, aucune écriture Supabase', async () => {
+    sb.setTables({ subscriptions: subRow({ status: 'free', plan: null }) });
+    const { result } = await renderSubscription();
+    await act(async () => {
+      await result.current.setMockSubscriptionState({ status: 'active' });
+    });
+    expect(result.current.isActive).toBe(true);
+    const writes = sb.calls.filter(
+      (c) => c.table === 'subscriptions' && c.op !== 'select',
+    );
+    expect(writes).toHaveLength(0);
+  });
+
+  test('le mock DEV survit à un reload (bug DEV n°2 de la salve de tests)', async () => {
+    sb.setTables({ subscriptions: subRow({ status: 'free', plan: null }) });
+    const { result } = await renderSubscription();
+    await act(async () => {
+      await result.current.setMockSubscriptionState({ status: 'active' });
+    });
+    expect(result.current.isActive).toBe(true);
+    // Reload (retour PaywallScreen, refresh PWA…) : la row Supabase dit
+    // toujours free, mais le mock DEV local doit primer tant que dev tools.
+    await act(async () => {
+      await result.current.reload();
+    });
+    expect(result.current.state.status).toBe('active');
+    expect(result.current.isActive).toBe(true);
+  });
+
+  test('hors DEV : setMockSubscriptionState est un no-op', async () => {
+    mockDevToolsEnabled = false;
+    sb.setTables({ subscriptions: subRow({ status: 'free', plan: null }) });
+    const { result } = await renderSubscription();
+    await act(async () => {
+      await result.current.setMockSubscriptionState({ status: 'active' });
+    });
+    expect(result.current.state.status).toBe('free');
+    expect(result.current.isActive).toBe(false);
+  });
+
+  test('hors DEV : erreur de chargement → pas de fallback AsyncStorage (état conservé)', async () => {
+    mockDevToolsEnabled = false;
+    // Un état "active" traîne en local (manipulable via la console navigateur
+    // en PWA) — il ne doit PAS débloquer l'accès sur simple erreur réseau.
+    await AsyncStorage.setItem(
+      'subscription_state',
+      JSON.stringify({
+        status: 'active',
+        plan: 'annual',
+        startedAt: '2026-10-01T10:00:00.000Z',
+        renewsAt: '2027-10-01T10:00:00.000Z',
+        cancelledAt: null,
+      }),
+    );
+    sb.failNext('subscriptions', 'select', { message: 'network down' });
+    const { result } = await renderSubscription();
+    expect(result.current.state.status).toBe('free');
+    expect(result.current.isActive).toBe(false);
   });
 });
