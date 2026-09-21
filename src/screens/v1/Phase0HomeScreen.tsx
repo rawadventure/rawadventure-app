@@ -53,9 +53,9 @@ import JourCharniereScreen, { type CharniereDay } from './JourCharniereScreen';
 import S01Screen from './S01Screen';
 import S02Screen from './S02Screen';
 import WelcomeVideoScreen from './WelcomeVideoScreen';
-import { TIER_THRESHOLDS, type TierId } from '../../lib/streak';
+import type { TierId } from '../../lib/streak';
+import { nextNarrativeEvent } from '../../lib/narrativeQueue';
 import { showNotice } from '../../lib/notice';
-import type { NarrativeEventId } from '../../hooks/ProgressContext';
 import {
   brandColors,
   interTextStyle,
@@ -125,7 +125,6 @@ export default function Phase0HomeScreen() {
     pendingTierReach,
     setPendingTier,
     clearPendingTier,
-    tierReaches,
   } = useProgress();
   const { isActive: subscriptionActive } = useSubscription();
 
@@ -142,22 +141,6 @@ export default function Phase0HomeScreen() {
     { tierId: TierId; isFirstReach: boolean; streakValue: number } | null
   >(null);
   const [charniereDay, setCharniereDay] = useState<CharniereDay | null>(null);
-  // Sprint 30 — option A : si palier ET charnière sur même streak (J7),
-  // afficher la charnière APRÈS fermeture de la modale palier.
-  const [pendingCharniere, setPendingCharniere] = useState<CharniereDay | null>(null);
-  // DEV uniquement : track paliers déjà montrés via le useEffect (flow
-  // "Valider + jour suivant" qui skip validateDay → tier_reaches pas
-  // updaté). Évite re-trigger au prochain render avec même streak.
-  const [devShownTiers, setDevShownTiers] = useState<Set<TierId>>(new Set());
-
-  // Clear devShownTiers quand accountCreatedAt redevient null = resetAll
-  // utilisé. Sans ça, le Set persiste entre reset et re-test → palier déjà
-  // shown ne re-fire pas en DEV.
-  useEffect(() => {
-    if (!accountCreatedAt) {
-      setDevShownTiers(new Set());
-    }
-  }, [accountCreatedAt]);
   const [showS01, setShowS01] = useState(false);
   const [showS02, setShowS02] = useState(false);
   const [showWelcomeVideo, setShowWelcomeVideo] = useState(false);
@@ -175,89 +158,43 @@ export default function Phase0HomeScreen() {
     [streakHistory, today],
   );
 
-  // Map currentDay (validation-based, D38) → IA-14 jour-charnière. Déclenchement
-  // à la VALIDATION du jour (après IA-15). currentDay = jour de progression
-  // (compte de validations + 1) — découplé du streak calendaire.
-  // J7 repositionné en charnière de PROGRESSION (jour 7 du parcours), décision
-  // Stéphane 2026-07-01 — conforme D19 (J3/J7/J11/J14 charnières). N'est plus
-  // une récompense de streak (le palier de streak 7j est supprimé, cf. streak.ts).
-  const CHARNIERE_BY_DAY: Record<number, { day: CharniereDay; flag: NarrativeEventId }> = {
-    3: { day: 3, flag: 'j3_charniere' },
-    7: { day: 7, flag: 'j7_charniere' },
-    11: { day: 11, flag: 'j11_charniere' },
-    14: { day: 14, flag: 'j14_charniere' },
-  };
-
-  // S0.1 / S0.2 : couches narratives plein écran déclenchées au premier
-  // lancement du J15 / J16 (Feature Spec V1 §3 fiches IA-20 / IA-21).
-  // Marquage au déclenchement (§2.3) — si user ferme app pendant, ne se
-  // rejoue pas. Reste accessible via IA-25 / IA-21 plus tard (Sprint 8+).
+  // F-06 (audit Lou) : les priorités narratives vivent dans
+  // src/lib/narrativeQueue (fonction pure, testée) — l'écran ne fait
+  // qu'appliquer l'événement rendu. Ouverture du hub : vidéo J1 (IA-12),
+  // S0.1 (IA-20, jour 15), S0.2 (IA-21, jour 16). Marquage au déclenchement
+  // (§2.3) — si l'utilisateur ferme l'app pendant, l'écran ne se rejoue pas.
+  // L'ancienne branche « palier au hub_open » servait au seedDevStreak,
+  // supprimé (les snapshots devTimeline posent tier_reaches cohérents).
   useEffect(() => {
-    // IA-12 vidéo bienvenue — premier lancement Accueil post-onboarding,
-    // peu importe currentDay (IA V3 §IA-12 : "tout premier lancement après
-    // onboarding"). Garde currentPhase === 'phase_0' (audit B2) : en phase_1
-    // sans pilier (fenêtre transitoire avant l'auto-start S1, ou flags perdus
-    // après J16), ce hub rend brièvement — sans la garde, la vidéo J1 se
-    // rejouait en plein J17+ puis disparaissait au remount.
-    if (
-      currentPhase === 'phase_0' &&
-      !narrativeFlags.welcome_video &&
-      !showWelcomeVideo &&
-      !welcomeShownThisSession.current
-    ) {
-      welcomeShownThisSession.current = true;
-      setShowWelcomeVideo(true);
-      void markNarrativeSeen('welcome_video');
-    } else if (currentDay === 15 && !narrativeFlags.s0_1_screen && !showS01) {
-      setShowS01(true);
-      void markNarrativeSeen('s0_1_screen');
-    } else if (currentDay === 16 && !narrativeFlags.s0_2_screen && !showS02) {
-      setShowS02(true);
-      void markNarrativeSeen('s0_2_screen');
-    } else {
-      // Paliers de streak (7, 15, 30, 60, 100, 365) — normalement triggered
-      // dans handleConfirmValidation via result.tierReached. En flow DEV
-      // seedDevStreak skip validateDay → palier jamais déclenché. Trigger
-      // ici basé sur streak courant + tierReaches existants.
-      // En flow prod, validateDay insère dans tier_reaches AVANT que ce
-      // useEffect run → condition `!alreadyReached` skip. Pas de double
-      // trigger.
-      // Skip si validation en cours — handleConfirmValidation gère le tier
-      // modal après validateDay. Sans ce check, useEffect fire AVANT que
-      // validateDay's persistTierReach + setTierReaches async ne complète
-      // (Supabase race) → double trigger + iOS Modal stacking → freeze.
-      // Le branch ici reste utile pour DEV seedDevStreak (skip validateDay).
-      if (validating) {
-        return;
-      }
-      for (const tier of TIER_THRESHOLDS) {
-        if (streak >= tier) {
-          const alreadyReached = tierReaches.some((r) => r.tier_id === tier);
-          const alreadyShownDev = devShownTiers.has(tier);
-          if (
-            !alreadyReached &&
-            !alreadyShownDev &&
-            !tierModal &&
-            !pendingTierReach
-          ) {
-            // Coordination D30 : si on est sur J15/J16 (S0.1/S0.2 priorité),
-            // ne pas afficher le palier maintenant. Sera repêché plus tard
-            // via le flow normal (pendingTierReach).
-            if (currentDay === 15 || currentDay === 16) {
-              break;
-            }
-            setTierModal({
-              tierId: tier,
-              isFirstReach: true,
-              streakValue: streak,
-            });
-            // Track local-only : seedDevStreak reset tier_reaches DB →
-            // sans ce Set on re-trigger à chaque render.
-            setDevShownTiers((prev) => new Set(prev).add(tier));
-            break;
-          }
-        }
-      }
+    if (showWelcomeVideo || showS01 || showS02) return;
+    const event = nextNarrativeEvent({
+      trigger: 'hub_open',
+      currentDay,
+      currentPhase,
+      narrativeFlags,
+      pendingTierReach: null,
+    });
+    if (!event) return;
+    switch (event.kind) {
+      case 'welcome_video':
+        // Garde de session (ceinture et bretelles du fix lost-update
+        // markNarrativeSeen) : jamais deux fois par session, même si le
+        // flag se perdait.
+        if (welcomeShownThisSession.current) break;
+        welcomeShownThisSession.current = true;
+        setShowWelcomeVideo(true);
+        void markNarrativeSeen('welcome_video');
+        break;
+      case 's0_1_screen':
+        setShowS01(true);
+        void markNarrativeSeen('s0_1_screen');
+        break;
+      case 's0_2_screen':
+        setShowS02(true);
+        void markNarrativeSeen('s0_2_screen');
+        break;
+      default:
+        break;
     }
   }, [
     currentDay,
@@ -267,13 +204,6 @@ export default function Phase0HomeScreen() {
     showS01,
     showS02,
     showWelcomeVideo,
-    charniereDay,
-    streak,
-    tierReaches,
-    tierModal,
-    pendingTierReach,
-    devShownTiers,
-    validating,
   ]);
 
   // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
@@ -376,75 +306,56 @@ export default function Phase0HomeScreen() {
       await AsyncStorage.removeItem(STORAGE_KEY(today));
       setChecks(EMPTY_CHECKS);
 
-      // Cascade narrative post-validation. Priorité tier > IA-14 charnière >
-      // joker alert. Un seul écran/modal à la fois.
-      //
-      // D30 — coordination palier 15j vs S0.1 : si le palier 15j tombe le même
-      // jour que le déclenchement S0.1 (currentDay 15), S0.1 prime, palier
-      // différé via setPendingTier → ouvert à la prochaine validation sans
-      // collision. Logique généralisable aux autres collisions narratives
-      // structurantes (S0.2 currentDay 16).
-      // D38 — charnière indexée sur currentDay (jour de progression validé).
-      const charniere = CHARNIERE_BY_DAY[currentDay];
-      // Détection collision : si on est sur J15 ou J16 (jours S0.1/S0.2),
-      // tout palier détecté à cette validation est différé. Le flag narratif
-      // est posé AU TRIGGER du S0.x (avant validation), donc on ne peut pas
-      // s'en servir pour détecter la collision — on se base sur currentDay seul.
-      const narrativeCollision =
-        result.tierReached != null && (currentDay === 15 || currentDay === 16);
-
-
-
-      if (result.tierReached && narrativeCollision) {
-        // Différer le palier — narratif structurant prime.
-        await setPendingTier({
-          tierId: result.tierReached,
-          isFirstReach: result.tierIsFirstReach,
-          streakValue: result.newStreak,
-          deferredAt: new Date().toISOString(),
-        });
-        // Ne pas ouvrir TierReachedModal — S0.1/S0.2 va se déclencher via useEffect.
-      } else if (result.tierReached) {
-        setTierModal({
-          tierId: result.tierReached,
-          isFirstReach: result.tierIsFirstReach,
-          streakValue: result.newStreak,
-        });
-        // Track DEV-side aussi : si user enchaîne sur "(DEV) Passer au jour
-        // suivant" après le palier, seedDevStreak vide tier_reaches → sans
-        // ce tracking, useEffect re-trigger le même palier.
-        setDevShownTiers((prev) => new Set(prev).add(result.tierReached!));
-        // Sprint 30 option A : si collision palier × charnière (typique J7),
-        // stocke la charnière pour l'ouvrir après fermeture modale palier.
-        // Audit mineur (7 juillet 2026) : le flag narratif est posé à
-        // l'OUVERTURE réelle (onClose de TierReachedModal), pas ici — sinon
-        // app tuée pendant la modale palier = charnière marquée vue sans
-        // avoir été montrée.
-        if (charniere && !narrativeFlags[charniere.flag]) {
-          setPendingCharniere(charniere.day);
-        }
-      } else if (charniere && !narrativeFlags[charniere.flag]) {
-        // Pas de setTimeout — setCharniereDay synchronous après setModalVisible(false)
-        // marche bien (testé). Le timeout introduisait race condition avec useEffect.
-        setCharniereDay(charniere.day);
-        await markNarrativeSeen(charniere.flag);
-      } else if (pendingTierReach) {
-        // Pas de palier neuf, pas de collision en cours, palier différé en
-        // attente → l'ouvrir maintenant (D30 — différé d'un cran).
-        setTierModal({
-          tierId: pendingTierReach.tierId,
-          isFirstReach: pendingTierReach.isFirstReach,
-          streakValue: pendingTierReach.streakValue,
-        });
-        setDevShownTiers((prev) => new Set(prev).add(pendingTierReach.tierId));
-        await clearPendingTier();
-      } else if (result.jokerUsed) {
-        // showNotice et pas Alert.alert : Alert est no-op sur react-native-web,
-        // le message était invisible en PWA (relevé salve de tests 8 juillet).
-        showNotice(
-          'Joker consommé',
-          `Streak conservé à ${result.newStreak}. Réinitialisation lundi.`,
-        );
+      // F-06 (audit Lou) : cascade post-validation encodée une seule fois
+      // dans src/lib/narrativeQueue (D19/D25/D29/D30/D38 en commentaires du
+      // module et de ses tests). L'écran applique l'événement rendu — un
+      // seul écran/modal à la fois.
+      const event = nextNarrativeEvent({
+        trigger: 'day_validated',
+        currentDay,
+        currentPhase,
+        narrativeFlags,
+        pendingTierReach,
+        validationResult: result,
+      });
+      switch (event?.kind) {
+        case 'defer_tier':
+          // D30 — narratif structurant (S0.1/S0.2) prime, palier différé
+          // d'un cran. Ne pas ouvrir TierReachedModal — S0.x se déclenche
+          // via l'effet hub_open.
+          await setPendingTier({
+            tierId: event.tierId,
+            isFirstReach: event.isFirstReach,
+            streakValue: event.streakValue,
+            deferredAt: new Date().toISOString(),
+          });
+          break;
+        case 'show_tier':
+          setTierModal({
+            tierId: event.tierId,
+            isFirstReach: event.isFirstReach,
+            streakValue: event.streakValue,
+          });
+          if (event.fromDeferred) {
+            await clearPendingTier();
+          }
+          break;
+        case 'charniere':
+          // Pas de setTimeout — setCharniereDay synchronous après
+          // setModalVisible(false) marche bien (testé).
+          setCharniereDay(event.day);
+          await markNarrativeSeen(event.flag);
+          break;
+        case 'joker_notice':
+          // showNotice et pas Alert.alert : Alert est no-op sur
+          // react-native-web (relevé salve de tests 8 juillet).
+          showNotice(
+            'Joker consommé',
+            `Streak conservé à ${event.newStreak}. Réinitialisation lundi.`,
+          );
+          break;
+        default:
+          break;
       }
     } catch (e: any) {
       showNotice('Erreur', e.message ?? 'Validation échouée');
@@ -648,17 +559,11 @@ export default function Phase0HomeScreen() {
         tierId={tierModal?.tierId ?? null}
         isFirstReach={tierModal?.isFirstReach ?? false}
         streakValue={tierModal?.streakValue ?? 0}
-        onClose={() => {
-          setTierModal(null);
-          // Sprint 30 option A : enchaîne charnière différée si applicable.
-          // Flag narratif posé ICI, à l'ouverture réelle (marquage au
-          // déclenchement §2.3 — audit mineur 7 juillet 2026).
-          if (pendingCharniere) {
-            setCharniereDay(pendingCharniere);
-            void markNarrativeSeen(CHARNIERE_BY_DAY[pendingCharniere].flag);
-            setPendingCharniere(null);
-          }
-        }}
+        // F-06 : l'enchaînement « palier puis charnière » (Sprint 30 option A)
+        // est supprimé — il datait du palier 7 jours, retiré depuis. Un palier
+        // exige un streak ≥ 15, une charnière un jour de position ≤ 14, et
+        // streak ≤ position (D38) : la collision est devenue impossible.
+        onClose={() => setTierModal(null)}
         // Bouton « Voir mes paliers » retiré de la modale (redondant avec le
         // Profil → galerie, et il faisait perdre la vidéo en fermant la modale).
         // La relecture se fait désormais depuis PaliersGalleryScreen (carte → modale).
