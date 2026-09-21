@@ -68,7 +68,7 @@ import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { todayLocalDate } from '../../lib/calendar';
-import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
+import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
@@ -128,9 +128,9 @@ export default function Phase0HomeScreen() {
   } = useProgress();
   const { isActive: subscriptionActive } = useSubscription();
 
-  // DEV flag — pareil que ProfilTabScreen DEV panel. Permet d'afficher le
-  // bouton "(DEV) Valider + jour suivant" dans la modale IA-15.
-  const devPanelEnabled = isDevToolsEnabled();
+  // F-07 : outillage DEV via le hook unique — l'écran ne déclare plus
+  // d'état ni de require dev.
+  const devTools = useDevTools();
 
   const today = todayLocalDate();
   const [checks, setChecks] = useState<DailyChecksMap>(EMPTY_CHECKS);
@@ -412,14 +412,10 @@ export default function Phase0HomeScreen() {
                 avance le clock virtuel +1j. Les useEffects narratifs (S0.x,
                 charnières, paliers) re-évaluent naturellement currentDay
                 via devTodayLocalDate(). Aucune mutation de streakHistory. */}
-            {devPanelEnabled && alreadyValidatedToday && (
+            {devTools.enabled && alreadyValidatedToday && (
               <Button
                 label="(DEV) Passer au jour suivant"
-                onPress={() => {
-                  // eslint-disable-next-line @typescript-eslint/no-require-imports
-                  const { advanceDevClock } = require('../../lib/devClock');
-                  advanceDevClock(1);
-                }}
+                onPress={devTools.advanceDay}
                 variant="ghost"
                 fullWidth
                 context="phase0"

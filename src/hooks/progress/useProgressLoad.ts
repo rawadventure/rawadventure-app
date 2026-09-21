@@ -11,6 +11,7 @@
 import { type MutableRefObject } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from '../../lib/supabase';
+import { setDevToolsAccountFlag } from '../../lib/devToolsEnabled';
 import {
   createAnonymousStore,
   createRemoteStore,
@@ -89,6 +90,9 @@ export function createProgressLoader({
     userId: string | null,
   ) => {
     const primary = remote ?? local;
+    // F-07/K1 : panneau DEV par compte — le flag suit le profil chargé et
+    // retombe à false en anonyme ou sur un compte non flaggé.
+    setDevToolsAccountFlag(remote?.devToolsEnabled ?? false);
     if (primary.onboardingDone != null) setOnboardingDone(primary.onboardingDone);
     if (primary.onboardingData != null) setOnboardingData(primary.onboardingData);
     setProfileDynamicId(primary.profileDynamicId ?? null);

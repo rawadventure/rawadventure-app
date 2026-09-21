@@ -62,6 +62,9 @@ export type ProgressSnapshot = {
   pillarEvaluations:
     | Array<{ pillar_id: string; evaluation_type: string; completed_at: string | null }>
     | null;
+  /** F-07/K1 : profiles.dev_tools_enabled — panneau DEV par compte.
+   *  Null en anonyme (le mode anonyme n'a pas de compte à flagger). */
+  devToolsEnabled: boolean | null;
 };
 
 export interface ProgressStore {
@@ -151,6 +154,7 @@ export function createAnonymousStore(): ProgressStore {
         pillarStartedAt,
         pendingTierReach,
         pillarEvaluations: null,
+        devToolsEnabled: null,
       };
     },
 
@@ -243,6 +247,7 @@ export function createRemoteStore(userId: string): ProgressStore {
           (p?.pending_tier_reach as StorePendingTier | undefined) ?? null,
         pillarEvaluations:
           (evalRes.data as ProgressSnapshot['pillarEvaluations']) ?? null,
+        devToolsEnabled: (p?.dev_tools_enabled as boolean | undefined) ?? null,
       };
     },
 

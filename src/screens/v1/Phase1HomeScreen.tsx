@@ -47,7 +47,7 @@ import { supabase } from '../../lib/supabase';
 import { SESSION_INDEX_LABEL, type SessionIndex } from '../../data/s1-program';
 import { getNextPillarId, getPillarMeta } from '../../data/pillar-registry';
 import { todayLocalDate } from '../../lib/calendar';
-import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
+import { useDevTools } from '../../hooks/useDevTools';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
@@ -64,7 +64,9 @@ export default function Phase1HomeScreen() {
   const { currentPillarId, dayInPillarWeek, pillarStartedAt, streak, streakHistory } = useProgress();
 
   // DEV gate — bouton skip jour suivant accessible uniquement en mode DEV.
-  const devPanelEnabled = isDevToolsEnabled();
+  // F-07 : outillage DEV via le hook unique.
+  const devTools = useDevTools();
+  const devPanelEnabled = devTools.enabled;
 
   const handleDevNextDay = async () => {
     const currentPid = currentPillarId ?? 'S1';
@@ -82,9 +84,7 @@ export default function Phase1HomeScreen() {
     // T2.3 (2026-06-19) — clock virtuel +1j. Les useEffects de Phase1HomeScreen
     // re-évaluent isDayAfterJ7, dayInPillarWeek, hasFinalEval via re-fetch
     // naturellement. Pas de mutation streakHistory directe.
-    // eslint-disable-next-line @typescript-eslint/no-require-imports
-    const { advanceDevClock } = require('../../lib/devClock');
-    advanceDevClock(1);
+    devTools.advanceDay();
 
     // Reset local state pour cohérence UI immédiate.
     setValidatedSessions(new Set());
