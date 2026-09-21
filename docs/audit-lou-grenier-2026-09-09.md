@@ -96,3 +96,17 @@ Non localisé précisément dans le transcript. Le premier run d'ESLint react-ho
 5. **Inventaire AsyncStorage local-only vs Supabase** (§ 3.2) — avec la liste de Lou.
 
 *Transcript source : extrait de l'enregistrement du 9 sept (whisper large-v3-turbo). Fichiers de travail en scratchpad de session, non conservés dans le repo.*
+
+---
+
+## Addendum — exécution (à partir du 19 sept 2026)
+
+Rapport écrit de Lou reçu le 19 sept (F-01 à F-17). Plan d'exécution approuvé, suivi kanban bloc R11.
+
+**Vérification F-09 (21 sept 2026).** Migration `supabase/migrations/20260919_f09_subscriptions_rls.sql` appliquée par Stéphane dans le SQL Editor. Résultat de la requête de vérification `pg_policies` sur `public.subscriptions` :
+
+| policyname | cmd | roles | qual | with_check |
+|---|---|---|---|---|
+| Users read own subscription | SELECT | {public} | (auth.uid() = user_id) | NULL |
+
+Exactement une policy, SELECT only, par propriétaire — conforme à l'attendu du rapport (§ F-09). Le scénario « update depuis la console navigateur » est fermé côté base ; les écritures client avaient été retirées du code au commit `502a186`.

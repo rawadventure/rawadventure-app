@@ -60,6 +60,7 @@ import {
   type TierId,
 } from '../lib/streak';
 import { showNotice } from '../lib/notice';
+import { must } from '../lib/supabaseMust';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -1108,16 +1109,49 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           v ? JSON.parse(v) : null,
         ));
 
+      // F-03 (audit Lou) : chaque écriture passe par must() — supabase-js ne
+      // throw pas, il résout { error }. Sans la garde, une écriture échouée
+      // laissait la migration « réussir » puis effacer les clés locales →
+      // perte définitive des données anonymes. Un throw ici remonte au catch
+      // de l'effet pendingMigration, qui CONSERVE pendingMigration pour retry
+      // au prochain load. Les upserts sont idempotents (onConflict) : rejouer
+      // une migration partiellement écrite est sûr — pas besoin de RPC
+      // atomique côté Postgres en V1.
+      //
+      // Source des données : AsyncStorage d'abord, state en secours. Après un
+      // échec, loadData (connecté) a pu écraser le state avec le remote
+      // (vide) — un retry qui lirait les closures migrerait alors du vide et
+      // effacerait les clés locales « avec succès ». Le storage anonyme reste
+      // la source de vérité tant que la migration n'a pas abouti.
+      const readLocal = async <T,>(key: string, fallback: T): Promise<T> => {
+        const raw = await AsyncStorage.getItem(key);
+        return raw ? (JSON.parse(raw) as T) : fallback;
+      };
+      const localHistory = await readLocal<StreakEntry[]>(
+        LOCAL_KEYS.streakHistory,
+        streakHistory,
+      );
+      const localJokers = await readLocal<JokerConsumption[]>(
+        LOCAL_KEYS.jokerConsumptions,
+        jokerConsumptions,
+      );
+      const localTiers = await readLocal<TierReach[]>(
+        LOCAL_KEYS.tierReaches,
+        tierReaches,
+      );
+
       // 1. Update profil distant avec onboarding_data + profile_dynamic_id
-      await supabase
-        .from('profiles')
-        .update({
-          onboarding_done: true,
-          onboarding_data: onboardingData,
-          profile_dynamic_id: dynamicId,
-          account_created_at: accountCreatedAtIso,
-        })
-        .eq('id', userId);
+      await must(
+        supabase
+          .from('profiles')
+          .update({
+            onboarding_done: true,
+            onboarding_data: onboardingData,
+            profile_dynamic_id: dynamicId,
+            account_created_at: accountCreatedAtIso,
+          })
+          .eq('id', userId),
+      );
 
       // Le loadData() déclenché par l'arrivée de la session a pu lire
       // onboarding_done=false AVANT ce write (race) et écraser le state →
@@ -1129,27 +1163,33 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // 2. streak_history (Sprint 24 : table `progress` plus alimentée
       //    en mode anonyme — validateDay l'écrit directement quand l'user
       //    est connecté).
-      if (streakHistory.length > 0) {
-        const rows = streakHistory.map((e) => ({ user_id: userId, ...e }));
-        await supabase
-          .from('streak_history')
-          .upsert(rows, { onConflict: 'user_id,local_date' });
+      if (localHistory.length > 0) {
+        const rows = localHistory.map((e) => ({ user_id: userId, ...e }));
+        await must(
+          supabase
+            .from('streak_history')
+            .upsert(rows, { onConflict: 'user_id,local_date' }),
+        );
       }
 
       // 4. joker_consumptions
-      if (jokerConsumptions.length > 0) {
-        const rows = jokerConsumptions.map((c) => ({ user_id: userId, ...c }));
-        await supabase
-          .from('joker_consumptions')
-          .upsert(rows, { onConflict: 'user_id,week_key' });
+      if (localJokers.length > 0) {
+        const rows = localJokers.map((c) => ({ user_id: userId, ...c }));
+        await must(
+          supabase
+            .from('joker_consumptions')
+            .upsert(rows, { onConflict: 'user_id,week_key' }),
+        );
       }
 
       // 5. tier_reaches
-      if (tierReaches.length > 0) {
-        const rows = tierReaches.map((t) => ({ user_id: userId, ...t }));
-        await supabase
-          .from('tier_reaches')
-          .upsert(rows, { onConflict: 'user_id,tier_id' });
+      if (localTiers.length > 0) {
+        const rows = localTiers.map((t) => ({ user_id: userId, ...t }));
+        await must(
+          supabase
+            .from('tier_reaches')
+            .upsert(rows, { onConflict: 'user_id,tier_id' }),
+        );
       }
 
       // 6. Clear local — sauf narrative_flags : les drapeaux narratifs sont

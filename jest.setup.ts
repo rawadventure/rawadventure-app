@@ -22,6 +22,14 @@ jest.mock('@react-native-async-storage/async-storage', () =>
   require('@react-native-async-storage/async-storage/jest/async-storage-mock')
 );
 
+// Sentry — importé par src/lib/supabaseMust (garde F-03/F-08) et App.tsx.
+// Le package ESM n'est pas transformé par jest-expo : mock global.
+jest.mock('@sentry/react-native', () => ({
+  init: jest.fn(),
+  wrap: (c: unknown) => c,
+  captureException: jest.fn(),
+}));
+
 jest.mock('expo-notifications', () => ({
   setNotificationHandler: jest.fn(),
   getPermissionsAsync: jest.fn(async () => ({ status: 'granted' })),

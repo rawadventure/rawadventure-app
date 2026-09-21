@@ -776,6 +776,74 @@ describe('migration locale → distante (§2.10)', () => {
     });
   });
 
+  // F-03 (audit Lou) : supabase-js ne throw pas — il résout { error }. Avant
+  // le fix, migrateLocalToRemote ignorait error sur ses 4 écritures puis
+  // effaçait les clés AsyncStorage : une écriture échouée (réseau, RLS,
+  // contrainte) = onboarding + progression anonymes perdus définitivement,
+  // sans retry (le catch de l'effet pendingMigration ne voyait rien).
+  test('F-03 : écriture en erreur non-throw → clés locales conservées, pendingMigration gardée', async () => {
+    await seedAnonymousStorage({ history: validatedRun(3) });
+    const utils = await renderProgress();
+    await act(async () => {
+      await utils.result.current.markPendingMigration('u1', ISO, 'a@b.c');
+    });
+
+    // L'upsert streak_history résout { error } (pas de throw). Plusieurs
+    // échecs en file : l'effet pendingMigration peut retenter dans la même
+    // fenêtre (ses deps bougent quand loadData met à jour le state).
+    for (let i = 0; i < 5; i++) {
+      sb.failNext('streak_history', 'upsert', { message: 'RLS denied (simulé)' });
+    }
+
+    mockUser = { id: 'u1' };
+    await act(async () => {
+      utils.rerender({});
+    });
+    await act(async () => {});
+
+    // Les données anonymes locales n'ont PAS été effacées.
+    expect(await AsyncStorage.getItem('streak_history')).not.toBeNull();
+    // pendingMigration conservée — retry au prochain load.
+    expect(utils.result.current.pendingMigration).toMatchObject({
+      userId: 'u1',
+    });
+    expect(await AsyncStorage.getItem('pending_migration')).not.toBeNull();
+  });
+
+  // F-03 bis : après un échec, loadData (connecté) a remplacé le state
+  // in-memory par le remote (vide). Le retry doit migrer les données depuis
+  // AsyncStorage — pas depuis les closures React écrasées — sinon il
+  // « réussit » en migrant du vide et efface les clés locales quand même.
+  test('F-03 : le retry migre les données depuis AsyncStorage, pas le state écrasé', async () => {
+    await seedAnonymousStorage({ history: validatedRun(3) });
+    const utils = await renderProgress();
+    await act(async () => {
+      await utils.result.current.markPendingMigration('u1', ISO, 'a@b.c');
+    });
+
+    // Premier essai en échec, les suivants passent.
+    sb.failNext('streak_history', 'upsert', { message: 'réseau (simulé)' });
+
+    mockUser = { id: 'u1' };
+    await act(async () => {
+      utils.rerender({});
+    });
+
+    // Le retry automatique finit par aboutir…
+    await waitFor(() =>
+      expect(utils.result.current.pendingMigration).toBeNull(),
+    );
+    // …et l'upsert gagnant porte bien les 3 jours validés en anonyme.
+    const upserts = sb.calls.filter(
+      (c) => c.table === 'streak_history' && c.op === 'upsert',
+    );
+    const last = upserts[upserts.length - 1];
+    expect(last.payload).toHaveLength(3);
+    expect(
+      (last.payload as Array<Record<string, unknown>>)[0].user_id,
+    ).toBe('u1');
+  });
+
   test('migration en échec → pendingMigration conservée (retry au prochain load)', async () => {
     const utils = await renderProgress();
     await act(async () => {
