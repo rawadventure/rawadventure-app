@@ -61,6 +61,11 @@ import {
 } from '../lib/streak';
 import { showNotice } from '../lib/notice';
 import { must } from '../lib/supabaseMust';
+import {
+  createAnonymousStore,
+  createRemoteStore,
+  type ProgressSnapshot,
+} from '../lib/progressStore';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -416,14 +421,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
 
+  // F-05.3 : la persistance vit dans src/lib/progressStore (une interface,
+  // deux implémentations). Le contexte compose : le snapshot local sert de
+  // secours de transition en connecté (comptes d'avant F-04), le remote est
+  // la source de vérité.
+  const store = useMemo(
+    () => (user ? createRemoteStore(user.id) : createAnonymousStore()),
+    [user],
+  );
+
   const loadData = async () => {
     setLoading(true);
     try {
-      if (user) {
-        await loadFromSupabase(user.id);
-      } else {
-        await loadFromAsyncStorage();
-      }
+      const local = await createAnonymousStore().load();
+      const remote = user ? await createRemoteStore(user.id).load() : null;
+      applySnapshots(local, remote, user?.id ?? null);
+      // Sprint B email confirm — restaure pendingMigration (clé locale pure).
+      const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
+      if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
     } catch (e) {
       console.error('[ProgressContext] Erreur chargement progression:', e);
     } finally {
@@ -431,114 +446,75 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const loadFromSupabase = async (userId: string) => {
-    const [
-      profileRes,
-      streakRes,
-      jokerRes,
-      tierRes,
-      s8FinalRes,
-    ] = await Promise.all([
-      supabase.from('profiles').select('*').eq('id', userId).single(),
-      supabase
-        .from('streak_history')
-        .select('local_date, validation_status, phase, streak_value_after, joker_used')
-        .eq('user_id', userId)
-        .order('local_date', { ascending: true }),
-      supabase
-        .from('joker_consumptions')
-        .select('week_key, consumed_for_local_date')
-        .eq('user_id', userId),
-      supabase.from('tier_reaches').select('*').eq('user_id', userId),
-      // F-04 : toutes les évals (volume ≤ 16 lignes) — sert à la fois au
-      // flag post-S8 et à la dérivation du pilier courant si la colonne
-      // profiles.current_pillar_id est vide.
-      supabase
-        .from('pillar_evaluations')
-        .select('pillar_id, evaluation_type, completed_at')
-        .eq('user_id', userId),
-    ]);
+  /**
+   * F-05.3 — applique les snapshots des stores au state React.
+   * `remote` null = mode anonyme. La composition (union des flags, secours
+   * local, backfill, dérivation du pilier depuis les évals — F-04) vit ici,
+   * pas dans les stores.
+   */
+  const applySnapshots = (
+    local: ProgressSnapshot,
+    remote: ProgressSnapshot | null,
+    userId: string | null,
+  ) => {
+    const primary = remote ?? local;
+    if (primary.onboardingDone != null) setOnboardingDone(primary.onboardingDone);
+    if (primary.onboardingData != null) setOnboardingData(primary.onboardingData);
+    setProfileDynamicId(primary.profileDynamicId ?? null);
 
-    if (profileRes.data) {
-      setOnboardingDone(profileRes.data.onboarding_done ?? false);
-      setOnboardingData(profileRes.data.onboarding_data ?? {});
-      setProfileDynamicId(profileRes.data.profile_dynamic_id ?? null);
-
+    if (remote && userId) {
       // Backfill `account_created_at` pour les comptes V0 antérieurs à la
-      // migration 001 (colonne ajoutée mais non renseignée). On pose `now()`
-      // sur le premier boot V1 — l'utilisateur démarre son parcours
-      // calendaire au moment où il revient dans l'app V1. Idempotent.
-      const remoteCreatedAt = profileRes.data.account_created_at ?? null;
-      if (!remoteCreatedAt && (profileRes.data.onboarding_done ?? false)) {
+      // migration 001. Fire-and-forget : si l'écriture échoue, on retentera
+      // au prochain boot.
+      if (!remote.accountCreatedAt && (remote.onboardingDone ?? false)) {
         const nowIso = new Date().toISOString();
         setAccountCreatedAtState(nowIso);
-        // Fire-and-forget : si l'écriture échoue, on retentera au prochain boot.
         supabase
           .from('profiles')
           .update({ account_created_at: nowIso })
           .eq('id', userId)
           .then(({ error }) => {
-            if (error) console.warn('[ProgressContext] backfill accountCreatedAt failed', error);
+            if (error)
+              console.warn('[ProgressContext] backfill accountCreatedAt failed', error);
           });
       } else {
-        setAccountCreatedAtState(remoteCreatedAt);
+        setAccountCreatedAtState(remote.accountCreatedAt);
       }
+    } else if (local.accountCreatedAt != null) {
+      setAccountCreatedAtState(local.accountCreatedAt);
     }
-    if (streakRes.data) setStreakHistory(streakRes.data as StreakEntry[]);
-    if (jokerRes.data) setJokerConsumptions(jokerRes.data as JokerConsumption[]);
-    if (tierRes.data) setTierReaches(tierRes.data as TierReach[]);
-    const evalRows = (s8FinalRes.data ?? []) as Array<{
-      pillar_id: string;
-      evaluation_type: string;
-      completed_at: string | null;
-    }>;
+
+    if (primary.streakHistory) setStreakHistory(primary.streakHistory as StreakEntry[]);
+    if (primary.jokerConsumptions)
+      setJokerConsumptions(primary.jokerConsumptions as JokerConsumption[]);
+    if (primary.tierReaches) setTierReaches(primary.tierReaches as TierReach[]);
+
+    const evalRows = remote?.pillarEvaluations ?? [];
     setS8FinalCompleted(
-      evalRows.some(
-        (r) => r.pillar_id === 'S8' && r.evaluation_type === 'final',
-      ),
+      evalRows.some((r) => r.pillar_id === 'S8' && r.evaluation_type === 'final'),
     );
 
-    // F-04 (audit Lou) : l'état utilisateur connecté vit dans profiles —
-    // narrative_flags, current_pillar_id, pillar_started_at,
-    // pending_tier_reach. AsyncStorage n'est plus qu'un secours de
-    // transition (comptes d'avant la migration 20260921) et le mode anonyme.
-    //
     // Flags : union locale ∪ distante, la ref in-flight prime (un flag posé
     // en mémoire pendant que ce load était en vol — deux loadData
     // concurrents post-OTP — ne doit pas être écrasé).
-    const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
-    const remoteFlags =
-      (profileRes.data?.narrative_flags as Partial<
-        Record<NarrativeEventId, string>
-      > | null) ?? {};
-    const localFlags = rawFlags ? JSON.parse(rawFlags) : {};
     const mergedFlags = {
-      ...localFlags,
-      ...remoteFlags,
+      ...(local.narrativeFlags ?? {}),
+      ...(remote?.narrativeFlags ?? {}),
       ...narrativeFlagsRef.current,
-    };
+    } as Partial<Record<NarrativeEventId, string>>;
     if (Object.keys(mergedFlags).length > 0) {
       setNarrativeFlagsSynced(mergedFlags);
     }
 
-    // Pilier en cours : colonne profiles d'abord, storage local en secours,
-    // sinon dérivation depuis la dernière évaluation enregistrée (fallback
-    // « changement de téléphone » — on ne repart plus jamais à S1 par
-    // défaut si l'utilisateur a déjà des évals).
-    const [rawPid, rawPstart] = await Promise.all([
-      AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
-      AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
-    ]);
-    const remotePillarId =
-      (profileRes.data?.current_pillar_id as string | null) ?? null;
-    const remotePillarStartedAt =
-      (profileRes.data?.pillar_started_at as string | null) ?? null;
-    if (remotePillarId) {
-      setCurrentPillarId(remotePillarId);
-      setPillarStartedAt(remotePillarStartedAt);
-    } else if (rawPid) {
-      setCurrentPillarId(JSON.parse(rawPid));
-      if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
+    // Pilier : remote d'abord, storage local en secours, sinon dérivation
+    // depuis la dernière évaluation (« changement de téléphone » — on ne
+    // repart plus jamais à S1 par défaut si l'utilisateur a des évals).
+    if (remote?.currentPillarId) {
+      setCurrentPillarId(remote.currentPillarId);
+      setPillarStartedAt(remote.pillarStartedAt);
+    } else if (local.currentPillarId) {
+      setCurrentPillarId(local.currentPillarId);
+      if (local.pillarStartedAt) setPillarStartedAt(local.pillarStartedAt);
     } else if (evalRows.length > 0) {
       const latest = evalRows.reduce((a, b) =>
         (a.completed_at ?? '') >= (b.completed_at ?? '') ? a : b,
@@ -546,101 +522,25 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setCurrentPillarId(latest.pillar_id);
     }
 
-    const remotePending =
-      (profileRes.data?.pending_tier_reach as PendingTierReach | null) ?? null;
-    if (remotePending) {
-      setPendingTierReachState(remotePending);
-    } else {
-      const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
-      if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
-    }
-
-    // Sprint B email confirm — restaure pendingMigration si signup en attente.
-    const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
-    if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
+    const pending = remote?.pendingTierReach ?? local.pendingTierReach;
+    if (pending) setPendingTierReachState(pending as PendingTierReach);
   };
 
-  const loadFromAsyncStorage = async () => {
-    const [
-      done,
-      data,
-      dynamicId,
-      createdAt,
-      history,
-      consumptions,
-      tiers,
-    ] = await Promise.all([
-      AsyncStorage.getItem(LOCAL_KEYS.onboardingDone),
-      AsyncStorage.getItem(LOCAL_KEYS.onboardingData),
-      AsyncStorage.getItem(LOCAL_KEYS.profileDynamicId),
-      AsyncStorage.getItem(LOCAL_KEYS.accountCreatedAt),
-      AsyncStorage.getItem(LOCAL_KEYS.streakHistory),
-      AsyncStorage.getItem(LOCAL_KEYS.jokerConsumptions),
-      AsyncStorage.getItem(LOCAL_KEYS.tierReaches),
-    ]);
-    if (done) setOnboardingDone(JSON.parse(done));
-    if (data) setOnboardingData(JSON.parse(data));
-    if (dynamicId) setProfileDynamicId(JSON.parse(dynamicId));
-    if (createdAt) setAccountCreatedAtState(JSON.parse(createdAt));
-    if (history) setStreakHistory(JSON.parse(history));
-    if (consumptions) setJokerConsumptions(JSON.parse(consumptions));
-    if (tiers) setTierReaches(JSON.parse(tiers));
-    // Merge (même logique que loadFromSupabase) : les flags posés en mémoire
-    // pendant le load priment sur la version disque.
-    const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
-    if (rawFlags) {
-      setNarrativeFlagsSynced({ ...JSON.parse(rawFlags), ...narrativeFlagsRef.current });
-    }
-    const [rawPid, rawPstart] = await Promise.all([
-      AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
-      AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
-    ]);
-    if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
-    if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
-
-    const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
-    if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
-
-    const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
-    if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
-  };
-
-  // F-04 : connecté → write-through profiles.pending_tier_reach ; anonyme →
-  // AsyncStorage (un palier différé D30 ne doit pas se perdre avec le
-  // navigateur — l'utilisateur payant est précisément celui concerné).
+  // F-04 : write-through via le store (profiles.pending_tier_reach en
+  // connecté, AsyncStorage en anonyme) — un palier différé D30 ne doit pas
+  // se perdre avec le navigateur.
   const setPendingTier = useCallback(
     async (pending: PendingTierReach) => {
       setPendingTierReachState(pending);
-      if (user) {
-        await must(
-          supabase
-            .from('profiles')
-            .update({ pending_tier_reach: pending })
-            .eq('id', user.id),
-        );
-      } else {
-        await AsyncStorage.setItem(
-          LOCAL_KEYS.pendingTierReach,
-          JSON.stringify(pending),
-        );
-      }
+      await store.savePendingTier(pending);
     },
-    [user],
+    [store],
   );
 
   const clearPendingTier = useCallback(async () => {
     setPendingTierReachState(null);
-    if (user) {
-      await must(
-        supabase
-          .from('profiles')
-          .update({ pending_tier_reach: null })
-          .eq('id', user.id),
-      );
-    } else {
-      await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
-    }
-  }, [user]);
+    await store.savePendingTier(null);
+  }, [store]);
 
   // Sprint B email confirm — pendingMigration getters/setters.
   // `email` alimente EmailPendingScreen (affichage + verifyOtp + resend) —
@@ -665,20 +565,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       if (narrativeFlagsRef.current[id]) return; // déjà marqué — idempotent
       const next = { ...narrativeFlagsRef.current, [id]: new Date().toISOString() };
       setNarrativeFlagsSynced(next);
-      // F-04 : connecté → write-through profiles.narrative_flags (survit au
-      // changement de téléphone / effacement Safari). Anonyme → AsyncStorage.
-      if (user) {
-        await must(
-          supabase
-            .from('profiles')
-            .update({ narrative_flags: next })
-            .eq('id', user.id),
-        );
-      } else {
-        await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
-      }
+      // F-04 : write-through via le store (profiles.narrative_flags en
+      // connecté — survit au changement de téléphone ; AsyncStorage en
+      // anonyme).
+      await store.saveNarrativeFlags(next);
     },
-    [setNarrativeFlagsSynced, user],
+    [setNarrativeFlagsSynced, store],
   );
 
   // ── Persistance des évaluations 12 questions ──────────────────────────────
@@ -768,24 +660,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const nowIso = (devNowDate() as Date).toISOString();
       setCurrentPillarId(pillarId);
       setPillarStartedAt(nowIso);
-      // F-04 : connecté → write-through profiles (le pilier en cours ne
-      // repart plus à S1 après un changement de téléphone). Anonyme →
-      // AsyncStorage (flow pré-signup uniquement).
-      if (user) {
-        await must(
-          supabase
-            .from('profiles')
-            .update({ current_pillar_id: pillarId, pillar_started_at: nowIso })
-            .eq('id', user.id),
-        );
-      } else {
-        await AsyncStorage.multiSet([
-          [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
-          [LOCAL_KEYS.pillarStartedAt, JSON.stringify(nowIso)],
-        ]);
-      }
+      // F-04 : write-through via le store (le pilier en cours ne repart
+      // plus à S1 après un changement de téléphone).
+      await store.savePillarState(pillarId, nowIso);
     },
-    [user],
+    [store],
   );
 
 
@@ -1008,48 +887,30 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
   // ── Méthodes V1 ──────────────────────────────────────────────────────────
 
+  // F-05.3 : persistance via le store. F-08 : un échec throw AVANT la mise à
+  // jour du state — sinon le jour validé « revert » au prochain load.
   const persistStreakHistoryEntry = useCallback(
-    async (entry: StreakEntry, userId: string | undefined) => {
-      if (userId) {
-        // F-08 : must() — un échec doit interrompre validateDay AVANT la mise
-        // à jour du state, sinon le jour validé « revert » au prochain load.
-        await must(
-          supabase.from('streak_history').upsert(
-            { user_id: userId, ...entry },
-            { onConflict: 'user_id,local_date' },
-          ),
-        );
-      } else {
-        const next = [...streakHistory.filter((e) => e.local_date !== entry.local_date), entry];
-        next.sort((a, b) => a.local_date.localeCompare(b.local_date));
-        await AsyncStorage.setItem(LOCAL_KEYS.streakHistory, JSON.stringify(next));
-      }
+    async (entry: StreakEntry) => {
+      const next = [...streakHistory.filter((e) => e.local_date !== entry.local_date), entry];
+      next.sort((a, b) => a.local_date.localeCompare(b.local_date));
+      await store.saveStreakEntry(entry, next);
     },
-    [streakHistory],
+    [streakHistory, store],
   );
 
   const persistJokerConsumption = useCallback(
-    async (consumption: JokerConsumption, userId: string | undefined) => {
-      if (userId) {
-        await must(
-          supabase.from('joker_consumptions').upsert(
-            { user_id: userId, ...consumption },
-            { onConflict: 'user_id,week_key' },
-          ),
-        );
-      } else {
-        const next = [
-          ...jokerConsumptions.filter((c) => c.week_key !== consumption.week_key),
-          consumption,
-        ];
-        await AsyncStorage.setItem(LOCAL_KEYS.jokerConsumptions, JSON.stringify(next));
-      }
+    async (consumption: JokerConsumption) => {
+      const next = [
+        ...jokerConsumptions.filter((c) => c.week_key !== consumption.week_key),
+        consumption,
+      ];
+      await store.saveJokerConsumption(consumption, next);
     },
-    [jokerConsumptions],
+    [jokerConsumptions, store],
   );
 
   const persistTierReach = useCallback(
-    async (tierId: TierId, streakValue: number, userId: string | undefined) => {
+    async (tierId: TierId, streakValue: number) => {
       const now = new Date().toISOString();
       const existing = tierReaches.find((t) => t.tier_id === tierId);
       const updated: TierReach = existing
@@ -1065,23 +926,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             reach_count: 1,
           };
 
-      if (userId) {
-        await must(
-          supabase.from('tier_reaches').upsert(
-            { user_id: userId, ...updated },
-            { onConflict: 'user_id,tier_id' },
-          ),
-        );
-      } else {
-        const next = [...tierReaches.filter((t) => t.tier_id !== tierId), updated];
-        await AsyncStorage.setItem(LOCAL_KEYS.tierReaches, JSON.stringify(next));
-      }
+      const next = [...tierReaches.filter((t) => t.tier_id !== tierId), updated];
+      await store.saveTierReach(updated, next);
       // streakValue référencé pour la signature même si non stocké dans `tier_reaches`
       // (schéma alternatif PK composite §2.3) — utilisé en analytics future.
       void streakValue;
       return updated;
     },
-    [tierReaches],
+    [tierReaches, store],
   );
 
   const validateDay = useCallback(
@@ -1112,7 +964,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         streak_value_after: newStreak,
         joker_used: decision.jokerUsed,
       };
-      await persistStreakHistoryEntry(entry, user?.id);
+      await persistStreakHistoryEntry(entry);
       setStreakHistory((prev) => {
         const next = [...prev.filter((e) => e.local_date !== entry.local_date), entry];
         next.sort((a, b) => a.local_date.localeCompare(b.local_date));
@@ -1125,7 +977,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           week_key: currentWeekKey(),
           consumed_for_local_date: localDate,
         };
-        await persistJokerConsumption(consumption, user?.id);
+        await persistJokerConsumption(consumption);
         setJokerConsumptions((prev) => [
           ...prev.filter((c) => c.week_key !== consumption.week_key),
           consumption,
@@ -1154,7 +1006,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       // 4) Enregistre le franchissement de palier
       let tierIsFirstReach = false;
       if (tierReached) {
-        const updated = await persistTierReach(tierReached, newStreak, user?.id);
+        const updated = await persistTierReach(tierReached, newStreak);
         tierIsFirstReach = updated.reach_count === 1;
         setTierReaches((prev) => [
           ...prev.filter((t) => t.tier_id !== tierReached),
@@ -1341,18 +1193,9 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const setAccountCreatedAt = useCallback(
     async (iso: string) => {
       setAccountCreatedAtState(iso);
-      if (user) {
-        await must(
-          supabase
-            .from('profiles')
-            .update({ account_created_at: iso })
-            .eq('id', user.id),
-        );
-      } else {
-        await AsyncStorage.setItem(LOCAL_KEYS.accountCreatedAt, JSON.stringify(iso));
-      }
+      await store.saveAccountCreatedAt(iso);
     },
-    [user],
+    [store],
   );
 
   // ── Onboarding ────────────────────────────────────────────────────────────
@@ -1373,36 +1216,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         setAccountCreatedAtState(nowIso);
       }
 
-      if (user) {
-        await must(
-          supabase
-            .from('profiles')
-            .update({
-              onboarding_done: true,
-              onboarding_data: answers,
-              ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
-              ...(shouldSetCreatedAt ? { account_created_at: nowIso } : {}),
-            })
-            .eq('id', user.id),
-        );
-      } else {
-        await AsyncStorage.setItem(LOCAL_KEYS.onboardingData, JSON.stringify(answers));
-        await AsyncStorage.setItem(LOCAL_KEYS.onboardingDone, JSON.stringify(true));
-        if (dynamicId) {
-          await AsyncStorage.setItem(
-            LOCAL_KEYS.profileDynamicId,
-            JSON.stringify(dynamicId),
-          );
-        }
-        if (shouldSetCreatedAt) {
-          await AsyncStorage.setItem(
-            LOCAL_KEYS.accountCreatedAt,
-            JSON.stringify(nowIso),
-          );
-        }
-      }
+      await store.saveOnboarding({
+        answers,
+        dynamicId,
+        accountCreatedAtIso: shouldSetCreatedAt ? nowIso : undefined,
+      });
     },
-    [user, accountCreatedAt],
+    [store, accountCreatedAt],
   );
 
   // ── Reset complet (DEV / __DEV__ uniquement) ──────────────────────────────
@@ -1423,11 +1243,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setPendingTierReachState(null);
     setPendingMigrationState(null);
 
-    // 2) Clear TOUT AsyncStorage (mode connecté OU anonyme) — couvre les
-    // 12 clés LOCAL_KEYS sans exception. Évite que de la stale data
-    // (onboardingDone, accountCreatedAt, streakHistory, etc.) survive
-    // au reset en mode connecté.
-    await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
+    // 2) Clear TOUT le storage local (mode connecté OU anonyme) — couvre
+    // les 12 clés sans exception. Évite que de la stale data survive au
+    // reset en mode connecté.
+    await createAnonymousStore().reset();
 
     // 3) Clear toutes les clés daily_check_actions.<date> (coches en cours
     // de plusieurs jours potentiels). Pas dans LOCAL_KEYS car clé dynamique.
@@ -1439,36 +1258,10 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.multiRemove(dailyCheckKeys);
     }
 
-    // 4) Reset Supabase tables si connecté. F-08 : must() sur chaque
-    // écriture — un delete échoué doit faire échouer le reset visiblement,
-    // pas laisser une base à moitié vidée derrière un state local remis à
-    // zéro.
+    // 4) Reset Supabase si connecté (store distant — F-08 : chaque écriture
+    // gardée par must(), un delete échoué fait échouer le reset visiblement).
     if (user) {
-      await Promise.all([
-        must(
-          supabase
-            .from('profiles')
-            .update({
-              onboarding_done: false,
-              onboarding_data: {},
-              profile_dynamic_id: null,
-              account_created_at: null,
-              // F-04 : les colonnes d'état répliqué se resettent aussi.
-              narrative_flags: {},
-              current_pillar_id: null,
-              pillar_started_at: null,
-              pending_tier_reach: null,
-            })
-            .eq('id', user.id),
-        ),
-        must(supabase.from('progress').delete().eq('user_id', user.id)),
-        must(supabase.from('streak_history').delete().eq('user_id', user.id)),
-        must(supabase.from('joker_consumptions').delete().eq('user_id', user.id)),
-        must(supabase.from('tier_reaches').delete().eq('user_id', user.id)),
-        must(supabase.from('pillar_evaluations').delete().eq('user_id', user.id)),
-        must(supabase.from('pillar_sessions').delete().eq('user_id', user.id)),
-        must(supabase.from('level_adaptive_choices').delete().eq('user_id', user.id)),
-      ]);
+      await createRemoteStore(user.id).reset();
     }
   }, [user]);
 
