@@ -110,3 +110,7 @@ Rapport écrit de Lou reçu le 19 sept (F-01 à F-17). Plan d'exécution approuv
 | Users read own subscription | SELECT | {public} | (auth.uid() = user_id) | NULL |
 
 Exactement une policy, SELECT only, par propriétaire — conforme à l'attendu du rapport (§ F-09). Le scénario « update depuis la console navigateur » est fermé côté base ; les écritures client avaient été retirées du code au commit `502a186`.
+
+**Vérification F-04 (21 sept 2026).** Migration `20260921_f04_profiles_pillar_state.sql` appliquée par Stéphane. `information_schema.columns` sur `profiles` confirme les 4 nouvelles colonnes en fin de liste : `narrative_flags` (jsonb), `current_pillar_id` (text), `pillar_started_at` (timestamptz), `pending_tier_reach` (jsonb). La vérification a aussi révélé une colonne live `created_at` (timestamptz) absente de la définition versionnée — ajoutée au fichier de migration de référence dans la foulée. Code write-through au commit `24b4dc8`.
+
+**État d'exécution du rapport au 21 sept** : F-01, F-02, F-03, F-04, F-06, F-08, F-09 soldés (étapes 1 à 5 du plan). Restent : étape 6 (F-05 découpage ProgressContext + F-07/K1 outils dev par compte) et étape 7 (F-10 à F-13, F-16, F-17). Caducs : F-14 (D42), F-15 (reporté).

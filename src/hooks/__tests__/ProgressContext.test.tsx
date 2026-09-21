@@ -718,6 +718,20 @@ describe('mode connecté — écritures Supabase', () => {
 
 // ─── Migration locale → distante (Feature Spec §2.10, Sprint B) ──────────────
 
+describe('F-05.1 (audit Lou) — value du Provider mémoïsé', () => {
+  // Avant le fix, le value était un objet littéral recréé à CHAQUE render du
+  // Provider : tout changement d'état re-rendait tous les consommateurs et
+  // refaisait tourner leurs effets — un des moteurs du cycle de bugs.
+  test('re-render du Provider sans changement d état → même référence de contexte', async () => {
+    const utils = await renderProgress();
+    const first = utils.result.current;
+    await act(async () => {
+      utils.rerender({});
+    });
+    expect(utils.result.current).toBe(first);
+  });
+});
+
 describe('F-04 (audit Lou) — état utilisateur connecté répliqué dans profiles', () => {
   const PROFILE_BASE = {
     id: 'user-1',

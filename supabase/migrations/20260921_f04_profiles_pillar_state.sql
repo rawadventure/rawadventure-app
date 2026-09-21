@@ -26,6 +26,7 @@ ALTER TABLE public.profiles
 --    le code s'en sert.
 CREATE TABLE IF NOT EXISTS public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
+  created_at timestamptz NOT NULL DEFAULT now(),
   onboarding_done boolean NOT NULL DEFAULT false,
   onboarding_data jsonb NOT NULL DEFAULT '{}',
   profile_dynamic_id text,
