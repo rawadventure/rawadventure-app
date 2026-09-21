@@ -66,6 +66,14 @@ import {
   createRemoteStore,
   type ProgressSnapshot,
 } from '../lib/progressStore';
+import {
+  EMPTY_PROGRESS_DATA,
+  withCoherenceResolution,
+  withJokerConsumption,
+  withStreakEntry,
+  withTierReach,
+  type ProgressData,
+} from '../lib/progressData';
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -352,30 +360,33 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [profileDynamicId, setProfileDynamicId] = useState<string | null>(null);
   const [accountCreatedAt, setAccountCreatedAtState] = useState<string | null>(null);
 
-  // Streak / joker V1
-  const [streakHistory, setStreakHistoryState] = useState<StreakEntry[]>([]);
-  // Miroir synchrone de streakHistory. `validateDay` doit lire le streak
-  // COURANT au moment de valider, pas la valeur figée dans sa closure : en mode
-  // connecté, la cohérence calendaire (runCalendarCoherence) casse le streak via
-  // un setState APRÈS des awaits Supabase ; une validation déclenchée pendant
-  // cette fenêtre réseau, avec une référence de validateDay liée avant la
-  // cassure, recalculait newStreak depuis l'ancienne valeur (14 → 15) et
-  // l'entrée du jour, plus récente, écrasait la cassure. La ref est mise à jour
-  // de façon synchrone à chaque écriture de l'historique → base toujours à jour.
-  // (Même pattern que narrativeFlagsRef ci-dessous. Bug salve F4, 2 sept 2026.)
-  const streakHistoryRef = useRef<StreakEntry[]>([]);
-  const setStreakHistory = useCallback(
-    (next: StreakEntry[] | ((prev: StreakEntry[]) => StreakEntry[])) => {
-      setStreakHistoryState((prev) => {
-        const value = typeof next === 'function' ? next(prev) : next;
-        streakHistoryRef.current = value;
-        return value;
-      });
-    },
-    [],
-  );
-  const [jokerConsumptions, setJokerConsumptions] = useState<JokerConsumption[]>([]);
-  const [tierReaches, setTierReaches] = useState<TierReach[]>([]);
+  // Streak / joker / paliers V1 — F-05.4 (audit Lou).
+  //
+  // SOURCE DE VÉRITÉ : `dataRef`, lue de façon synchrone par tout le code
+  // async (validateDay, cohérence calendaire). Le state React `data` n'est
+  // que la PROJECTION pour le rendu ; l'unique porte d'écriture est
+  // `commitData`, et les transitions sont les fonctions pures de
+  // src/lib/progressData. Remplace les trois refs miroirs bricolées
+  // (streakHistoryRef — bug F4, coherenceRunningRef) : le code async
+  // calcule l'état suivant depuis l'état courant, jamais depuis une
+  // closure figée.
+  const [data, setDataState] = useState<ProgressData>(EMPTY_PROGRESS_DATA);
+  const dataRef = useRef<ProgressData>(EMPTY_PROGRESS_DATA);
+  const commitData = useCallback((next: ProgressData) => {
+    dataRef.current = next;
+    setDataState(next);
+  }, []);
+  const { streakHistory, jokerConsumptions, tierReaches } = data;
+
+  // File de mutations : validation et cohérence calendaire s'exécutent
+  // strictement l'une après l'autre — plus de fenêtre réseau où les deux
+  // s'entrelacent (classe de bug F4).
+  const mutationChainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueueMutation = useCallback(<T,>(op: () => Promise<T>): Promise<T> => {
+    const run = mutationChainRef.current.then(op, op);
+    mutationChainRef.current = run.catch(() => undefined);
+    return run;
+  }, []);
 
   // API legacy V0
 
@@ -383,11 +394,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [narrativeFlags, setNarrativeFlags] = useState<
     Partial<Record<NarrativeEventId, string>>
   >({});
-  // Miroir synchrone du state narrativeFlags. Deux markNarrativeSeen peuvent
-  // partir dans le même commit React (ex : J1 — welcome_video + prompt notifs) ;
-  // chacun lirait la closure stale et écraserait le flag de l'autre (lost
-  // update, bug double vidéo J1). La ref est lue/écrite de façon synchrone
-  // avant tout await → pas de perte possible.
+  // F-05.4 : même pattern que dataRef — la ref est la SOURCE (lue/écrite de
+  // façon synchrone), le state la projection render, une seule porte
+  // d'écriture (setNarrativeFlagsSynced). Deux markNarrativeSeen dans le
+  // même commit React (ex : J1 — welcome_video + prompt notifs) liraient
+  // sinon des closures stales et se perdraient mutuellement (bug double
+  // vidéo J1).
   const narrativeFlagsRef = useRef<Partial<Record<NarrativeEventId, string>>>({});
   const setNarrativeFlagsSynced = useCallback(
     (flags: Partial<Record<NarrativeEventId, string>>) => {
@@ -484,10 +496,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       setAccountCreatedAtState(local.accountCreatedAt);
     }
 
-    if (primary.streakHistory) setStreakHistory(primary.streakHistory as StreakEntry[]);
-    if (primary.jokerConsumptions)
-      setJokerConsumptions(primary.jokerConsumptions as JokerConsumption[]);
-    if (primary.tierReaches) setTierReaches(primary.tierReaches as TierReach[]);
+    commitData({
+      streakHistory:
+        (primary.streakHistory as StreakEntry[] | null) ??
+        dataRef.current.streakHistory,
+      jokerConsumptions:
+        (primary.jokerConsumptions as JokerConsumption[] | null) ??
+        dataRef.current.jokerConsumptions,
+      tierReaches:
+        (primary.tierReaches as TierReach[] | null) ?? dataRef.current.tierReaches,
+    });
 
     const evalRows = remote?.pillarEvaluations ?? [];
     setS8FinalCompleted(
@@ -679,16 +697,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await applyTimelineSnapshot(snapshot, {
         userId: user?.id ?? null,
         setAccountCreatedAt: setAccountCreatedAtState,
-        setStreakHistory,
-        setJokerConsumptions,
-        setTierReaches,
+        // F-05.4 : le trio passe par la porte unique commitData.
+        setStreakHistory: (h: StreakEntry[]) =>
+          commitData({ ...dataRef.current, streakHistory: h }),
+        setJokerConsumptions: (c: JokerConsumption[]) =>
+          commitData({ ...dataRef.current, jokerConsumptions: c }),
+        setTierReaches: (t: TierReach[]) =>
+          commitData({ ...dataRef.current, tierReaches: t }),
         setNarrativeFlags: setNarrativeFlagsSynced,
         setCurrentPillarId,
         setPillarStartedAt,
         setS8FinalCompleted,
       });
     },
-    [user],
+    [user, commitData],
   );
 
   const savePillarSession = useCallback(
@@ -772,16 +794,15 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // chaque chargement et à chaque changement de jour détecté (clockEpoch —
   // retour au premier plan M1, DEV clock). Idempotente : rien à résoudre →
   // aucune écriture.
-  const coherenceRunningRef = useRef(false);
   const runCalendarCoherence = useCallback(
-    async (
-      history: StreakEntry[],
-      consumptions: JokerConsumption[],
-      s8Done: boolean,
-    ) => {
-      if (coherenceRunningRef.current) return;
-      coherenceRunningRef.current = true;
-      try {
+    async (s8Done: boolean) => {
+      // F-05.4 : sérialisé par la file de mutations (plus de garde
+      // coherenceRunningRef) et lit l'état COURANT depuis dataRef au moment
+      // où la mutation démarre — jamais des arguments figés à la
+      // planification de l'effet.
+      await enqueueMutation(async () => {
+        const { streakHistory: history, jokerConsumptions: consumptions } =
+          dataRef.current;
         // Phase des jours manqués — stable pendant une absence : currentDay
         // est basé sur les validations (D38), il n'avance pas sans l'app.
         const day =
@@ -802,42 +823,42 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         if (resolved.entries.length === 0) return;
 
         // Persistance batch — Supabase en connecté, AsyncStorage en anonyme.
-        const nextHistory = [...history, ...resolved.entries].sort((a, b) =>
-          a.local_date.localeCompare(b.local_date),
+        const nextData = withCoherenceResolution(
+          dataRef.current,
+          resolved.entries,
+          resolved.consumptions,
         );
-        const nextConsumptions = [...consumptions, ...resolved.consumptions];
         if (user) {
           const rows = resolved.entries.map((e) => ({ user_id: user.id, ...e }));
-          const { error } = await supabase
-            .from('streak_history')
-            .upsert(rows, { onConflict: 'user_id,local_date' });
-          if (error) throw error;
+          await must(
+            supabase
+              .from('streak_history')
+              .upsert(rows, { onConflict: 'user_id,local_date' }),
+          );
           if (resolved.consumptions.length > 0) {
             const cRows = resolved.consumptions.map((c) => ({
               user_id: user.id,
               ...c,
             }));
-            const { error: cError } = await supabase
-              .from('joker_consumptions')
-              .upsert(cRows, { onConflict: 'user_id,week_key' });
-            if (cError) throw cError;
+            await must(
+              supabase
+                .from('joker_consumptions')
+                .upsert(cRows, { onConflict: 'user_id,week_key' }),
+            );
           }
         } else {
           await AsyncStorage.setItem(
             LOCAL_KEYS.streakHistory,
-            JSON.stringify(nextHistory),
+            JSON.stringify(nextData.streakHistory),
           );
           if (resolved.consumptions.length > 0) {
             await AsyncStorage.setItem(
               LOCAL_KEYS.jokerConsumptions,
-              JSON.stringify(nextConsumptions),
+              JSON.stringify(nextData.jokerConsumptions),
             );
           }
         }
-        setStreakHistory(nextHistory);
-        if (resolved.consumptions.length > 0) {
-          setJokerConsumptions(nextConsumptions);
-        }
+        commitData(nextData);
 
         // Message sobre, non-culpabilisant (D26). Slots définitifs
         // (copy.global.message-joker-consomme / streak-reprise) à venir
@@ -864,130 +885,77 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             `Ton joker de la semaine a couvert une journée manquée. Streak conservé. ${repriseText} [copy à valider]`,
           );
         }
-      } catch (e) {
+      }).catch((e) => {
         // Non bloquant — retentera au prochain chargement / changement de jour.
         console.warn('[ProgressContext] cohérence calendaire échouée', e);
-      } finally {
-        coherenceRunningRef.current = false;
-      }
+      });
     },
-    [user],
+    [user, enqueueMutation, commitData],
   );
 
   // Déclenchement : fin de chargement (ouverture, changement d'utilisateur,
-  // re-load post-migration) + changement de jour (clockEpoch). Les deps
-  // n'incluent volontairement PAS streakHistory : la cohérence n'a pas à
-  // retourner après chaque validation. Les valeurs lues sont celles du render
-  // au moment où l'effet tourne — fraîches par construction.
+  // re-load post-migration) + changement de jour (clockEpoch). Les données
+  // sont lues depuis dataRef AU DÉMARRAGE de la mutation (F-05.4) — pas de
+  // dépendance sur streakHistory ici.
   useEffect(() => {
     if (loading) return;
-    void runCalendarCoherence(streakHistory, jokerConsumptions, s8FinalCompleted);
+    void runCalendarCoherence(s8FinalCompleted);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loading, clockEpoch, user?.id, runCalendarCoherence]);
 
   // ── Méthodes V1 ──────────────────────────────────────────────────────────
 
-  // F-05.3 : persistance via le store. F-08 : un échec throw AVANT la mise à
-  // jour du state — sinon le jour validé « revert » au prochain load.
-  const persistStreakHistoryEntry = useCallback(
-    async (entry: StreakEntry) => {
-      const next = [...streakHistory.filter((e) => e.local_date !== entry.local_date), entry];
-      next.sort((a, b) => a.local_date.localeCompare(b.local_date));
-      await store.saveStreakEntry(entry, next);
-    },
-    [streakHistory, store],
-  );
-
-  const persistJokerConsumption = useCallback(
-    async (consumption: JokerConsumption) => {
-      const next = [
-        ...jokerConsumptions.filter((c) => c.week_key !== consumption.week_key),
-        consumption,
-      ];
-      await store.saveJokerConsumption(consumption, next);
-    },
-    [jokerConsumptions, store],
-  );
-
-  const persistTierReach = useCallback(
-    async (tierId: TierId, streakValue: number) => {
-      const now = new Date().toISOString();
-      const existing = tierReaches.find((t) => t.tier_id === tierId);
-      const updated: TierReach = existing
-        ? {
-            ...existing,
-            last_reached_at: now,
-            reach_count: existing.reach_count + 1,
-          }
-        : {
-            tier_id: tierId,
-            first_reached_at: now,
-            last_reached_at: now,
-            reach_count: 1,
-          };
-
-      const next = [...tierReaches.filter((t) => t.tier_id !== tierId), updated];
-      await store.saveTierReach(updated, next);
-      // streakValue référencé pour la signature même si non stocké dans `tier_reaches`
-      // (schéma alternatif PK composite §2.3) — utilisé en analytics future.
-      void streakValue;
-      return updated;
-    },
-    [tierReaches, store],
-  );
-
   const validateDay = useCallback(
-    async (args: ValidateDayArgs): Promise<ValidateDayResult> => {
-      const localDate = args.localDate ?? todayLocalDate();
-      const phase = args.phase ?? currentPhase;
-      const userValidatedManually = args.userValidatedManually ?? true;
+    async (args: ValidateDayArgs): Promise<ValidateDayResult> =>
+      // F-05.4 : mutation sérialisée. La base de streak et la dispo joker
+      // sont lues depuis dataRef AU DÉMARRAGE de la mutation — jamais depuis
+      // les closures/memos du render (bug F4 : une cassure de cohérence en
+      // vol serait écrasée). Persistance d'abord (store, F-08), commit du
+      // state seulement après succès, via les transitions pures de
+      // src/lib/progressData.
+      enqueueMutation(async () => {
+        const localDate = args.localDate ?? todayLocalDate();
+        const phase = args.phase ?? currentPhase;
+        const userValidatedManually = args.userValidatedManually ?? true;
 
-      const decision = determineValidationStatus({
-        phase,
-        actionsCount: args.actionsCount,
-        userValidatedManually,
-        jokerAvailable,
-      });
-      // Base = streak COURANT lu depuis l'historique à jour (streakHistoryRef),
-      // pas le memo `streak` figé dans la closure : sinon une cassure de
-      // cohérence survenue depuis la liaison de ce validateDay serait écrasée
-      // (bug F4, voir commentaire sur streakHistoryRef).
-      const base = currentStreakFromHistory(streakHistoryRef.current);
-      const newStreak = applyStreakIncrement(base, decision.streakIncrement);
-      const tierReached = tierJustReached(base, newStreak);
+        const current = dataRef.current;
+        const decision = determineValidationStatus({
+          phase,
+          actionsCount: args.actionsCount,
+          userValidatedManually,
+          jokerAvailable: isJokerAvailable(
+            current.jokerConsumptions,
+            todayLocalDate(),
+          ),
+        });
+        const base = currentStreakFromHistory(current.streakHistory);
+        const newStreak = applyStreakIncrement(base, decision.streakIncrement);
+        const tierReached = tierJustReached(base, newStreak);
 
-      // 1) Écrit l'entrée streak_history
-      const entry: StreakEntry = {
-        local_date: localDate,
-        validation_status: decision.status,
-        phase,
-        streak_value_after: newStreak,
-        joker_used: decision.jokerUsed,
-      };
-      await persistStreakHistoryEntry(entry);
-      setStreakHistory((prev) => {
-        const next = [...prev.filter((e) => e.local_date !== entry.local_date), entry];
-        next.sort((a, b) => a.local_date.localeCompare(b.local_date));
-        return next;
-      });
-
-      // 2) Consomme le joker si nécessaire
-      if (decision.jokerUsed) {
-        const consumption: JokerConsumption = {
-          week_key: currentWeekKey(),
-          consumed_for_local_date: localDate,
+        // 1) Écrit l'entrée streak_history
+        const entry: StreakEntry = {
+          local_date: localDate,
+          validation_status: decision.status,
+          phase,
+          streak_value_after: newStreak,
+          joker_used: decision.jokerUsed,
         };
-        await persistJokerConsumption(consumption);
-        setJokerConsumptions((prev) => [
-          ...prev.filter((c) => c.week_key !== consumption.week_key),
-          consumption,
-        ]);
-      }
+        let nextData = withStreakEntry(current, entry);
+        await store.saveStreakEntry(entry, nextData.streakHistory);
 
-      // 3) Écrit la ligne `progress` en Phase 0 si on a un day_id explicite
-      if (phase === 'phase_0' && args.day != null) {
-        const isMinimum = decision.status !== 'valid_above_threshold';
-        if (user) {
+        // 2) Consomme le joker si nécessaire
+        if (decision.jokerUsed) {
+          const consumption: JokerConsumption = {
+            week_key: currentWeekKey(),
+            consumed_for_local_date: localDate,
+          };
+          nextData = withJokerConsumption(nextData, consumption);
+          await store.saveJokerConsumption(consumption, nextData.jokerConsumptions);
+        }
+
+        // 3) Écrit la ligne `progress` en Phase 0 si on a un day_id explicite
+        if (phase === 'phase_0' && args.day != null && user) {
+          const isMinimum = decision.status !== 'valid_above_threshold';
           await must(
             supabase.from('progress').upsert(
               {
@@ -1001,41 +969,54 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             ),
           );
         }
-      }
 
-      // 4) Enregistre le franchissement de palier
-      let tierIsFirstReach = false;
-      if (tierReached) {
-        const updated = await persistTierReach(tierReached, newStreak);
-        tierIsFirstReach = updated.reach_count === 1;
-        setTierReaches((prev) => [
-          ...prev.filter((t) => t.tier_id !== tierReached),
-          updated,
-        ]);
-      }
-
-      // 5) Sprint notifications Phase 0 — annule le rappel soir 20h du jour
-      //    courant si on est en Phase 0 (action validée → pas besoin de rappel).
-      //    Non-bloquant.
-      if (phase === 'phase_0' && args.day != null) {
-        try {
-          const { cancelTodayReminder } = await import('../lib/phase0-scheduler');
-          await cancelTodayReminder(args.day);
-        } catch (e) {
-          console.warn('cancelTodayReminder failed', e);
+        // 4) Enregistre le franchissement de palier
+        let tierIsFirstReach = false;
+        if (tierReached) {
+          const now = new Date().toISOString();
+          const existing = current.tierReaches.find(
+            (t) => t.tier_id === tierReached,
+          );
+          const updated: TierReach = existing
+            ? {
+                ...existing,
+                last_reached_at: now,
+                reach_count: existing.reach_count + 1,
+              }
+            : {
+                tier_id: tierReached,
+                first_reached_at: now,
+                last_reached_at: now,
+                reach_count: 1,
+              };
+          tierIsFirstReach = updated.reach_count === 1;
+          nextData = withTierReach(nextData, updated);
+          await store.saveTierReach(updated, nextData.tierReaches);
         }
-      }
 
-      return { newStreak, jokerUsed: decision.jokerUsed, tierReached, tierIsFirstReach };
-    },
-    [
-      currentPhase,
-      jokerAvailable,
-      persistStreakHistoryEntry,
-      persistJokerConsumption,
-      persistTierReach,
-      user,
-    ],
+        // Toutes les écritures ont réussi → commit atomique du state.
+        commitData(nextData);
+
+        // 5) Sprint notifications Phase 0 — annule le rappel soir 20h du jour
+        //    courant si on est en Phase 0 (action validée → pas besoin de
+        //    rappel). Non-bloquant.
+        if (phase === 'phase_0' && args.day != null) {
+          try {
+            const { cancelTodayReminder } = await import('../lib/phase0-scheduler');
+            await cancelTodayReminder(args.day);
+          } catch (e) {
+            console.warn('cancelTodayReminder failed', e);
+          }
+        }
+
+        return {
+          newStreak,
+          jokerUsed: decision.jokerUsed,
+          tierReached,
+          tierIsFirstReach,
+        };
+      }),
+    [currentPhase, store, user, enqueueMutation, commitData],
   );
 
   /**
@@ -1233,9 +1214,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setOnboardingData({});
     setProfileDynamicId(null);
     setAccountCreatedAtState(null);
-    setStreakHistory([]);
-    setJokerConsumptions([]);
-    setTierReaches([]);
+    commitData(EMPTY_PROGRESS_DATA);
     setNarrativeFlagsSynced({});
     setCurrentPillarId(null);
     setPillarStartedAt(null);
