@@ -920,9 +920,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const persistStreakHistoryEntry = useCallback(
     async (entry: StreakEntry, userId: string | undefined) => {
       if (userId) {
-        await supabase.from('streak_history').upsert(
-          { user_id: userId, ...entry },
-          { onConflict: 'user_id,local_date' },
+        // F-08 : must() — un échec doit interrompre validateDay AVANT la mise
+        // à jour du state, sinon le jour validé « revert » au prochain load.
+        await must(
+          supabase.from('streak_history').upsert(
+            { user_id: userId, ...entry },
+            { onConflict: 'user_id,local_date' },
+          ),
         );
       } else {
         const next = [...streakHistory.filter((e) => e.local_date !== entry.local_date), entry];
@@ -936,9 +940,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const persistJokerConsumption = useCallback(
     async (consumption: JokerConsumption, userId: string | undefined) => {
       if (userId) {
-        await supabase.from('joker_consumptions').upsert(
-          { user_id: userId, ...consumption },
-          { onConflict: 'user_id,week_key' },
+        await must(
+          supabase.from('joker_consumptions').upsert(
+            { user_id: userId, ...consumption },
+            { onConflict: 'user_id,week_key' },
+          ),
         );
       } else {
         const next = [
@@ -969,9 +975,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
           };
 
       if (userId) {
-        await supabase.from('tier_reaches').upsert(
-          { user_id: userId, ...updated },
-          { onConflict: 'user_id,tier_id' },
+        await must(
+          supabase.from('tier_reaches').upsert(
+            { user_id: userId, ...updated },
+            { onConflict: 'user_id,tier_id' },
+          ),
         );
       } else {
         const next = [...tierReaches.filter((t) => t.tier_id !== tierId), updated];
@@ -1037,15 +1045,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       if (phase === 'phase_0' && args.day != null) {
         const isMinimum = decision.status !== 'valid_above_threshold';
         if (user) {
-          await supabase.from('progress').upsert(
-            {
-              user_id: user.id,
-              day_id: args.day,
-              is_minimum: isMinimum,
-              actions_count: Math.min(args.actionsCount, THRESHOLD_PHASE_0_TOTAL),
-              validated_at: new Date().toISOString(),
-            },
-            { onConflict: 'user_id,day_id' },
+          await must(
+            supabase.from('progress').upsert(
+              {
+                user_id: user.id,
+                day_id: args.day,
+                is_minimum: isMinimum,
+                actions_count: Math.min(args.actionsCount, THRESHOLD_PHASE_0_TOTAL),
+                validated_at: new Date().toISOString(),
+              },
+              { onConflict: 'user_id,day_id' },
+            ),
           );
         }
       }
@@ -1231,10 +1241,12 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     async (iso: string) => {
       setAccountCreatedAtState(iso);
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({ account_created_at: iso })
-          .eq('id', user.id);
+        await must(
+          supabase
+            .from('profiles')
+            .update({ account_created_at: iso })
+            .eq('id', user.id),
+        );
       } else {
         await AsyncStorage.setItem(LOCAL_KEYS.accountCreatedAt, JSON.stringify(iso));
       }
@@ -1261,15 +1273,17 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       }
 
       if (user) {
-        await supabase
-          .from('profiles')
-          .update({
-            onboarding_done: true,
-            onboarding_data: answers,
-            ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
-            ...(shouldSetCreatedAt ? { account_created_at: nowIso } : {}),
-          })
-          .eq('id', user.id);
+        await must(
+          supabase
+            .from('profiles')
+            .update({
+              onboarding_done: true,
+              onboarding_data: answers,
+              ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
+              ...(shouldSetCreatedAt ? { account_created_at: nowIso } : {}),
+            })
+            .eq('id', user.id),
+        );
       } else {
         await AsyncStorage.setItem(LOCAL_KEYS.onboardingData, JSON.stringify(answers));
         await AsyncStorage.setItem(LOCAL_KEYS.onboardingDone, JSON.stringify(true));
@@ -1324,25 +1338,30 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       await AsyncStorage.multiRemove(dailyCheckKeys);
     }
 
-    // 4) Reset Supabase tables si connecté
+    // 4) Reset Supabase tables si connecté. F-08 : must() sur chaque
+    // écriture — un delete échoué doit faire échouer le reset visiblement,
+    // pas laisser une base à moitié vidée derrière un state local remis à
+    // zéro.
     if (user) {
       await Promise.all([
-        supabase
-          .from('profiles')
-          .update({
-            onboarding_done: false,
-            onboarding_data: {},
-            profile_dynamic_id: null,
-            account_created_at: null,
-          })
-          .eq('id', user.id),
-        supabase.from('progress').delete().eq('user_id', user.id),
-        supabase.from('streak_history').delete().eq('user_id', user.id),
-        supabase.from('joker_consumptions').delete().eq('user_id', user.id),
-        supabase.from('tier_reaches').delete().eq('user_id', user.id),
-        supabase.from('pillar_evaluations').delete().eq('user_id', user.id),
-        supabase.from('pillar_sessions').delete().eq('user_id', user.id),
-        supabase.from('level_adaptive_choices').delete().eq('user_id', user.id),
+        must(
+          supabase
+            .from('profiles')
+            .update({
+              onboarding_done: false,
+              onboarding_data: {},
+              profile_dynamic_id: null,
+              account_created_at: null,
+            })
+            .eq('id', user.id),
+        ),
+        must(supabase.from('progress').delete().eq('user_id', user.id)),
+        must(supabase.from('streak_history').delete().eq('user_id', user.id)),
+        must(supabase.from('joker_consumptions').delete().eq('user_id', user.id)),
+        must(supabase.from('tier_reaches').delete().eq('user_id', user.id)),
+        must(supabase.from('pillar_evaluations').delete().eq('user_id', user.id)),
+        must(supabase.from('pillar_sessions').delete().eq('user_id', user.id)),
+        must(supabase.from('level_adaptive_choices').delete().eq('user_id', user.id)),
       ]);
     }
   }, [user]);

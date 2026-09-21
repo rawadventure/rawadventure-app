@@ -19,7 +19,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { Alert, AppState, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { AppState, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ChevronLeft, CheckCircle2 } from 'lucide-react-native';
 import Animated, {
@@ -35,6 +35,7 @@ import { Button, Modal, LevelSelector } from '../../components/primitives';
 import { useKeepAwakeWhile } from '../../hooks/useKeepAwake';
 import { TierReachedModal } from '../../components/compositions';
 import type { TierId } from '../../lib/streak';
+import { showNotice } from '../../lib/notice';
 import {
   interTextStyle,
   layout,
@@ -194,7 +195,10 @@ export default function SessionScreen() {
         navigation.popToTop();
       }
     } catch (e: any) {
-      Alert.alert('Erreur', e?.message ?? "Impossible d'enregistrer la session.");
+      // showNotice et pas Alert.alert : Alert est no-op sur react-native-web
+      // (même raison que le message joker du 8 juillet). Avec F-08, un échec
+      // d'écriture rejette réellement — le message doit être visible en PWA.
+      showNotice('Erreur', e?.message ?? "Impossible d'enregistrer la session.");
     } finally {
       setSaving(false);
     }

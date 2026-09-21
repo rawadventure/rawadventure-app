@@ -640,6 +640,36 @@ describe('mode connecté — écritures Supabase', () => {
     expect(payload.is_minimum).toBe(false);
   });
 
+  // F-08 (audit Lou) : une écriture Supabase échouée (résolue { error },
+  // jamais de throw) laissait le state React partir en avance sur la base —
+  // au prochain lancement, la journée validée et le streak « revertaient »
+  // en silence. validateDay doit persister d'abord et ne toucher au state
+  // qu'en cas de succès : échec → streak inchangé, promesse rejetée.
+  test('F-08 : validateDay avec upsert streak_history en erreur → streak inchangé, rejet', async () => {
+    const { result } = await renderProgress();
+    expect(result.current.streak).toBe(3);
+
+    sb.failNext('streak_history', 'upsert', { message: 'réseau (simulé)' });
+    await act(async () => {
+      await expect(
+        result.current.validateDay({ actionsCount: 5, day: 4 }),
+      ).rejects.toThrow();
+    });
+
+    expect(result.current.streak).toBe(3);
+    expect(
+      result.current.streakHistory.some((e) => e.local_date === today()),
+    ).toBe(false);
+  });
+
+  test('F-08 : resetAll avec delete en erreur → rejet (pas de reset silencieusement partiel)', async () => {
+    const { result } = await renderProgress();
+    sb.failNext('streak_history', 'delete', { message: 'réseau (simulé)' });
+    await act(async () => {
+      await expect(result.current.resetAll()).rejects.toThrow();
+    });
+  });
+
   test('savePillarEvaluation upsert pillar_evaluations', async () => {
     const { result } = await renderProgress();
     await act(async () => {
