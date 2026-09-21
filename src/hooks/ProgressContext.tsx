@@ -454,13 +454,13 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         .select('week_key, consumed_for_local_date')
         .eq('user_id', userId),
       supabase.from('tier_reaches').select('*').eq('user_id', userId),
+      // F-04 : toutes les évals (volume ≤ 16 lignes) — sert à la fois au
+      // flag post-S8 et à la dérivation du pilier courant si la colonne
+      // profiles.current_pillar_id est vide.
       supabase
         .from('pillar_evaluations')
-        .select('pillar_id')
-        .eq('user_id', userId)
-        .eq('pillar_id', 'S8')
-        .eq('evaluation_type', 'final')
-        .limit(1),
+        .select('pillar_id, evaluation_type, completed_at')
+        .eq('user_id', userId),
     ]);
 
     if (profileRes.data) {
@@ -491,28 +491,73 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (streakRes.data) setStreakHistory(streakRes.data as StreakEntry[]);
     if (jokerRes.data) setJokerConsumptions(jokerRes.data as JokerConsumption[]);
     if (tierRes.data) setTierReaches(tierRes.data as TierReach[]);
-    setS8FinalCompleted(!!s8FinalRes.data && s8FinalRes.data.length > 0);
+    const evalRows = (s8FinalRes.data ?? []) as Array<{
+      pillar_id: string;
+      evaluation_type: string;
+      completed_at: string | null;
+    }>;
+    setS8FinalCompleted(
+      evalRows.some(
+        (r) => r.pillar_id === 'S8' && r.evaluation_type === 'final',
+      ),
+    );
 
-    // Narrative flags : local-only V1 même en mode connecté (pas de table
-    // distante dédiée pour l'instant — Sprint 7+). Merge : un flag posé en
-    // mémoire pendant que ce load était en vol (deux loadData concurrents
-    // post-OTP) ne doit pas être écrasé par la version disque en retard.
+    // F-04 (audit Lou) : l'état utilisateur connecté vit dans profiles —
+    // narrative_flags, current_pillar_id, pillar_started_at,
+    // pending_tier_reach. AsyncStorage n'est plus qu'un secours de
+    // transition (comptes d'avant la migration 20260921) et le mode anonyme.
+    //
+    // Flags : union locale ∪ distante, la ref in-flight prime (un flag posé
+    // en mémoire pendant que ce load était en vol — deux loadData
+    // concurrents post-OTP — ne doit pas être écrasé).
     const rawFlags = await AsyncStorage.getItem(LOCAL_KEYS.narrativeFlags);
-    if (rawFlags) {
-      setNarrativeFlagsSynced({ ...JSON.parse(rawFlags), ...narrativeFlagsRef.current });
+    const remoteFlags =
+      (profileRes.data?.narrative_flags as Partial<
+        Record<NarrativeEventId, string>
+      > | null) ?? {};
+    const localFlags = rawFlags ? JSON.parse(rawFlags) : {};
+    const mergedFlags = {
+      ...localFlags,
+      ...remoteFlags,
+      ...narrativeFlagsRef.current,
+    };
+    if (Object.keys(mergedFlags).length > 0) {
+      setNarrativeFlagsSynced(mergedFlags);
     }
 
-    // Pilier en cours : local-only V1 (Sprint 10+ : migration vers une
-    // colonne `current_pillar_id` + `pillar_started_at` sur `profiles`).
+    // Pilier en cours : colonne profiles d'abord, storage local en secours,
+    // sinon dérivation depuis la dernière évaluation enregistrée (fallback
+    // « changement de téléphone » — on ne repart plus jamais à S1 par
+    // défaut si l'utilisateur a déjà des évals).
     const [rawPid, rawPstart] = await Promise.all([
       AsyncStorage.getItem(LOCAL_KEYS.currentPillarId),
       AsyncStorage.getItem(LOCAL_KEYS.pillarStartedAt),
     ]);
-    if (rawPid) setCurrentPillarId(JSON.parse(rawPid));
-    if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
+    const remotePillarId =
+      (profileRes.data?.current_pillar_id as string | null) ?? null;
+    const remotePillarStartedAt =
+      (profileRes.data?.pillar_started_at as string | null) ?? null;
+    if (remotePillarId) {
+      setCurrentPillarId(remotePillarId);
+      setPillarStartedAt(remotePillarStartedAt);
+    } else if (rawPid) {
+      setCurrentPillarId(JSON.parse(rawPid));
+      if (rawPstart) setPillarStartedAt(JSON.parse(rawPstart));
+    } else if (evalRows.length > 0) {
+      const latest = evalRows.reduce((a, b) =>
+        (a.completed_at ?? '') >= (b.completed_at ?? '') ? a : b,
+      );
+      setCurrentPillarId(latest.pillar_id);
+    }
 
-    const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
-    if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
+    const remotePending =
+      (profileRes.data?.pending_tier_reach as PendingTierReach | null) ?? null;
+    if (remotePending) {
+      setPendingTierReachState(remotePending);
+    } else {
+      const rawPending = await AsyncStorage.getItem(LOCAL_KEYS.pendingTierReach);
+      if (rawPending) setPendingTierReachState(JSON.parse(rawPending));
+    }
 
     // Sprint B email confirm — restaure pendingMigration si signup en attente.
     const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
@@ -564,15 +609,42 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
   };
 
-  const setPendingTier = useCallback(async (pending: PendingTierReach) => {
-    setPendingTierReachState(pending);
-    await AsyncStorage.setItem(LOCAL_KEYS.pendingTierReach, JSON.stringify(pending));
-  }, []);
+  // F-04 : connecté → write-through profiles.pending_tier_reach ; anonyme →
+  // AsyncStorage (un palier différé D30 ne doit pas se perdre avec le
+  // navigateur — l'utilisateur payant est précisément celui concerné).
+  const setPendingTier = useCallback(
+    async (pending: PendingTierReach) => {
+      setPendingTierReachState(pending);
+      if (user) {
+        await must(
+          supabase
+            .from('profiles')
+            .update({ pending_tier_reach: pending })
+            .eq('id', user.id),
+        );
+      } else {
+        await AsyncStorage.setItem(
+          LOCAL_KEYS.pendingTierReach,
+          JSON.stringify(pending),
+        );
+      }
+    },
+    [user],
+  );
 
   const clearPendingTier = useCallback(async () => {
     setPendingTierReachState(null);
-    await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
-  }, []);
+    if (user) {
+      await must(
+        supabase
+          .from('profiles')
+          .update({ pending_tier_reach: null })
+          .eq('id', user.id),
+      );
+    } else {
+      await AsyncStorage.removeItem(LOCAL_KEYS.pendingTierReach);
+    }
+  }, [user]);
 
   // Sprint B email confirm — pendingMigration getters/setters.
   // `email` alimente EmailPendingScreen (affichage + verifyOtp + resend) —
@@ -597,9 +669,20 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       if (narrativeFlagsRef.current[id]) return; // déjà marqué — idempotent
       const next = { ...narrativeFlagsRef.current, [id]: new Date().toISOString() };
       setNarrativeFlagsSynced(next);
-      await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
+      // F-04 : connecté → write-through profiles.narrative_flags (survit au
+      // changement de téléphone / effacement Safari). Anonyme → AsyncStorage.
+      if (user) {
+        await must(
+          supabase
+            .from('profiles')
+            .update({ narrative_flags: next })
+            .eq('id', user.id),
+        );
+      } else {
+        await AsyncStorage.setItem(LOCAL_KEYS.narrativeFlags, JSON.stringify(next));
+      }
     },
-    [setNarrativeFlagsSynced],
+    [setNarrativeFlagsSynced, user],
   );
 
   // ── Persistance des évaluations 12 questions ──────────────────────────────
@@ -689,12 +772,24 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       const nowIso = (devNowDate() as Date).toISOString();
       setCurrentPillarId(pillarId);
       setPillarStartedAt(nowIso);
-      await AsyncStorage.multiSet([
-        [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
-        [LOCAL_KEYS.pillarStartedAt, JSON.stringify(nowIso)],
-      ]);
+      // F-04 : connecté → write-through profiles (le pilier en cours ne
+      // repart plus à S1 après un changement de téléphone). Anonyme →
+      // AsyncStorage (flow pré-signup uniquement).
+      if (user) {
+        await must(
+          supabase
+            .from('profiles')
+            .update({ current_pillar_id: pillarId, pillar_started_at: nowIso })
+            .eq('id', user.id),
+        );
+      } else {
+        await AsyncStorage.multiSet([
+          [LOCAL_KEYS.currentPillarId, JSON.stringify(pillarId)],
+          [LOCAL_KEYS.pillarStartedAt, JSON.stringify(nowIso)],
+        ]);
+      }
     },
-    [],
+    [user],
   );
 
 
@@ -1149,6 +1244,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         LOCAL_KEYS.tierReaches,
         tierReaches,
       );
+      // F-04 : les flags narratifs et le palier différé migrent aussi vers
+      // profiles (colonnes ajoutées par la migration 20260921).
+      const localFlags = await readLocal<Partial<Record<NarrativeEventId, string>>>(
+        LOCAL_KEYS.narrativeFlags,
+        narrativeFlagsRef.current,
+      );
+      const localPendingTier = await readLocal<PendingTierReach | null>(
+        LOCAL_KEYS.pendingTierReach,
+        null,
+      );
 
       // 1. Update profil distant avec onboarding_data + profile_dynamic_id
       await must(
@@ -1159,6 +1264,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
             onboarding_data: onboardingData,
             profile_dynamic_id: dynamicId,
             account_created_at: accountCreatedAtIso,
+            narrative_flags: localFlags,
+            pending_tier_reach: localPendingTier,
           })
           .eq('id', userId),
       );
@@ -1202,13 +1309,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         );
       }
 
-      // 6. Clear local — sauf narrative_flags : les drapeaux narratifs sont
-      // local-only (pas de colonne Supabase), les effacer re-déclencherait
-      // les écrans narratifs déjà vus (ex : vidéo J1 re-affichée post-OTP).
-      const keysToClear = Object.values(LOCAL_KEYS).filter(
-        (k) => k !== LOCAL_KEYS.narrativeFlags,
-      );
-      await AsyncStorage.multiRemove(keysToClear);
+      // 6. Clear local. F-04 : narrative_flags est désormais migré vers la
+      // colonne profiles (étape 1) — l'ancienne exception qui le préservait
+      // en local n'a plus de raison d'être. Le state in-memory (ref) reste
+      // posé, et le re-load post-migration relit la colonne distante.
+      await AsyncStorage.multiRemove(Object.values(LOCAL_KEYS));
 
       // 7. Met à jour le state in-memory accountCreatedAt pour que currentDay
       //    se recalcule immédiatement.
@@ -1352,6 +1457,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
               onboarding_data: {},
               profile_dynamic_id: null,
               account_created_at: null,
+              // F-04 : les colonnes d'état répliqué se resettent aussi.
+              narrative_flags: {},
+              current_pillar_id: null,
+              pillar_started_at: null,
+              pending_tier_reach: null,
             })
             .eq('id', user.id),
         ),

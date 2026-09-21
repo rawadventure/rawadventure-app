@@ -320,7 +320,16 @@ describe('paliers (D29/D30)', () => {
     const user = userEvent.setup();
     await user.press(screen.getByText("C'est fait"));
     await waitFor(() => expect(screen.getByText('Quinze jours.')).toBeTruthy());
-    expect(await AsyncStorage.getItem('pending_tier_reach')).toBeNull();
+    // F-04 : en connecté, la consommation du différé passe par la colonne
+    // profiles.pending_tier_reach (write-through), plus par AsyncStorage.
+    const clears = sb.calls.filter(
+      (c) =>
+        c.table === 'profiles' &&
+        c.op === 'update' &&
+        'pending_tier_reach' in (c.payload as Record<string, unknown>) &&
+        (c.payload as Record<string, unknown>).pending_tier_reach === null,
+    );
+    expect(clears.length).toBeGreaterThanOrEqual(1);
   });
 });
 

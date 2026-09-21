@@ -718,6 +718,178 @@ describe('mode connecté — écritures Supabase', () => {
 
 // ─── Migration locale → distante (Feature Spec §2.10, Sprint B) ──────────────
 
+describe('F-04 (audit Lou) — état utilisateur connecté répliqué dans profiles', () => {
+  const PROFILE_BASE = {
+    id: 'user-1',
+    onboarding_done: true,
+    onboarding_data: {},
+    profile_dynamic_id: null,
+    account_created_at: '2026-10-01T08:00:00.000Z',
+  };
+
+  beforeEach(() => {
+    mockUser = { id: 'user-1' };
+    sb.setTables({
+      profiles: PROFILE_BASE,
+      streak_history: [],
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+  });
+
+  test('AsyncStorage vide + flags distants posés → vidéo J1 non rejouée (flags restaurés du remote)', async () => {
+    sb.setTables({
+      profiles: {
+        ...PROFILE_BASE,
+        narrative_flags: { welcome_video: '2026-10-01T09:00:00.000Z' },
+      },
+      streak_history: [],
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+    const { result } = await renderProgress();
+    expect(result.current.narrativeFlags.welcome_video).toBeDefined();
+  });
+
+  test('pilier en cours restauré depuis profiles (changement de téléphone, storage effacé)', async () => {
+    sb.setTables({
+      profiles: {
+        ...PROFILE_BASE,
+        current_pillar_id: 'S3',
+        pillar_started_at: '2026-10-10T08:00:00.000Z',
+        pending_tier_reach: {
+          tierId: 15,
+          isFirstReach: true,
+          streakValue: 15,
+          deferredAt: '2026-10-10T08:00:00.000Z',
+        },
+      },
+      streak_history: [],
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+    const { result } = await renderProgress();
+    expect(result.current.currentPillarId).toBe('S3');
+    expect(result.current.pendingTierReach).toMatchObject({ tierId: 15 });
+  });
+
+  test('merge union : flag local + flag distant → les deux présents', async () => {
+    await AsyncStorage.setItem(
+      'narrative_flags',
+      JSON.stringify({ j3_charniere: 'local' }),
+    );
+    sb.setTables({
+      profiles: {
+        ...PROFILE_BASE,
+        narrative_flags: { welcome_video: 'remote' },
+      },
+      streak_history: [],
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+    const { result } = await renderProgress();
+    expect(result.current.narrativeFlags.welcome_video).toBeDefined();
+    expect(result.current.narrativeFlags.j3_charniere).toBeDefined();
+  });
+
+  test('fallback : Phase 1 sans current_pillar_id → pilier dérivé de la dernière pillar_evaluations (pas S1)', async () => {
+    sb.setTables({
+      profiles: PROFILE_BASE,
+      // 17 jours validés → currentDay 18, phase_1.
+      streak_history: validatedRun(17).map((e) => ({ user_id: 'user-1', ...e })),
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [
+        {
+          user_id: 'user-1',
+          pillar_id: 'S1',
+          evaluation_type: 'initial',
+          completed_at: '2026-10-01T08:00:00.000Z',
+        },
+        {
+          user_id: 'user-1',
+          pillar_id: 'S2',
+          evaluation_type: 'initial',
+          completed_at: '2026-10-09T08:00:00.000Z',
+        },
+      ],
+    });
+    const { result } = await renderProgress();
+    expect(result.current.currentPillarId).toBe('S2');
+  });
+
+  test('markNarrativeSeen connecté → write-through profiles.narrative_flags', async () => {
+    const { result } = await renderProgress();
+    await act(async () => {
+      await result.current.markNarrativeSeen('j3_charniere');
+    });
+    const updates = sb.calls.filter(
+      (c) => c.table === 'profiles' && c.op === 'update',
+    );
+    const withFlags = updates.filter(
+      (u) => (u.payload as Record<string, unknown>).narrative_flags != null,
+    );
+    expect(withFlags.length).toBeGreaterThanOrEqual(1);
+    expect(
+      (withFlags[withFlags.length - 1].payload as {
+        narrative_flags: Record<string, string>;
+      }).narrative_flags.j3_charniere,
+    ).toBeDefined();
+  });
+
+  test('startPillarWeek connecté → write-through current_pillar_id + pillar_started_at', async () => {
+    const { result } = await renderProgress();
+    await act(async () => {
+      await result.current.startPillarWeek('S2');
+    });
+    const updates = sb.calls.filter(
+      (c) =>
+        c.table === 'profiles' &&
+        c.op === 'update' &&
+        (c.payload as Record<string, unknown>).current_pillar_id === 'S2',
+    );
+    expect(updates).toHaveLength(1);
+    expect(
+      (updates[0].payload as Record<string, unknown>).pillar_started_at,
+    ).toBeTruthy();
+  });
+
+  test('setPendingTier / clearPendingTier connecté → write-through pending_tier_reach', async () => {
+    const { result } = await renderProgress();
+    await act(async () => {
+      await result.current.setPendingTier({
+        tierId: 15,
+        isFirstReach: true,
+        streakValue: 15,
+        deferredAt: '2026-10-15T08:00:00.000Z',
+      });
+    });
+    let updates = sb.calls.filter(
+      (c) =>
+        c.table === 'profiles' &&
+        c.op === 'update' &&
+        (c.payload as Record<string, unknown>).pending_tier_reach != null,
+    );
+    expect(updates).toHaveLength(1);
+
+    await act(async () => {
+      await result.current.clearPendingTier();
+    });
+    updates = sb.calls.filter(
+      (c) =>
+        c.table === 'profiles' &&
+        c.op === 'update' &&
+        'pending_tier_reach' in (c.payload as Record<string, unknown>) &&
+        (c.payload as Record<string, unknown>).pending_tier_reach === null,
+    );
+    expect(updates).toHaveLength(1);
+  });
+});
+
 describe('migration locale → distante (§2.10)', () => {
   const ISO = '2026-10-15T08:00:00.000Z';
 
