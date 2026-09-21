@@ -48,6 +48,7 @@ jest.mock('@react-navigation/native', () => ({
 
 import PillarEvaluationScreen from '../PillarEvaluationScreen';
 import { ProgressProvider, useProgress } from '../../../hooks/ProgressContext';
+import { TabBarProvider, useTabBar } from '../../../hooks/TabBarContext';
 import {
   pinClockTo,
   seedAnonymousStorage,
@@ -63,9 +64,11 @@ const { __supabaseMock: sb } = jest.requireMock('../../../lib/supabase') as {
 const THURSDAY = '2026-10-15';
 const S1_QUESTIONS = getPillarMeta('S1')!.questions;
 
-/** Sonde qui expose l'état du context à côté de l'écran (tab bar, pilier). */
+/** Sonde qui expose l'état des contexts à côté de l'écran (tab bar, pilier). */
 function Probe() {
-  const { tabBarHidden, currentPillarId } = useProgress();
+  const { currentPillarId } = useProgress();
+  // F-05.2 : tabBarHidden vit dans TabBarContext.
+  const { tabBarHidden } = useTabBar();
   return (
     <>
       <Text>{`probe:tabBarHidden:${tabBarHidden}`}</Text>
@@ -83,10 +86,12 @@ function Gated({ children }: { children: React.ReactNode }) {
 async function renderEval() {
   const utils = await render(
     <ProgressProvider>
-      <Gated>
-        <PillarEvaluationScreen />
-        <Probe />
-      </Gated>
+      <TabBarProvider>
+        <Gated>
+          <PillarEvaluationScreen />
+          <Probe />
+        </Gated>
+      </TabBarProvider>
     </ProgressProvider>,
   );
   await waitFor(() => expect(screen.queryByText(/Question 1|Question \d+/)).toBeTruthy());

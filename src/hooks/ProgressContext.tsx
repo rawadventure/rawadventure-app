@@ -155,11 +155,6 @@ interface ProgressContextType {
   setPendingTier: (pending: PendingTierReach) => Promise<void>;
   /** D30 — vide le palier différé après affichage. */
   clearPendingTier: () => Promise<void>;
-
-  /** UI : cache la TabBar globale. Utilisé par PillarEvaluationScreen pour
-   *  forcer l'éval (mandatory — pas de sortie via tabs Accueil/Toile/Profil). */
-  tabBarHidden: boolean;
-  setTabBarHidden: (hidden: boolean) => void;
 }
 
 export type PendingMigration = {
@@ -412,7 +407,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // Sprint B email confirm — userId/accountCreatedAt en attente de migration
   // (signup fait, email confirmation en attente). Restauré au load.
   const [pendingMigration, setPendingMigrationState] = useState<PendingMigration | null>(null);
-  const [tabBarHidden, setTabBarHidden] = useState(false);
+  // F-05.2 : tabBarHidden a déménagé dans TabBarContext (état d'interface,
+  // pas de progression).
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
   useEffect(() => {
@@ -1539,8 +1535,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markPendingMigration,
       pendingMigration,
       clearPendingMigration,
-      tabBarHidden,
-      setTabBarHidden,
     }),
     [
       loading,
@@ -1575,7 +1569,6 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markPendingMigration,
       pendingMigration,
       clearPendingMigration,
-      tabBarHidden,
     ],
   );
 

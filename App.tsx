@@ -17,6 +17,7 @@ import * as Sentry from '@sentry/react-native';
 
 import { AuthProvider } from './src/hooks/AuthContext';
 import { ProgressProvider } from './src/hooks/ProgressContext';
+import { TabBarProvider } from './src/hooks/TabBarContext';
 import { SubscriptionProvider } from './src/hooks/SubscriptionContext';
 import RootNavigator from './src/navigation/RootNavigator';
 import {
@@ -134,10 +135,12 @@ function App() {
         <AuthProvider>
           <ProgressProvider>
             <SubscriptionProvider>
-              <NavigationContainer linking={linking}>
-                <StatusBar style="dark" />
-                <RootNavigator />
-              </NavigationContainer>
+              <TabBarProvider>
+                <NavigationContainer linking={linking}>
+                  <StatusBar style="dark" />
+                  <RootNavigator />
+                </NavigationContainer>
+              </TabBarProvider>
             </SubscriptionProvider>
           </ProgressProvider>
         </AuthProvider>

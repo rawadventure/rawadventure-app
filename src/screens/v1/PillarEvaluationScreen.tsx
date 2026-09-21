@@ -43,6 +43,7 @@ import {
 import { getPillarMeta } from '../../data/pillar-registry';
 import { aggregateEvaluation, type RawResponse } from '../../lib/metrics';
 import { useProgress } from '../../hooks/ProgressContext';
+import { useTabBar } from '../../hooks/TabBarContext';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Route = NativeStackScreenProps<Phase0StackParamList, 'PillarEvaluation'>['route'];
@@ -56,7 +57,8 @@ export default function PillarEvaluationScreen() {
   const pillarId = route.params.pillarId; // 'S1' pour Sprint 8
   const evaluationType = route.params.evaluationType ?? 'initial';
 
-  const { savePillarEvaluation, setTabBarHidden, startPillarWeek, pillarStartedAt, currentPillarId } = useProgress();
+  const { savePillarEvaluation, startPillarWeek, pillarStartedAt, currentPillarId } = useProgress();
+  const { setTabBarHidden } = useTabBar();
 
   // Clé AsyncStorage pour sauvegarder progrès en cours (reprise si user
   // quitte app pendant questionnaire). Scopée par pilier + type éval.

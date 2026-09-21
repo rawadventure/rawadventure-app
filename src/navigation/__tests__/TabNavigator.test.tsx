@@ -14,8 +14,12 @@ jest.mock('../../hooks/ProgressContext', () => ({
   useProgress: () => ({
     currentPhase: mockCurrentPhase,
     currentDay: mockCurrentDay,
-    tabBarHidden: false,
   }),
+}));
+
+// F-05.2 : tabBarHidden vit dans TabBarContext.
+jest.mock('../../hooks/TabBarContext', () => ({
+  useTabBar: () => ({ tabBarHidden: false, setTabBarHidden: jest.fn() }),
 }));
 
 // Stacks stubbés — le stub Accueil porte un état "profond" interne pour

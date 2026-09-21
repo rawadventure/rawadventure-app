@@ -21,9 +21,11 @@ import HomeStack from './HomeStack';
 import ToileStack from './ToileStack';
 import ProfilStack from './ProfilStack';
 import { useProgress } from '../hooks/ProgressContext';
+import { useTabBar } from '../hooks/TabBarContext';
 
 export default function TabNavigator() {
-  const { currentPhase, currentDay, tabBarHidden } = useProgress();
+  const { currentPhase, currentDay } = useProgress();
+  const { tabBarHidden } = useTabBar();
   const [active, setActive] = useState<TabId>('home');
 
   // Re-tap sur l'onglet déjà actif → retour à la racine de son stack
