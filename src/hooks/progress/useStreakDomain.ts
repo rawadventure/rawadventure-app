@@ -32,6 +32,7 @@ import {
   type StreakEntry,
 } from '../../lib/streak';
 import { currentWeekKey, todayLocalDate } from '../../lib/calendar';
+import { jokerUsedNotice, streakBrokenNotice } from '../../data/global-copy';
 import {
   LOCAL_KEYS,
   type PendingTierReach,
@@ -152,30 +153,20 @@ export function useStreakDomain({
         }
         commitData(nextData);
 
-        // Message sobre, non-culpabilisant (D26). Slots définitifs
-        // (copy.global.message-joker-consomme / streak-reprise) à venir
-        // avec le Brief contenu Mimi & Jacky.
+        // Message sobre, non-culpabilisant (D26). Texte routé par slots de
+        // copy dans src/data/global-copy.ts (D23, F-13 audit Lou).
+        // Reprise de position (D38) : les jours manqués ne comptent pas en
+        // progression, donc `day` (calculé avant résolution) est bien le
+        // jour où l'utilisateur reprend.
         const broke = resolved.entries.some(
           (e) => e.validation_status === 'broken_streak',
         );
-        // Reprise de position (D38) : les jours manqués ne comptent pas en
-        // progression, donc `day` (calculé avant résolution) est bien le jour
-        // où l'utilisateur reprend. En Phase 1 l'UI parle en jour de pilier,
-        // pas en jour global — formulation neutre hors Phase 0.
-        const repriseText =
-          phase === 'phase_0'
-            ? `Tu reprends au jour ${day}, là où tu t'étais arrêté.`
-            : 'Tu reprends là où tu t\'étais arrêté.';
         if (broke) {
-          showNotice(
-            'Streak remis à zéro',
-            `Des journées sont passées sans validation. Ton streak repart de zéro — la prochaine validation le relance. ${repriseText} [copy à valider]`,
-          );
+          const n = streakBrokenNotice(phase, day);
+          showNotice(n.title, n.body);
         } else if (resolved.consumptions.length > 0) {
-          showNotice(
-            'Joker utilisé',
-            `Ton joker de la semaine a couvert une journée manquée. Streak conservé. ${repriseText} [copy à valider]`,
-          );
+          const n = jokerUsedNotice(phase, day);
+          showNotice(n.title, n.body);
         }
       }).catch((e) => {
         // Non bloquant — retentera au prochain chargement / changement de jour.

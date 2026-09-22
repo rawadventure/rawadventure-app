@@ -1273,9 +1273,9 @@
         {
           "id": "R11-13",
           "label": "F-13 liste [copy à valider] pour Mimi & Jacky + slots D23",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "updatedAt": "2026-09-22T10:16:03",
           "estimateH": 2,
           "owner": "claude"
         },
