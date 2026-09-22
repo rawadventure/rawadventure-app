@@ -344,7 +344,7 @@ Concrètement, à chaque modification significative (un écran codé, une featur
 
 ### Workflow TDD
 
-*Section ajoutée le 2 septembre 2026 (V1.5). La suite de tests vit dans `src/**/__tests__/` (Jest + jest-expo + @testing-library/react-native), les parcours E2E dans `e2e/` (Playwright sur expo web). Outillage partagé dans `src/test-utils/` (horloge épinglée devClock, seed AsyncStorage, mock Supabase chaînable). Commandes : `npx jest` (suite complète, < 10 s), `npm run test:watch`, `npm run test:coverage`, `npm run test:e2e` (lent, à la demande).*
+*Section ajoutée le 2 septembre 2026 (V1.5). La suite de tests vit dans `src/**/__tests__/` (Jest + jest-expo + @testing-library/react-native), les parcours E2E dans `e2e/` (Playwright sur expo web). Outillage partagé dans `src/test-utils/` (horloge épinglée devClock, seed AsyncStorage, mock Supabase chaînable). Commandes : `npx jest` (suite complète, ~13 s à chaud, ~27 s cache froid — mesuré le 22 sept 2026 sur 573 tests, F-17 audit Lou), `npm run test:watch`, `npm run test:coverage`, `npm run test:e2e` (lent, à la demande).*
 
 Claude Code applique ces règles à chaque session, sans qu'on les lui rappelle.
 
@@ -494,7 +494,7 @@ Pour aller plus vite quand la mémoire flanche. Détail complet dans la Synthès
 
 ## 11. Historique des versions de ce CLAUDE.md
 
-**Version 1.7 — 22 septembre 2026.** Ajout de la décision **D43** (panneau DEV par compte via `profiles.dev_tools_enabled`, retrait du flag env Vercel, colonne verrouillée par privilèges Postgres — F-07/K1 de l'audit Lou Grenier) en section 10 et en révision de la posture reset § 2.11. Contexte : exécution du rapport d'audit de Lou Grenier (18 sept, F-01 à F-17) — suivi détaillé dans `docs/audit-lou-grenier-2026-09-09.md` et le bloc R11 du kanban.
+**Version 1.7 — 22 septembre 2026.** Ajout de la décision **D43** (panneau DEV par compte via `profiles.dev_tools_enabled`, retrait du flag env Vercel, colonne verrouillée par privilèges Postgres — F-07/K1 de l'audit Lou Grenier) en section 10 et en révision de la posture reset § 2.11. Contexte : exécution du rapport d'audit de Lou Grenier (18 sept, F-01 à F-17) — suivi détaillé dans `docs/audit-lou-grenier-2026-09-09.md` et le bloc R11 du kanban. Au passage (F-17, 22 sept) : chiffre de durée de la suite Jest corrigé en § 7 (« < 10 s » datait des 280 tests de la V1.5 ; mesuré à ~13 s à chaud / ~27 s à froid sur 573 tests — suite saine, pas d'optimisation requise).
 
 **Version 1.5 — 2 septembre 2026.** Ajout de la sous-section « Workflow TDD » en section 7, en sortie du chantier suite de tests (1er-2 septembre 2026). La suite couvre désormais 4 couches : unitaires `src/lib` (historiques), intégration contexts (`ProgressContext` D38/streak/paliers, `SubscriptionContext` FSM/gating), flows écrans (IA-15, HomeScreenV1, PaywallScreen, smoke App) et E2E Playwright (`e2e/`, onboarding sur expo web) — 280 tests Jest en ~9 s plus 4 parcours navigateur. Déclenchement automatique : hook pre-commit `.githooks/` (tsc + jest, bloque le commit si rouge) et CI GitHub Actions à chaque push. Six règles TDD actées (logique en rouge d'abord, UI pragmatique, suite verte avant commit, bug = test de régression d'abord, module = fichier de test, tracer bullet) plus conventions techniques (userEvent, horloge épinglée, gate loading). Aucune décision produit nouvelle — chantier purement technique.
 

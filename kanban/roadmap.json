@@ -1282,9 +1282,9 @@
         {
           "id": "R11-14",
           "label": "F-17 mesurer/pérenniser durée suite Jest + corriger chiffre CLAUDE.md",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "updatedAt": "2026-09-22T10:22:34",
           "estimateH": 1,
           "owner": "claude"
         },
