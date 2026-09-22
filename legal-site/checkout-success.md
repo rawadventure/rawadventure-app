@@ -13,17 +13,13 @@ permalink: /checkout-success/
 </p>
 
 <p style="margin-bottom: 16px;">
-  <button id="back-to-app-btn" class="brand-cta" style="display: inline-block; padding: 14px 32px; background-color: var(--brand-deep); color: var(--brand-cream); text-decoration: none; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; font-size: 16px;">
+  <a href="https://app.rawadventure.world" class="brand-cta" style="display: inline-block; padding: 14px 32px; background-color: var(--brand-deep); color: var(--brand-cream); text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 16px;">
     Retourner dans l'app
-  </button>
+  </a>
 </p>
 
-<p id="fallback-hint" style="font-size: 14px; color: var(--text-muted); display: none; margin-top: 16px; max-width: 480px; margin-left: auto; margin-right: auto;">
-  Si l'app ne s'ouvre pas, ferme cette fenêtre (bouton × en haut) et relance Raw Adventure depuis ton écran d'accueil. Ton abonnement est déjà actif.
-</p>
-
-<p id="desktop-hint" style="font-size: 14px; color: var(--text-muted); display: none; margin-top: 16px; max-width: 480px; margin-left: auto; margin-right: auto;">
-  Reviens dans ton onglet ou ta fenêtre Raw Adventure — ton abonnement est déjà actif. Tu peux fermer cette page.
+<p style="font-size: 14px; color: var(--text-muted); margin-top: 16px;">
+  Ton abonnement est déjà actif.
 </p>
 
 <p style="font-size: 14px; color: var(--text-muted); margin-top: 24px;">
@@ -32,58 +28,6 @@ permalink: /checkout-success/
 
 </div>
 
-<script>
-  /*
-   * Stratégie multi-contexte pour le bouton "Retourner dans l'app" :
-   *
-   *  - Native (iOS/Android app installée via TestFlight/store) : on tente
-   *    le deep link rawadventure://subscription-success. iOS bloque les
-   *    custom schemes via <a href> mais autorise via window.location si
-   *    déclenché depuis un user gesture (le tap). Si l'OS reconnaît le
-   *    scheme, l'app prend focus → visibilitychange detect → on annule
-   *    le hint.
-   *
-   *  - PWA / desktop browser : pas d'app à intercepter. window.location
-   *    sur custom scheme donne l'erreur "adresse invalide". On évite
-   *    en détectant l'absence de support et en affichant directement
-   *    le hint desktop ("reviens dans ton onglet, c'est déjà actif").
-   *
-   * Détection heuristique : User Agent contient "Mobile" + iOS/Android
-   * → on tente le deep link. Sinon → message desktop direct.
-   */
-  (function() {
-    var btn = document.getElementById('back-to-app-btn');
-    var hintMobile = document.getElementById('fallback-hint');
-    var hintDesktop = document.getElementById('desktop-hint');
-    if (!btn) return;
-
-    var ua = navigator.userAgent || '';
-    var isMobile = /Mobile|iPhone|iPad|iPod|Android/i.test(ua);
-
-    btn.addEventListener('click', function() {
-      if (!isMobile) {
-        // Desktop browser / PWA Mac → pas de deep link possible.
-        if (hintDesktop) hintDesktop.style.display = 'block';
-        return;
-      }
-
-      // Mobile → tente deep link puis fallback hint après 1.5s.
-      var timer = setTimeout(function() {
-        if (hintMobile) hintMobile.style.display = 'block';
-      }, 1500);
-
-      var onHide = function() {
-        if (document.hidden) {
-          clearTimeout(timer);
-          document.removeEventListener('visibilitychange', onHide);
-        }
-      };
-      document.addEventListener('visibilitychange', onHide);
-
-      window.location.href = 'rawadventure://subscription-success';
-    });
-  })();
-</script>
 
 ---
 
