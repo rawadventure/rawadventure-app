@@ -14,6 +14,7 @@ import {
   Inter_800ExtraBold,
 } from '@expo-google-fonts/inter';
 import * as Sentry from '@sentry/react-native';
+import { version as appVersion } from './package.json';
 
 import { AuthProvider } from './src/hooks/AuthContext';
 import { ProgressProvider } from './src/hooks/ProgressContext';
@@ -40,8 +41,13 @@ if (SENTRY_DSN) {
     // Tracing performance — 10% en prod, suffisant pour identifier
     // les écrans lents sans exploser le quota Sentry.
     tracesSampleRate: 0.1,
-    // Release version automatique via app version.
-    release: 'rawadventure@1.0.0',
+    // Release dérivée de la version package.json (F-12 audit Lou, ex-valeur
+    // en dur). package.json et app.json portent la même version — bump les
+    // deux ensemble à chaque release. Les source maps sont associées à cette
+    // release via le plugin Expo Sentry (app.json : org adventure-limitedraw,
+    // projet rawadventure) — l'upload au build requiert SENTRY_AUTH_TOKEN
+    // dans l'environnement de build (Vercel / EAS).
+    release: `rawadventure@${appVersion}`,
     // Env tag pour distinguer dev/staging/prod dans Sentry UI.
     environment: __DEV__ ? 'development' : 'production',
     // Filtre les erreurs réseau attendues (offline, timeouts) qui

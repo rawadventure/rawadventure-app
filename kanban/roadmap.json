@@ -1264,9 +1264,9 @@
         {
           "id": "R11-12",
           "label": "F-12 Sentry : release dynamique + source maps",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "updatedAt": "2026-09-22T10:05:55",
           "estimateH": 1,
           "owner": "claude"
         },

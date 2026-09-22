@@ -71,7 +71,13 @@
     },
     "plugins": [
       "expo-web-browser",
-      "@sentry/react-native"
+      [
+        "@sentry/react-native/expo",
+        {
+          "organization": "adventure-limitedraw",
+          "project": "rawadventure"
+        }
+      ]
     ],
     "extra": {
       "eas": {
