@@ -62,14 +62,31 @@ const supabaseAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: { persistSession: false },
 });
 
-const CORS_HEADERS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-};
+// CORS restreint aux origines de l'app (F-10 audit Lou, ex-`*`). L'app
+// native n'envoie pas d'Origin (CORS = mécanisme navigateur) : seuls la PWA
+// prod, les previews Vercel du projet et le dev local ont besoin d'être
+// listés. Origine inconnue → pas de header ACAO → le navigateur bloque.
+const ALLOWED_ORIGINS = [
+  'https://app.rawadventure.world',
+  'http://localhost:8081',
+];
+const VERCEL_PREVIEW_RE = /^https:\/\/rawadventure-app[a-z0-9-]*\.vercel\.app$/;
+
+function corsHeaders(origin: string | null): Record<string, string> {
+  const allowed =
+    origin !== null &&
+    (ALLOWED_ORIGINS.includes(origin) || VERCEL_PREVIEW_RE.test(origin));
+  return {
+    ...(allowed ? { 'Access-Control-Allow-Origin': origin, Vary: 'Origin' } : {}),
+    'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  };
+}
 
 // @ts-ignore — Deno globals
 Deno.serve(async (req: Request) => {
+  const CORS_HEADERS = corsHeaders(req.headers.get('Origin'));
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: CORS_HEADERS });
   }

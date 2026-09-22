@@ -154,18 +154,23 @@ async function findUserId(opts: {
   }
 
   if (opts.customerEmail) {
-    // perPage explicite : le défaut (50) faisait échouer le rapprochement par
-    // email dès que la base dépassait 50 comptes (durcissement R2-16).
-    const { data: users, error } = await supabase.auth.admin.listUsers({
-      page: 1,
-      perPage: 1000,
-    });
-    if (!error && users) {
+    // Rapprochement par email — priorité 3, dernier recours. Historique :
+    // le défaut listUsers (50/page) faisait rater le match dès 50 comptes
+    // (durci R2-16 avec perPage 1000) ; F-10 (audit Lou) généralise en
+    // paginant jusqu'au bout — plus de plafond silencieux, quel que soit
+    // le nombre de comptes. Cap de sécurité à 50 pages (50 000 comptes).
+    const wanted = opts.customerEmail.toLowerCase();
+    for (let page = 1; page <= 50; page++) {
+      const { data: users, error } = await supabase.auth.admin.listUsers({
+        page,
+        perPage: 1000,
+      });
+      if (error || !users) break;
       const match = users.users.find(
-        (u: any) =>
-          u.email?.toLowerCase() === opts.customerEmail!.toLowerCase(),
+        (u: any) => u.email?.toLowerCase() === wanted,
       );
       if (match) return match.id;
+      if (users.users.length < 1000) break; // dernière page
     }
   }
 

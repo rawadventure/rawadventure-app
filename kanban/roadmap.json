@@ -1152,6 +1152,152 @@
           "updatedAt": "2026-09-16T16:02:32.615619Z"
         }
       ]
+    },
+    {
+      "id": "R11",
+      "title": "Audit Lou Grenier (rapport 18 sept, F-01→F-17)",
+      "brief": "docs/audit-lou-grenier-2026-09-09.md",
+      "tasks": [
+        {
+          "id": "R11-1",
+          "label": "F-02 ESLint + react-hooks en pre-commit/CI",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "estimateH": 1,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-2",
+          "label": "F-01 HomeScreenV1 : hooks conditionnels → routeur + Phase0HomeScreen",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:15:32.633099Z",
+          "priority": "bloquant",
+          "estimateH": 4,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-3",
+          "label": "F-09 appliquer migration 20260919 + requête de vérif policies (SQL editor)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T09:36:23.842541Z",
+          "priority": "bloquant",
+          "estimateH": 0.5,
+          "owner": "stephane"
+        },
+        {
+          "id": "R11-4",
+          "label": "F-09 retrait des 3 écritures client subscriptions + migrations versionnées",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:23:48.378207Z",
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-5",
+          "label": "F-03 migration signup sûre (must() + clear local après succès)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T12:01:19.875522Z",
+          "priority": "bloquant",
+          "estimateH": 4,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-6",
+          "label": "F-08 must() sur toutes les écritures Supabase + validateDay persist-first",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T12:01:19.875522Z",
+          "estimateH": 4,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-7",
+          "label": "F-06 narrativeQueue.ts : file narrative D25 en fonction pure + tests",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T12:20:26.237597Z",
+          "estimateH": 8,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-8",
+          "label": "F-04 état payant local-only → colonnes profiles (go Stéphane requis)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T12:27:50.598950Z",
+          "estimateH": 4,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-9",
+          "label": "F-05 découpage ProgressContext (5 sous-étapes, 1 commit chacune)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T13:01:11.217469Z",
+          "estimateH": 16,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-10",
+          "label": "F-07+K1 outils dev isolés + panneau DEV par compte (dev_tools_enabled)",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-21T13:10:51.417792Z",
+          "estimateH": 3,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-11",
+          "label": "F-10 sécurité mineure : CORS portal, lookup webhook, expo install --fix, ngrok",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-22T09:39:51",
+          "estimateH": 2,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-12",
+          "label": "F-12 Sentry : release dynamique + source maps",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "estimateH": 1,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-13",
+          "label": "F-13 liste [copy à valider] pour Mimi & Jacky + slots D23",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "estimateH": 2,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-14",
+          "label": "F-17 mesurer/pérenniser durée suite Jest + corriger chiffre CLAUDE.md",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "estimateH": 1,
+          "owner": "claude"
+        },
+        {
+          "id": "R11-15",
+          "label": "F-14 caduc (D42) / F-15 déjà reporté / F-11 raccroché à R6, F-16 intégré aux fixes",
+          "status": "done",
+          "sessionId": null,
+          "updatedAt": "2026-09-19T15:07:10.849469Z",
+          "estimateH": 0,
+          "owner": "claude"
+        }
+      ]
     }
   ]
 }
