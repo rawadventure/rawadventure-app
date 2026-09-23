@@ -22,6 +22,7 @@ import React, {
   type ReactNode,
 } from 'react';
 import { Platform } from 'react-native';
+import * as Sentry from '@sentry/react-native';
 import type { AuthError, Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
 
@@ -157,6 +158,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // R6-24 — contexte utilisateur Sentry : rattache les erreurs remontées au
+  // compte concerné. Id seul, jamais l'email (minimisation des données).
+  // Cleared à la déconnexion. try/catch : Sentry non initialisé (DSN absent,
+  // tests) ne doit jamais casser l'auth.
+  useEffect(() => {
+    try {
+      if (session?.user) {
+        Sentry.setUser({ id: session.user.id });
+      } else {
+        Sentry.setUser(null);
+      }
+    } catch {
+      // silencieux — le crash reporting est best-effort.
+    }
+  }, [session]);
 
   const signInWithPassword = useCallback(
     async (email: string, password: string): Promise<AuthResult> => {

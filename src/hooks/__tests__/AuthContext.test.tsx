@@ -68,6 +68,34 @@ describe('boot', () => {
   });
 });
 
+describe('Sentry user context (R6-24)', () => {
+  const Sentry = jest.requireMock('@sentry/react-native') as {
+    setUser: jest.Mock;
+  };
+
+  test('session active → Sentry.setUser avec l id seul (pas d email, minimisation)', async () => {
+    sb.setSession(SESSION);
+    await renderAuth();
+    await waitFor(() =>
+      expect(Sentry.setUser).toHaveBeenCalledWith({ id: 'user-1' }),
+    );
+    // Jamais l'email dans le contexte Sentry.
+    for (const call of Sentry.setUser.mock.calls) {
+      expect(JSON.stringify(call)).not.toContain('test@example.com');
+    }
+  });
+
+  test('SIGNED_OUT → Sentry.setUser(null)', async () => {
+    sb.setSession(SESSION);
+    const { result } = await renderAuth();
+    await act(async () => {
+      sb.emitAuthEvent('SIGNED_OUT', null);
+    });
+    expect(result.current.session).toBeNull();
+    await waitFor(() => expect(Sentry.setUser).toHaveBeenCalledWith(null));
+  });
+});
+
 describe('événements onAuthStateChange', () => {
   test('SIGNED_IN → session posée, cache signup effacé', async () => {
     const { result } = await renderAuth();

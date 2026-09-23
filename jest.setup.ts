@@ -28,6 +28,7 @@ jest.mock('@sentry/react-native', () => ({
   init: jest.fn(),
   wrap: (c: unknown) => c,
   captureException: jest.fn(),
+  setUser: jest.fn(),
 }));
 
 jest.mock('expo-notifications', () => ({
