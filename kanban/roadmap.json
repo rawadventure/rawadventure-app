@@ -738,9 +738,9 @@
         {
           "id": "R6-24",
           "label": "Sentry user context (setUser dans AuthContext)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-09-23T10:59:23.924500Z",
           "priority": "important",
           "estimateH": 0.5,
           "owner": "claude"
