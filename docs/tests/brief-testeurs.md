@@ -8,7 +8,7 @@
 
 > Salut ! On prépare quelque chose dont on est vraiment fiers : l'app Raw Adventure. Et on a la joie de te la confier en avant-première.
 >
-> Pour l'installer : ouvre https://app.rawadventure.world — sur iPhone dans Safari : bouton Partager → « Sur l'écran d'accueil » ; sur Android dans Chrome : menu ⋮ → « Ajouter à l'écran d'accueil ». Renomme l'icône comme tu veux, par exemple RawAdventure. Ouvre ensuite l'app depuis la nouvelle icône, crée ton compte (un code de confirmation arrive par email) et laisse-toi guider.
+> Pour l'installer : ouvre https://app.rawadventure.world — sur iPhone dans Safari : bouton Partager → « Sur l'écran d'accueil » ; sur Android dans Chrome : menu ⋮ → « Ajouter à l'écran d'accueil » → choisis « Installer » (ou touche la bannière « Installer Raw Adventure » si elle s'affiche en bas). Sur iPhone tu peux renommer l'icône comme tu veux, par exemple RawAdventure — sur Android le nom se met tout seul. Ouvre ensuite l'app depuis la nouvelle icône, crée ton compte (un code de confirmation arrive par email) et laisse-toi guider.
 >
 > Trois choses à savoir. Les 14 premiers jours sont gratuits ; après, l'app te propose un abonnement — et on aimerait que tu ailles au bout du paiement, sans rien payer : utilise la carte de test 4242 4242 4242 4242, n'importe quelle date d'expiration future et n'importe quel code à 3 chiffres. C'est une carte fictive prévue pour ça — aucun débit, nulle part. Certains textes portent la mention [copy à valider] : pas finaux, c'est normal. Et les notifications ne fonctionnent pas encore dans cette version.
 >
@@ -24,8 +24,8 @@
 >
 > **Installation** (2 minutes) :
 > 1. Ouvre https://app.rawadventure.world — sur iPhone : dans Safari ; sur Android : dans Chrome.
-> 2. iPhone : bouton Partager → « Sur l'écran d'accueil » → Ajouter. Android : menu ⋮ → « Ajouter à l'écran d'accueil ».
-> 3. Ouvre l'app depuis la nouvelle icône (renomme-la comme tu veux, par exemple RawAdventure).
+> 2. iPhone : bouton Partager → « Sur l'écran d'accueil » → Ajouter. Android : menu ⋮ → « Ajouter à l'écran d'accueil » → « Installer » (ou touche la bannière « Installer Raw Adventure » si elle s'affiche).
+> 3. Ouvre l'app depuis la nouvelle icône (sur iPhone tu peux la renommer, par exemple RawAdventure — sur Android le nom se met tout seul).
 > 4. Crée ton compte — un code de confirmation arrive par email (regarde les spams la première fois).
 >
 > Ensuite, laisse-toi guider : le parcours commence par quelques questions, puis 14 jours d'actions quotidiennes. Utilise l'app comme si c'était la vraie — c'est exactement ça qu'on teste.
@@ -56,8 +56,8 @@
 >
 > **Installer l'app (2 minutes)**
 > 1. Ouvre ce lien : https://app.rawadventure.world — sur iPhone dans Safari, sur Android dans Chrome.
-> 2. iPhone : bouton Partager (carré avec flèche vers le haut) → « Sur l'écran d'accueil » → Ajouter. Android : menu ⋮ → « Ajouter à l'écran d'accueil » (ou « Installer l'application »).
-> 3. Ouvre l'app depuis la nouvelle icône sur ton écran d'accueil (renomme-la comme tu veux, par exemple RawAdventure).
+> 2. iPhone : bouton Partager (carré avec flèche vers le haut) → « Sur l'écran d'accueil » → Ajouter. Android : menu ⋮ → « Ajouter à l'écran d'accueil » → choisis « Installer » (ou touche la bannière « Installer Raw Adventure » si Chrome l'affiche en bas).
+> 3. Ouvre l'app depuis la nouvelle icône sur ton écran d'accueil — sur Android elle apparaît aussi dans le tiroir d'applications (sur iPhone tu peux la renommer, par exemple RawAdventure ; sur Android le nom se met tout seul).
 > 4. Crée ton compte : un code de confirmation à 6 chiffres arrive par email (vérifie les spams la première fois).
 >
 > Ensuite, laisse-toi guider — le parcours commence par quelques questions, puis 14 jours d'actions quotidiennes simples. Utilise l'app naturellement, comme si c'était la version finale : c'est exactement ce qu'on cherche à observer.
