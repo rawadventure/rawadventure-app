@@ -10,7 +10,7 @@
 >
 > Pour l'installer : ouvre https://app.rawadventure.world — sur iPhone dans Safari : bouton Partager → « Sur l'écran d'accueil » ; sur Android dans Chrome : menu ⋮ → « Ajouter à l'écran d'accueil ». Ouvre ensuite l'app depuis la nouvelle icône, crée ton compte (un code de confirmation arrive par email) et laisse-toi guider.
 >
-> Trois choses à savoir. Les 14 premiers jours sont gratuits ; après, l'app te propose un abonnement — c'est voulu, tu n'as rien à payer pour ce test, arrête-toi là ou dis-le-moi. Certains textes portent la mention [copy à valider] : pas finaux, c'est normal. Et les notifications ne fonctionnent pas encore dans cette version.
+> Trois choses à savoir. Les 14 premiers jours sont gratuits ; après, l'app te propose un abonnement — et on aimerait que tu ailles au bout du paiement, sans rien payer : utilise la carte de test 4242 4242 4242 4242, n'importe quelle date d'expiration future et n'importe quel code à 3 chiffres. C'est une carte fictive prévue pour ça — aucun débit, nulle part. Certains textes portent la mention [copy à valider] : pas finaux, c'est normal. Et les notifications ne fonctionnent pas encore dans cette version.
 >
 > Ce qu'on attend de toi, c'est ton regard — sur tout : les bugs et les points de friction, mais aussi le contenu (les textes, les actions, le ton) — ce que tu aimes, ce qui te parle moins, ce que tu verrais différent. Pour un bug : capture + l'heure + ce que tu faisais. Pour le reste : tes mots, même en vrac. Chaque retour compte. Merci !
 
@@ -29,7 +29,7 @@
 > Ensuite, laisse-toi guider : le parcours commence par quelques questions, puis 14 jours d'actions quotidiennes. Utilise l'app comme si c'était la vraie — c'est exactement ça qu'on teste.
 >
 > **À savoir** :
-> — Les 14 premiers jours sont gratuits. Au-delà, l'app propose un abonnement : c'est le comportement prévu, tu n'as rien à payer pour ce test.
+> — Les 14 premiers jours sont gratuits. Au-delà, l'app propose un abonnement — et on aimerait que tu ailles au bout du paiement, sans rien payer : utilise la carte de test 4242 4242 4242 4242, n'importe quelle date d'expiration future et n'importe quel code à 3 chiffres. C'est une carte fictive prévue pour ça — aucun débit, nulle part.
 > — Certains textes portent la mention [copy à valider] : versions provisoires, c'est normal.
 > — Les notifications ne fonctionnent pas encore dans cette version — inutile de les chercher.
 >
@@ -59,7 +59,7 @@
 > Ensuite, laisse-toi guider — le parcours commence par quelques questions, puis 14 jours d'actions quotidiennes simples. Utilise l'app naturellement, comme si c'était la version finale : c'est exactement ce qu'on cherche à observer.
 >
 > **Trois choses à savoir**
-> - Les 14 premiers jours sont gratuits. Au bout du parcours gratuit, l'app propose un abonnement : c'est le comportement prévu — tu n'as rien à payer dans le cadre de ce test.
+> - Les 14 premiers jours sont gratuits. Au bout du parcours gratuit, l'app propose un abonnement — et on aimerait que tu ailles au bout du paiement, sans rien payer : utilise la carte de test 4242 4242 4242 4242, n'importe quelle date d'expiration future et n'importe quel code à 3 chiffres. C'est une carte fictive prévue pour ça — aucun débit, nulle part.
 > - Certains textes portent la mention [copy à valider] : ce sont des versions provisoires, en attente de leur écriture finale. Normal.
 > - Les notifications ne sont pas actives dans cette version.
 >
@@ -73,6 +73,6 @@
 
 ---
 
-## Note avant envoi — page de paiement en mode test
+## Note — paiement en mode test (tranché le 28 sept)
 
-L'app tourne en clés Stripe TEST (choix du 22 sept). Un testeur qui clique sur l'abonnement (accessible dès J3) verra une page de paiement qui refusera sa vraie carte — sans risque financier, mais déroutant. À trancher avant l'envoi : (a) ajouter une phrase aux messages (« la page de paiement est désactivée pendant le test »), (b) poser un abonnement en base aux testeurs qui atteignent J17, ou (c) basculer en clés live. Décision Stéphane en attente.
+Décision Stéphane : les testeurs passent eux-mêmes la page de paiement avec la carte de test Stripe `4242 4242 4242 4242` (clés TEST conservées). Le parcours de conversion est ainsi testé de bout en bout : checkout → webhook → abonnement actif → portail « Gérer mon abonnement » (mode test). Instruction intégrée aux trois variantes ci-dessus. À la bascule en clés live, ces abonnements de test disparaîtront côté Stripe — re-débloquer les comptes testeurs à ce moment-là.
