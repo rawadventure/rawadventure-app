@@ -1,24 +1,24 @@
 # Brief testeurs — messages prêts à envoyer
 
-*Rédigé le 5 septembre 2026 (K5 de la salve pré-ouverture). Trois variantes : WhatsApp, Telegram, email. À envoyer une fois K1 (retrait du panneau DEV) et K2 (nettoyage des comptes) faits.*
+*Rédigé le 5 septembre 2026 (K5 de la salve pré-ouverture), révisé le 28 septembre (ouverture chaleureuse + demande de retours élargie au contenu, décision Stéphane). K1 et K2 sont faits : les messages sont envoyables. Reste à trancher avant envoi : quoi dire sur la page de paiement en mode test (voir note en fin de document).*
 
 ---
 
 ## Variante WhatsApp (courte)
 
-> Salut, merci de tester Raw Adventure en avant-première.
+> Salut ! On prépare quelque chose dont on est vraiment fiers : l'app Raw Adventure. Et on a la joie de te la confier en avant-première.
 >
-> Pour installer l'app : ouvre https://app.rawadventure.world — sur iPhone dans Safari : bouton Partager → « Sur l'écran d'accueil » ; sur Android dans Chrome : menu ⋮ → « Ajouter à l'écran d'accueil ». Ouvre ensuite l'app depuis la nouvelle icône, crée ton compte (un code de confirmation arrive par email) et laisse-toi guider.
+> Pour l'installer : ouvre https://app.rawadventure.world — sur iPhone dans Safari : bouton Partager → « Sur l'écran d'accueil » ; sur Android dans Chrome : menu ⋮ → « Ajouter à l'écran d'accueil ». Ouvre ensuite l'app depuis la nouvelle icône, crée ton compte (un code de confirmation arrive par email) et laisse-toi guider.
 >
-> Deux choses à savoir. Les 14 premiers jours sont gratuits ; après, l'app te propose un abonnement — c'est voulu, tu n'as rien à payer pour ce test, arrête-toi là ou dis-le-moi. Et certains textes portent la mention [copy à valider] : ils ne sont pas finaux, c'est normal.
+> Trois choses à savoir. Les 14 premiers jours sont gratuits ; après, l'app te propose un abonnement — c'est voulu, tu n'as rien à payer pour ce test, arrête-toi là ou dis-le-moi. Certains textes portent la mention [copy à valider] : pas finaux, c'est normal. Et les notifications ne fonctionnent pas encore dans cette version.
 >
-> Si quelque chose cloche : capture d'écran + l'heure + ce que tu étais en train de faire, et envoie-moi tout ici. Chaque retour compte, même un détail. Merci.
+> Ce qu'on attend de toi, c'est ton regard — sur tout : les bugs et les points de friction, mais aussi le contenu (les textes, les actions, le ton) — ce que tu aimes, ce qui te parle moins, ce que tu verrais différent. Pour un bug : capture + l'heure + ce que tu faisais. Pour le reste : tes mots, même en vrac. Chaque retour compte. Merci !
 
 ---
 
 ## Variante Telegram
 
-> Salut, merci de tester Raw Adventure en avant-première.
+> Salut ! On prépare quelque chose dont on est vraiment fiers : l'app Raw Adventure. Et on a la joie de te la confier en avant-première.
 >
 > **Installation** (2 minutes) :
 > 1. Ouvre https://app.rawadventure.world — sur iPhone : dans Safari ; sur Android : dans Chrome.
@@ -33,7 +33,10 @@
 > — Certains textes portent la mention [copy à valider] : versions provisoires, c'est normal.
 > — Les notifications ne fonctionnent pas encore dans cette version — inutile de les chercher.
 >
-> **Si quelque chose cloche** : capture d'écran + l'heure + ce que tu étais en train de faire → envoie-moi ça ici. Un truc qui t'a semblé bizarre ou pas clair, même sans bug, ça m'intéresse autant.
+> **Ce qu'on attend de toi : ton regard, sur tout.**
+> — Les bugs et les points de friction (un truc qui bloque, qui rame, qui t'oblige à réfléchir).
+> — Le contenu : les textes, les actions proposées, le ton — dis-nous ce que tu aimes, ce qui te parle moins, ce que tu verrais différent ou en plus.
+> Pour un bug : capture d'écran + l'heure + ce que tu faisais → ici. Pour le reste : tes mots, même en vrac. Un truc qui t'a juste semblé bizarre, ça nous intéresse autant.
 >
 > Merci — tes retours façonnent directement la V1.
 
@@ -45,7 +48,7 @@
 
 > Bonjour,
 >
-> Merci de faire partie des premiers testeurs de Raw Adventure. Voici tout ce qu'il faut pour démarrer.
+> On prépare quelque chose dont on est vraiment fiers : l'app Raw Adventure. Et on a la joie de te la confier en avant-première — merci de faire partie des tout premiers regards.
 >
 > **Installer l'app (2 minutes)**
 > 1. Ouvre ce lien : https://app.rawadventure.world — sur iPhone dans Safari, sur Android dans Chrome.
@@ -60,9 +63,16 @@
 > - Certains textes portent la mention [copy à valider] : ce sont des versions provisoires, en attente de leur écriture finale. Normal.
 > - Les notifications ne sont pas actives dans cette version.
 >
-> **Remonter un problème**
-> Si quelque chose cloche, bloque, ou te semble simplement bizarre ou pas clair : une capture d'écran, l'heure, et ce que tu étais en train de faire — et envoie-moi le tout en réponse à cet email. Chaque retour compte, même un détail.
+> **Ce qu'on attend de toi : ton regard, sur tout**
+> - Les bugs et les points de friction : un truc qui bloque, qui rame, qui t'oblige à réfléchir. Dans ce cas : une capture d'écran, l'heure, et ce que tu étais en train de faire, en réponse à cet email.
+> - Le contenu : les textes, les actions proposées, le ton. Dis-nous ce que tu aimes, ce qui te parle moins, ce que tu verrais différent ou en plus — avec tes mots, même en vrac.
 >
-> Merci pour ton temps et ton regard.
+> Chaque retour compte, même un détail. Merci pour ton temps et ton regard.
 >
 > Stéphane
+
+---
+
+## Note avant envoi — page de paiement en mode test
+
+L'app tourne en clés Stripe TEST (choix du 22 sept). Un testeur qui clique sur l'abonnement (accessible dès J3) verra une page de paiement qui refusera sa vraie carte — sans risque financier, mais déroutant. À trancher avant l'envoi : (a) ajouter une phrase aux messages (« la page de paiement est désactivée pendant le test »), (b) poser un abonnement en base aux testeurs qui atteignent J17, ou (c) basculer en clés live. Décision Stéphane en attente.
