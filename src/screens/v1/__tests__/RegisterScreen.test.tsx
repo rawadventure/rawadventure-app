@@ -8,8 +8,14 @@
  */
 
 import React from 'react';
-import { Alert } from 'react-native';
-import { render, screen, userEvent } from '@testing-library/react-native';
+import { act, render, screen, userEvent } from '@testing-library/react-native';
+
+// Régression R9-10 (29 sept 2026) : les messages de l'écran doivent passer
+// par showNotice (visible en PWA), jamais par Alert.alert (no-op sur web).
+const mockShowNotice = jest.fn();
+jest.mock('../../../lib/notice', () => ({
+  showNotice: (...args: unknown[]) => mockShowNotice(...args),
+}));
 
 const mockSignUp = jest.fn();
 const mockSignIn = jest.fn();
@@ -53,17 +59,13 @@ import RegisterScreen from '../RegisterScreen';
 import { pinClockTo, unpinClock } from '../../../test-utils/harness';
 
 const USER = { id: 'user-1' };
-let alertSpy: jest.SpyInstance;
 
-/** Presse le bouton d'un Alert par son libellé (ex : 'OK'). */
-function pressAlertButton(label: string) {
-  const lastCall = alertSpy.mock.calls[alertSpy.mock.calls.length - 1];
-  const buttons = lastCall?.[2] as
-    | Array<{ text: string; onPress?: () => void }>
-    | undefined;
-  const btn = buttons?.find((b) => b.text === label);
-  expect(btn).toBeDefined();
-  btn!.onPress?.();
+/** Déclenche le onClose du dernier showNotice (équivalent bouton OK). */
+async function pressNoticeOk() {
+  const lastCall = mockShowNotice.mock.calls[mockShowNotice.mock.calls.length - 1];
+  const onClose = lastCall?.[2] as (() => void) | undefined;
+  expect(onClose).toBeDefined();
+  await act(async () => onClose!());
 }
 
 async function fillCredentials(
@@ -84,14 +86,12 @@ beforeEach(() => {
   mockSignUp.mockResolvedValue({ user: USER, error: null });
   mockSignIn.mockResolvedValue({ user: USER, error: null });
   mockResetPassword.mockResolvedValue({ error: null });
-  alertSpy = jest.spyOn(Alert, 'alert').mockImplementation(() => {});
   // Mercredi 14 oct 2026, midi — hors fenêtre D24 par défaut.
   pinClockTo('2026-10-14', 12);
 });
 
 afterEach(() => {
   unpinClock();
-  alertSpy.mockRestore();
 });
 
 describe('modes et toggles', () => {
@@ -148,23 +148,23 @@ describe('modes et toggles', () => {
 });
 
 describe('validations de saisie', () => {
-  test('champs vides → Alert « Champs manquants »', async () => {
+  test('champs vides → notice « Champs manquants »', async () => {
     await render(<RegisterScreen onRegistered={jest.fn()} />);
     const user = userEvent.setup();
     await user.press(screen.getByText('Créer mon compte'));
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(mockShowNotice).toHaveBeenCalledWith(
       'Champs manquants',
       expect.any(String),
     );
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
-  test('email invalide → Alert « Email invalide »', async () => {
+  test('email invalide → notice « Email invalide »', async () => {
     await render(<RegisterScreen onRegistered={jest.fn()} />);
     const user = userEvent.setup();
     await fillCredentials(user, 'pas-un-email', 'motdepasse');
     await user.press(screen.getByText('Créer mon compte'));
-    expect(alertSpy).toHaveBeenCalledWith('Email invalide', expect.any(String));
+    expect(mockShowNotice).toHaveBeenCalledWith('Email invalide', expect.any(String));
     expect(mockSignUp).not.toHaveBeenCalled();
   });
 
@@ -173,7 +173,7 @@ describe('validations de saisie', () => {
     const user = userEvent.setup();
     await fillCredentials(user, 'a@b.fr', '123');
     await user.press(screen.getByText('Créer mon compte'));
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(mockShowNotice).toHaveBeenCalledWith(
       'Mot de passe trop court',
       expect.any(String),
     );
@@ -204,7 +204,7 @@ describe('connexion (mode signin)', () => {
     expect(onRegistered).not.toHaveBeenCalled();
   });
 
-  test('erreur → Alert « Connexion échouée »', async () => {
+  test('erreur → notice « Connexion échouée »', async () => {
     mockSignIn.mockResolvedValueOnce({
       user: null,
       error: { message: 'Invalid login credentials' },
@@ -213,7 +213,7 @@ describe('connexion (mode signin)', () => {
     const user = userEvent.setup();
     await fillCredentials(user, 'a@b.fr', 'mauvais');
     await user.press(screen.getByText('Me connecter'));
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(mockShowNotice).toHaveBeenCalledWith(
       'Connexion échouée',
       'Invalid login credentials',
     );
@@ -259,7 +259,7 @@ describe('création de compte (mode register, §2.10)', () => {
     expect(onRegistered).toHaveBeenCalledWith({ requiresStartChoice: true });
   });
 
-  test('signUp en erreur → Alert « Création échouée », rien d autre', async () => {
+  test('signUp en erreur → notice « Création échouée », rien d autre', async () => {
     mockSignUp.mockResolvedValueOnce({
       user: null,
       error: { message: 'over_email_send_rate_limit' },
@@ -269,7 +269,7 @@ describe('création de compte (mode register, §2.10)', () => {
     const user = userEvent.setup();
     await fillCredentials(user, 'new@user.fr', 'motdepasse');
     await user.press(screen.getByText('Créer mon compte'));
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(mockShowNotice).toHaveBeenCalledWith(
       'Création échouée',
       'over_email_send_rate_limit',
     );
@@ -279,19 +279,19 @@ describe('création de compte (mode register, §2.10)', () => {
 });
 
 describe('mot de passe oublié (mode forgot)', () => {
-  test('email valide → resetPasswordForEmail + Alert « Email envoyé », OK → retour signin', async () => {
+  test('email valide → resetPasswordForEmail + notice « Email envoyé », OK → retour signin', async () => {
     await render(<RegisterScreen onRegistered={jest.fn()} initialMode="signin" />);
     const user = userEvent.setup();
     await user.press(screen.getByText('Mot de passe oublié ?'));
     await user.type(screen.getByPlaceholderText('Email'), 'a@b.fr');
     await user.press(screen.getByText('Recevoir le lien'));
     expect(mockResetPassword).toHaveBeenCalledWith('a@b.fr');
-    expect(alertSpy).toHaveBeenCalledWith(
+    expect(mockShowNotice).toHaveBeenCalledWith(
       'Email envoyé',
       expect.any(String),
-      expect.any(Array),
+      expect.any(Function),
     );
-    pressAlertButton('OK');
+    await pressNoticeOk();
     expect(await screen.findByText('CONNEXION')).toBeTruthy();
   });
 
@@ -300,7 +300,7 @@ describe('mot de passe oublié (mode forgot)', () => {
     const user = userEvent.setup();
     await user.press(screen.getByText('Mot de passe oublié ?'));
     await user.press(screen.getByText('Recevoir le lien'));
-    expect(alertSpy).toHaveBeenCalledWith('Email manquant', expect.any(String));
+    expect(mockShowNotice).toHaveBeenCalledWith('Email manquant', expect.any(String));
     expect(mockResetPassword).not.toHaveBeenCalled();
   });
 });

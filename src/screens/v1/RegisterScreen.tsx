@@ -19,7 +19,6 @@
 
 import React, { useState } from 'react';
 import {
-  Alert,
   KeyboardAvoidingView,
   Linking,
   Platform,
@@ -33,6 +32,7 @@ import { ArrowRight } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
 import PasswordInput from '../../components/PasswordInput';
 import { isValidEmail, isValidPassword } from '../../lib/validation';
+import { showNotice } from '../../lib/notice';
 import {
   brandColors,
   interTextStyle,
@@ -104,24 +104,24 @@ export default function RegisterScreen({
     // Mode forgot : email seul, pas de password.
     if (mode === 'forgot') {
       if (!email) {
-        Alert.alert('Email manquant', 'Saisis ton email pour recevoir le lien.');
+        showNotice('Email manquant', 'Saisis ton email pour recevoir le lien.');
         return;
       }
       if (!isValidEmail(email)) {
-        Alert.alert('Email invalide', 'Vérifie le format de ton email.');
+        showNotice('Email invalide', 'Vérifie le format de ton email.');
         return;
       }
       setLoading(true);
       try {
         const { error } = await resetPasswordForEmail(email.trim());
         if (error) {
-          Alert.alert('Envoi échoué', error.message);
+          showNotice('Envoi échoué', error.message);
           return;
         }
-        Alert.alert(
+        showNotice(
           'Email envoyé',
           'Vérifie ta boîte mail. Le lien te ramène dans l\'app pour créer un nouveau mot de passe.',
-          [{ text: 'OK', onPress: () => setMode('signin') }],
+          () => setMode('signin'),
         );
       } finally {
         setLoading(false);
@@ -130,15 +130,15 @@ export default function RegisterScreen({
     }
 
     if (!email || !password) {
-      Alert.alert('Champs manquants', 'Email et mot de passe requis.');
+      showNotice('Champs manquants', 'Email et mot de passe requis.');
       return;
     }
     if (!isValidEmail(email)) {
-      Alert.alert('Email invalide', 'Vérifie le format de ton email.');
+      showNotice('Email invalide', 'Vérifie le format de ton email.');
       return;
     }
     if (mode === 'register' && !isValidPassword(password)) {
-      Alert.alert('Mot de passe trop court', '6 caractères minimum.');
+      showNotice('Mot de passe trop court', '6 caractères minimum.');
       return;
     }
     setLoading(true);
@@ -146,7 +146,7 @@ export default function RegisterScreen({
       if (mode === 'signin') {
         const { error } = await signInWithPassword(email.trim(), password);
         if (error) {
-          Alert.alert('Connexion échouée', error.message);
+          showNotice('Connexion échouée', error.message);
           setLoading(false);
           return;
         }
@@ -161,12 +161,12 @@ export default function RegisterScreen({
       // Mode register
       const { user, error } = await signUpWithPassword(email.trim(), password);
       if (error) {
-        Alert.alert('Création échouée', error.message);
+        showNotice('Création échouée', error.message);
         setLoading(false);
         return;
       }
       if (!user) {
-        Alert.alert('Erreur', 'Compte non créé. Réessaie.');
+        showNotice('Erreur', 'Compte non créé. Réessaie.');
         setLoading(false);
         return;
       }
@@ -197,7 +197,7 @@ export default function RegisterScreen({
       // Sinon : on laisse RootNavigator router vers EmailPendingScreen au
       // prochain render via pendingMigration. Pas de callback onRegistered.
     } catch (e: any) {
-      Alert.alert('Erreur', e.message ?? 'Erreur inconnue');
+      showNotice('Erreur', e.message ?? 'Erreur inconnue');
     } finally {
       setLoading(false);
     }

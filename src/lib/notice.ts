@@ -12,12 +12,22 @@
 
 import { Alert, Platform } from 'react-native';
 
-export function showNotice(title: string, message: string): void {
+export function showNotice(
+  title: string,
+  message: string,
+  onClose?: () => void,
+): void {
   if (Platform.OS === 'web') {
     if (typeof window !== 'undefined') {
+      // window.alert est bloquant : onClose s'exécute après la fermeture.
       window.alert(`${title}\n\n${message}`);
+      onClose?.();
     }
     return;
   }
-  Alert.alert(title, message);
+  Alert.alert(
+    title,
+    message,
+    onClose ? [{ text: 'OK', onPress: onClose }] : undefined,
+  );
 }
