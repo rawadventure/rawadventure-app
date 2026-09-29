@@ -1,6 +1,6 @@
 # Inventaire des copy à valider — pour Mimi & Jacky
 
-*Généré le 22 septembre 2026 (F-13, audit Lou Grenier). 20 textes affichés à l'utilisateur portent encore le marqueur `[copy à valider]` : ce sont des placeholders écrits par Claude Code en respectant la grille de ton (CLAUDE.md § 4), jamais validés par Mimi & Jacky. Ce document les liste tous, écran par écran, avec le texte actuel tel quel — pour valider, réécrire ou trancher. Une fois un texte validé, on retire le marqueur dans le code (le texte, lui, est déjà en place : valider = souvent ne rien changer d'autre que le marqueur).*
+*Généré le 22 septembre 2026 (F-13, audit Lou Grenier), complété le 29 septembre (n° 21, pre-prompt notifications R3-5). 21 textes affichés à l'utilisateur portent encore le marqueur `[copy à valider]` : ce sont des placeholders écrits par Claude Code en respectant la grille de ton (CLAUDE.md § 4), jamais validés par Mimi & Jacky. Ce document les liste tous, écran par écran, avec le texte actuel tel quel — pour valider, réécrire ou trancher. Une fois un texte validé, on retire le marqueur dans le code (le texte, lui, est déjà en place : valider = souvent ne rien changer d'autre que le marqueur).*
 
 *Ne fait pas partie de cet inventaire : les slides d'onboarding IA-01→09 (chantier séparé déjà tracé, révision Mimi) et le copy Minéralisation (déjà tracé aussi).*
 
@@ -109,6 +109,15 @@
 > Test notification — Sprint 25 cadre technique.
 
 *Peut rester telle quelle — jamais vue par un utilisateur normal.*
+
+---
+
+## Ajout du 29 septembre 2026 (R3-5 — après transmission de l'inventaire initial)
+
+**21.** Pre-prompt de permission notifications (nouvelle modale affichée à la fermeture de la vidéo J1, avant la demande système — titre « Un rappel par jour », boutons « Activer les rappels » / « Pas maintenant ») :
+> On t'envoie un rappel pour ton check quotidien. Jamais entre 22h et 7h. Tu peux le couper à tout moment depuis ton profil.
+
+*Contexte pour Jacky : c'est le texte qui convainc (ou pas) d'accepter les notifications — iOS ne laisse qu'une seule chance de demande native. Le titre et les libellés de boutons sont modifiables aussi. Slot `copy.global.notif-preprompt` dans `global-copy.ts`.*
 
 ---
 
