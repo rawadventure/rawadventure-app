@@ -57,3 +57,25 @@ export function jokerUsedNotice(
       `Streak conservé. ${repriseText(phase, day)} [copy à valider]`,
   };
 }
+
+/**
+ * Slot `copy.global.notif-preprompt` (R3-5, 29 sept 2026) : couche
+ * d'explication affichée à la fermeture de la vidéo J1, AVANT le prompt
+ * système de permission notifications (une seule chance de prompt natif
+ * sur iOS — on la contextualise). D32 : plage silence citée.
+ */
+export function notifPrePromptCopy(): {
+  title: string;
+  body: string;
+  ctaAccept: string;
+  ctaLater: string;
+} {
+  return {
+    title: 'Un rappel par jour',
+    body:
+      `On t'envoie un rappel pour ton check quotidien. Jamais entre 22h et 7h. ` +
+      `Tu peux le couper à tout moment depuis ton profil. [copy à valider]`,
+    ctaAccept: 'Activer les rappels',
+    ctaLater: 'Pas maintenant',
+  };
+}

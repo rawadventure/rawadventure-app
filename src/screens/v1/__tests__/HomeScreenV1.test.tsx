@@ -313,6 +313,97 @@ describe('vidéo de bienvenue J1 (IA-12)', () => {
   });
 });
 
+describe('pre-prompt notifications J1 (R3-5)', () => {
+  const notifMock = jest.requireMock('expo-notifications') as {
+    getPermissionsAsync: jest.Mock;
+    requestPermissionsAsync: jest.Mock;
+  };
+
+  function mockPermissionUndetermined() {
+    notifMock.getPermissionsAsync.mockResolvedValue({
+      granted: false,
+      canAskAgain: true,
+      status: 'undetermined',
+    });
+    notifMock.requestPermissionsAsync.mockResolvedValue({
+      granted: true,
+      status: 'granted',
+    });
+  }
+
+  test('pendant la vidéo J1 : pas de prompt système, pre-prompt affiché à la fermeture', async () => {
+    mockPermissionUndetermined();
+    await seedAnonymousStorage({ history: [] });
+    await render(
+      <ProgressProvider>
+        <SubscriptionProvider>
+          <GatedHome />
+        </SubscriptionProvider>
+      </ProgressProvider>,
+    );
+    // Vidéo J1 visible.
+    await waitFor(() => expect(screen.getByText("C'est parti.")).toBeTruthy());
+    // Aucune demande système tant que la vidéo est ouverte.
+    expect(notifMock.requestPermissionsAsync).not.toHaveBeenCalled();
+    expect(screen.queryByText('Un rappel par jour')).toBeNull();
+
+    const user = userEvent.setup();
+    await user.press(screen.getByText('Continuer'));
+
+    // Pre-prompt visible, prompt système toujours pas déclenché.
+    await waitFor(() => expect(screen.getByText('Un rappel par jour')).toBeTruthy());
+    expect(notifMock.requestPermissionsAsync).not.toHaveBeenCalled();
+  });
+
+  test('« Activer les rappels » → prompt système + flag notif_permission_prompted posé', async () => {
+    mockPermissionUndetermined();
+    await seedAnonymousStorage({
+      history: [],
+      narrativeFlags: { welcome_video: '2026-10-01T08:00:00.000Z' },
+    });
+    await renderHome();
+    await waitFor(() => expect(screen.getByText('Un rappel par jour')).toBeTruthy());
+
+    const user = userEvent.setup();
+    await user.press(screen.getByText('Activer les rappels'));
+
+    await waitFor(() => expect(notifMock.requestPermissionsAsync).toHaveBeenCalled());
+    await waitFor(async () => {
+      const raw = await AsyncStorage.getItem('narrative_flags');
+      expect(JSON.parse(raw!).notif_permission_prompted).toBeDefined();
+    });
+    expect(screen.queryByText('Un rappel par jour')).toBeNull();
+  });
+
+  test('« Pas maintenant » → flag posé, AUCUN prompt système', async () => {
+    mockPermissionUndetermined();
+    await seedAnonymousStorage({
+      history: [],
+      narrativeFlags: { welcome_video: '2026-10-01T08:00:00.000Z' },
+    });
+    await renderHome();
+    await waitFor(() => expect(screen.getByText('Un rappel par jour')).toBeTruthy());
+
+    const user = userEvent.setup();
+    await user.press(screen.getByText('Pas maintenant'));
+
+    await waitFor(async () => {
+      const raw = await AsyncStorage.getItem('narrative_flags');
+      expect(JSON.parse(raw!).notif_permission_prompted).toBeDefined();
+    });
+    expect(notifMock.requestPermissionsAsync).not.toHaveBeenCalled();
+    expect(screen.queryByText('Un rappel par jour')).toBeNull();
+  });
+
+  test('flag notif_permission_prompted déjà posé : pas de pre-prompt', async () => {
+    mockPermissionUndetermined();
+    await seedAnonymousStorage({ history: [], narrativeFlags: WELCOME_SEEN });
+    await renderHome();
+    expect(screen.queryByText('Un rappel par jour')).toBeNull();
+    expect(notifMock.requestPermissionsAsync).not.toHaveBeenCalled();
+  });
+});
+
 describe('collision palier 15j × S0.1 (D30)', () => {
   test('J15 : S0.1 s ouvre au lancement (flag posé) ; la validation diffère le palier 15', async () => {
     await seedAnonymousStorage({

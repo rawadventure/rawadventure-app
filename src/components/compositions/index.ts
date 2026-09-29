@@ -21,3 +21,6 @@ export type { StreakBubbleProps } from './StreakBubble';
 
 export { VideoPreview } from './VideoPreview';
 export type { VideoPreviewProps } from './VideoPreview';
+
+export { NotifPrePromptModal } from './NotifPrePromptModal';
+export type { NotifPrePromptModalProps } from './NotifPrePromptModal';

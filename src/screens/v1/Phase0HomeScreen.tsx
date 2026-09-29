@@ -33,7 +33,7 @@
  * Référence IA : IA-11 (Phase 0 uniquement). Pattern : B.
  */
 
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Platform, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -42,7 +42,11 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Check, CheckCircle2 } from 'lucide-react-native';
 import { Button, Card } from '../../components/primitives';
 import NotificationPermissionBanner from '../../components/NotificationPermissionBanner';
-import { PillarHeader, TierReachedModal } from '../../components/compositions';
+import {
+  NotifPrePromptModal,
+  PillarHeader,
+  TierReachedModal,
+} from '../../components/compositions';
 import {
   getNotificationPermissionStatus,
   requestNotificationPermission,
@@ -151,6 +155,7 @@ export default function Phase0HomeScreen() {
 
   // Sprint notif UX — statut natif de permission, met à jour banner dynamique.
   const [notifPermission, setNotifPermission] = useState<PermissionStatus>('undetermined');
+  const [showNotifPrePrompt, setShowNotifPrePrompt] = useState(false);
 
   // Détection de journée déjà validée (le user ne peut pas re-valider — D27).
   const alreadyValidatedToday = useMemo(
@@ -206,11 +211,14 @@ export default function Phase0HomeScreen() {
     showWelcomeVideo,
   ]);
 
-  // Sprint notif UX — Prompt permission au J1 si pas encore demandée. Marque
-  // le flag pour ne pas redemander. Si granted, replanifie les notifs Phase 0
-  // (la migration les a peut-être schedulées sans permission au moment-là).
+  // R3-5 (29 sept 2026) — le prompt système ne part plus au mount J1 (il
+  // entrait en collision avec la vidéo de bienvenue IA-12). À la fermeture
+  // de la vidéo (flag welcome_video posé, couche refermée), on affiche le
+  // pre-prompt NotifPrePromptModal ; le prompt natif ne part que sur
+  // « Activer les rappels ». Natif uniquement — les notifications PWA
+  // n'existent pas (stub expo-notifications web).
   useEffect(() => {
-    if (currentDay !== 1) return;
+    if (currentDay !== 1 || Platform.OS === 'web') return;
     if (narrativeFlags.notif_permission_prompted) {
       // Déjà demandée — juste lit le statut courant pour banner.
       void (async () => {
@@ -219,6 +227,21 @@ export default function Phase0HomeScreen() {
       })();
       return;
     }
+    if (!showWelcomeVideo && narrativeFlags.welcome_video) {
+      setShowNotifPrePrompt(true);
+    }
+  }, [
+    currentDay,
+    narrativeFlags.notif_permission_prompted,
+    narrativeFlags.welcome_video,
+    showWelcomeVideo,
+  ]);
+
+  // « Activer les rappels » : prompt système, flag, puis replanification des
+  // notifs Phase 0 si accordé (la migration a pu les scheduler sans
+  // permission à ce moment-là).
+  const acceptNotifPrompt = useCallback(() => {
+    setShowNotifPrePrompt(false);
     void (async () => {
       const status = await requestNotificationPermission();
       setNotifPermission(status);
@@ -234,7 +257,14 @@ export default function Phase0HomeScreen() {
         }
       }
     })();
-  }, [currentDay, narrativeFlags.notif_permission_prompted, markNarrativeSeen, accountCreatedAt]);
+  }, [markNarrativeSeen, accountCreatedAt]);
+
+  // « Pas maintenant » : aucun prompt système (la chance native iOS reste
+  // intacte), flag posé — le réglage Profil reste la porte de rattrapage.
+  const declineNotifPrompt = useCallback(() => {
+    setShowNotifPrePrompt(false);
+    void markNarrativeSeen('notif_permission_prompted');
+  }, [markNarrativeSeen]);
 
   // Re-check statut chaque fois que l'écran reprend le focus (user a pu changer
   // dans les Réglages système entre temps).
@@ -587,6 +617,13 @@ export default function Phase0HomeScreen() {
       <WelcomeVideoScreen
         visible={showWelcomeVideo}
         onContinue={() => setShowWelcomeVideo(false)}
+      />
+
+      {/* R3-5 — pre-prompt permission notifs, à la fermeture de la vidéo J1. */}
+      <NotifPrePromptModal
+        visible={showNotifPrePrompt}
+        onAccept={acceptNotifPrompt}
+        onLater={declineNotifPrompt}
       />
 
       <S01Screen
