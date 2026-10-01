@@ -511,3 +511,67 @@ describe('F-01 (audit Lou) — transition de phase sans démontage', () => {
     );
   });
 });
+
+// ─── D44 (1er octobre 2026) — validation automatique de la veille ≥ 5/7 ──────
+// Retours testeurs beta 30 sept. Flow réel : la testeuse coche 5 actions le
+// soir, ne tape pas « Valider », rouvre l'app le lendemain.
+
+describe('D44 — coches de la veille ≥ 5/7 validées automatiquement au changement de jour', () => {
+  test('J5 : 5 coches sans valider → lendemain : jour 6, série 5, coches du jour vides, notice', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-05T08:00:00.000Z' },
+    });
+    await renderHome();
+    expect(screen.getByText('Jour 5 sur 14')).toBeTruthy();
+    await checkActions(5);
+    await waitFor(async () => {
+      const raw = await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`);
+      expect(Object.values(JSON.parse(raw!)).filter(Boolean)).toHaveLength(5);
+    });
+
+    await act(async () => advanceDevClock(1));
+
+    await waitFor(() => expect(screen.getByText('Jour 6 sur 14')).toBeTruthy());
+    expect(showNotice).toHaveBeenCalledWith(
+      'Journée validée',
+      expect.stringContaining('5 actions sur 7'),
+    );
+    // Nouvelle journée ouverte : rien de coché, bouton de validation présent.
+    await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
+    expect(screen.getByText('Valider ma journée')).toBeTruthy();
+    expect(await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`)).toBeNull();
+  });
+
+  test('J3 : 5 coches sans valider → lendemain : charnière J3 rattrapée à l ouverture (D19/D25)', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(2),
+      narrativeFlags: WELCOME_SEEN,
+    });
+    await renderHome();
+    expect(screen.getByText('Jour 3 sur 14')).toBeTruthy();
+    await checkActions(5);
+
+    await act(async () => advanceDevClock(1));
+
+    await waitFor(() => expect(screen.getByText(/Le corps commence/)).toBeTruthy());
+    const raw = await AsyncStorage.getItem('narrative_flags');
+    expect(JSON.parse(raw!).j3_charniere).toBeDefined();
+  });
+
+  test('course au changement de date : les coches d hier ne sont pas recopiées sous la clé du jour', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-05T08:00:00.000Z' },
+    });
+    await renderHome();
+    await checkActions(3);
+
+    await act(async () => advanceDevClock(1));
+
+    await waitFor(() => expect(screen.getByText('Jour 5 sur 14')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
+    const friday = await AsyncStorage.getItem('daily_check_actions.2026-10-16');
+    expect(friday == null || Object.values(JSON.parse(friday)).filter(Boolean).length === 0).toBe(true);
+  });
+});

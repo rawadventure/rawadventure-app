@@ -220,13 +220,15 @@ describe('validateDay — cas A/B et seuils Phase 0', () => {
     expect(todayEntry?.validation_status).toBe('broken_streak');
   });
 
-  test('re-validation du même jour : remplace l entrée, pas de doublon (D27)', async () => {
+  test('re-validation du même jour : refusée, une seule entrée (D27 — garde ajoutée 1er oct 2026)', async () => {
     await seedAnonymousStorage({ history: [] });
     const { result } = await renderProgress();
     await act(async () => {
       await result.current.validateDay({ actionsCount: 5, day: 1 });
-      await result.current.validateDay({ actionsCount: 6, day: 1 });
     });
+    await expect(
+      result.current.validateDay({ actionsCount: 6, day: 1 }),
+    ).rejects.toThrow(/déjà validée/);
     const todayEntries = result.current.streakHistory.filter(
       (e) => e.local_date === today(),
     );
@@ -1091,5 +1093,111 @@ describe('migration locale → distante (§2.10)', () => {
     } finally {
       sb.client.from = origFrom;
     }
+  });
+});
+
+// ─── D44 (1er octobre 2026) — validation automatique de la veille ≥ 5/7 ──────
+// Retour testeurs beta : une journée cochée sans tap « Valider » comptait
+// comme manquée. La cohérence calendaire lit les coches locales
+// (daily_check_actions.<date>) et valide à sa date toute journée Phase 0
+// passée à ≥ 5 coches. Les clés traitées sont supprimées.
+
+describe('D44 — validation automatique de la veille (cohérence calendaire)', () => {
+  const checks = (n: number) =>
+    JSON.stringify(
+      Object.fromEntries(
+        ['a', 'b', 'c', 'd', 'e', 'f', 'g'].map((id, i) => [id, i < n]),
+      ),
+    );
+
+  test('hier 5 coches non validées → journée validée à sa date, série +1, position +1, clé supprimée, notice', async () => {
+    await seedAnonymousStorage({ history: validatedRun(2, daysAgo(2)) });
+    await AsyncStorage.setItem(`daily_check_actions.${daysAgo(1)}`, checks(5));
+    const { result } = await renderProgress();
+    await waitFor(() => {
+      const e = result.current.streakHistory.find((x) => x.local_date === daysAgo(1));
+      expect(e?.validation_status).toBe('valid_above_threshold');
+    });
+    expect(result.current.streak).toBe(3);
+    expect(result.current.currentDay).toBe(4);
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBeNull();
+    expect(showNotice).toHaveBeenCalledWith(
+      'Journée validée',
+      expect.stringContaining('5 actions sur 7'),
+    );
+  });
+
+  test('hier 3 coches → jour manqué classique (joker), clé obsolète nettoyée', async () => {
+    await seedAnonymousStorage({ history: validatedRun(2, daysAgo(2)) });
+    await AsyncStorage.setItem(`daily_check_actions.${daysAgo(1)}`, checks(3));
+    const { result } = await renderProgress();
+    await waitFor(() => {
+      const e = result.current.streakHistory.find((x) => x.local_date === daysAgo(1));
+      expect(e?.validation_status).toBe('missed_with_joker');
+    });
+    expect(result.current.currentDay).toBe(3);
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBeNull();
+    expect(showNotice).not.toHaveBeenCalledWith('Journée validée', expect.anything());
+  });
+
+  test('les coches d aujourd hui restent intactes', async () => {
+    await seedAnonymousStorage({ history: validatedRun(2, daysAgo(1)) });
+    await AsyncStorage.setItem(`daily_check_actions.${today()}`, checks(5));
+    const { result } = await renderProgress();
+    await act(async () => {});
+    expect(result.current.streakHistory.find((x) => x.local_date === today())).toBeUndefined();
+    expect(await AsyncStorage.getItem(`daily_check_actions.${today()}`)).toBe(checks(5));
+  });
+
+  test('palier atteint par validation auto (14 → 15) → tier_reaches enregistré + palier différé D30', async () => {
+    await seedAnonymousStorage({ history: validatedRun(14, daysAgo(2)) });
+    await AsyncStorage.setItem(`daily_check_actions.${daysAgo(1)}`, checks(7));
+    const { result } = await renderProgress();
+    await waitFor(() => expect(result.current.streak).toBe(15));
+    expect(result.current.tierReaches.find((t) => t.tier_id === 15)?.reach_count).toBe(1);
+    expect(result.current.pendingTierReach).toMatchObject({ tierId: 15, isFirstReach: true });
+  });
+
+  test('connecté : la validation auto écrit streak_history et progress (actions_count) côté Supabase', async () => {
+    mockUser = { id: 'user-1' };
+    sb.setTables({
+      profiles: {
+        id: 'user-1',
+        onboarding_done: true,
+        onboarding_data: {},
+        profile_dynamic_id: null,
+        account_created_at: daysAgo(3) + 'T08:00:00.000Z',
+      },
+      streak_history: validatedRun(2, daysAgo(2)),
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+    await AsyncStorage.setItem(`daily_check_actions.${daysAgo(1)}`, checks(5));
+    const { result } = await renderProgress();
+    await waitFor(() => expect(result.current.streak).toBe(3));
+    const progressUpsert = sb.calls.find(
+      (c) => c.table === 'progress' && c.op === 'upsert',
+    );
+    expect(progressUpsert?.payload).toMatchObject({ day_id: 3, actions_count: 5, is_minimum: false });
+  });
+});
+
+// ─── Garde D27 — une journée validée ne se revalide pas ──────────────────────
+
+describe('validateDay — garde journée déjà validée (D27, retours testeurs 30 sept)', () => {
+  test('second validateDay le même jour → erreur, aucune réécriture ni joker consommé', async () => {
+    await seedAnonymousStorage({ history: validatedRun(2) });
+    const { result } = await renderProgress();
+    await act(async () => {
+      await result.current.validateDay({ day: 3, phase: 'phase_0', actionsCount: 5 });
+    });
+    expect(result.current.streak).toBe(3);
+    await expect(
+      result.current.validateDay({ day: 3, phase: 'phase_0', actionsCount: 2 }),
+    ).rejects.toThrow(/déjà validée/);
+    expect(result.current.streak).toBe(3);
+    expect(result.current.jokerAvailable).toBe(true);
+    expect(result.current.streakHistory.filter((e) => e.local_date === today())).toHaveLength(1);
   });
 });

@@ -276,28 +276,61 @@ export function missingDatesBetween(
  * @param args.today date locale du jour (jamais résolue)
  * @param args.phase phase courante du parcours — stable pendant une absence
  *   (currentDay est basé sur les validations, D38, il n'avance pas)
+ * @param args.checksByDate D44 — nombre d'actions cochées par date locale
+ *   (coches Phase 0 restées sur l'appareil). Une date passée, absente de
+ *   l'historique, avec ≥ THRESHOLD_PHASE_0_ACTIONS coches est validée
+ *   automatiquement (`valid_above_threshold`, série +1) — Phase 0 seulement.
+ *   Sous le seuil : jour manqué classique. Sans historique, le traitement
+ *   démarre à la plus ancienne date cochée.
  */
 export function resolveMissedDays(args: {
   history: StreakEntry[];
   consumptions: JokerConsumption[];
   today: LocalDate;
   phase: Phase;
-}): { entries: StreakEntry[]; consumptions: JokerConsumption[] } {
-  const { history, consumptions, today, phase } = args;
-  if (history.length === 0) return { entries: [], consumptions: [] };
+  checksByDate?: Record<LocalDate, number>;
+}): {
+  entries: StreakEntry[];
+  consumptions: JokerConsumption[];
+  /** D44 — journées validées automatiquement, ordre chronologique. */
+  autoValidated: Array<{ local_date: LocalDate; actionsCount: number }>;
+} {
+  const { history, consumptions, today, phase, checksByDate = {} } = args;
+  const none = { entries: [], consumptions: [], autoValidated: [] };
 
-  const lastProcessed = history[history.length - 1].local_date;
   const yesterday = addDays(today, -1);
+  let lastProcessed: LocalDate | null =
+    history.length > 0 ? history[history.length - 1].local_date : null;
+  if (!lastProcessed) {
+    // Sans historique, seule une coche passée peut amorcer le traitement.
+    const pastChecked = Object.keys(checksByDate)
+      .filter((d) => d <= yesterday)
+      .sort();
+    if (pastChecked.length === 0) return none;
+    lastProcessed = addDays(pastChecked[0], -1);
+  }
   const missing = missingDatesBetween(lastProcessed, yesterday);
-  if (missing.length === 0) return { entries: [], consumptions: [] };
+  if (missing.length === 0) return none;
 
   const entries: StreakEntry[] = [];
   const newConsumptions: JokerConsumption[] = [];
+  const autoValidated: Array<{ local_date: LocalDate; actionsCount: number }> = [];
   const allConsumptions = [...consumptions];
   let streak = currentStreakFromHistory(history);
 
   for (const date of missing) {
-    if (streak > 0 && isJokerAvailable(allConsumptions, date)) {
+    const checked = checksByDate[date] ?? 0;
+    if (phase === 'phase_0' && checked >= THRESHOLD_PHASE_0_ACTIONS) {
+      streak += 1;
+      entries.push({
+        local_date: date,
+        validation_status: 'valid_above_threshold',
+        phase,
+        streak_value_after: streak,
+        joker_used: false,
+      });
+      autoValidated.push({ local_date: date, actionsCount: checked });
+    } else if (streak > 0 && isJokerAvailable(allConsumptions, date)) {
       const consumption: JokerConsumption = {
         week_key: weekKeyOf(date),
         consumed_for_local_date: date,
@@ -323,5 +356,5 @@ export function resolveMissedDays(args: {
     }
   }
 
-  return { entries, consumptions: newConsumptions };
+  return { entries, consumptions: newConsumptions, autoValidated };
 }

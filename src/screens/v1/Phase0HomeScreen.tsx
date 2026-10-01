@@ -72,6 +72,7 @@ import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { todayLocalDate } from '../../lib/calendar';
+import { dailyChecksKey } from '../../lib/dailyChecks';
 import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
@@ -90,7 +91,8 @@ const EMPTY_CHECKS: DailyChecksMap = {
   soiree_sans_ecrans: false,
 };
 
-const STORAGE_KEY = (localDate: string) => `daily_check_actions.${localDate}`;
+// Clé de stockage des coches : source unique dans src/lib/dailyChecks (D44).
+const STORAGE_KEY = dailyChecksKey;
 
 /**
  * Messages du jour J1-J14 — affichés sur HomeScreenV1 quand la journée n'est
@@ -171,7 +173,7 @@ export default function Phase0HomeScreen() {
   // L'ancienne branche « palier au hub_open » servait au seedDevStreak,
   // supprimé (les snapshots devTimeline posent tier_reaches cohérents).
   useEffect(() => {
-    if (showWelcomeVideo || showS01 || showS02) return;
+    if (showWelcomeVideo || showS01 || showS02 || charniereDay != null) return;
     const event = nextNarrativeEvent({
       trigger: 'hub_open',
       currentDay,
@@ -198,6 +200,12 @@ export default function Phase0HomeScreen() {
         setShowS02(true);
         void markNarrativeSeen('s0_2_screen');
         break;
+      case 'charniere':
+        // D44 — charnière d'un jour validé automatiquement (cohérence
+        // calendaire), rattrapée à l'ouverture, une par lancement (D25).
+        setCharniereDay(event.day);
+        void markNarrativeSeen(event.flag);
+        break;
       default:
         break;
     }
@@ -209,6 +217,7 @@ export default function Phase0HomeScreen() {
     showS01,
     showS02,
     showWelcomeVideo,
+    charniereDay,
   ]);
 
   // R3-5 (29 sept 2026) — le prompt système ne part plus au mount J1 (il
@@ -278,7 +287,12 @@ export default function Phase0HomeScreen() {
     return unsubscribe;
   }, [navigation]);
 
-  // Charge l'état du jour depuis AsyncStorage au mount.
+  // Charge l'état du jour depuis AsyncStorage au mount et à chaque
+  // changement de date. `loadedDateRef` = date dont les coches sont en
+  // mémoire : tant qu'elle diffère de `today`, rien n'est persisté (sinon
+  // les coches d'hier étaient recopiées sous la clé du jour pendant le
+  // chargement — retours testeurs 30 sept 2026).
+  const loadedDateRef = useRef<string | null>(null);
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -293,7 +307,10 @@ export default function Phase0HomeScreen() {
       } catch (e) {
         console.warn('[HomeScreenV1] load checks failed', e);
       } finally {
-        if (!cancelled) setLoaded(true);
+        if (!cancelled) {
+          loadedDateRef.current = today;
+          setLoaded(true);
+        }
       }
     })();
     return () => {
@@ -301,9 +318,9 @@ export default function Phase0HomeScreen() {
     };
   }, [today]);
 
-  // Persiste à chaque modification.
+  // Persiste à chaque modification — uniquement pour la date chargée.
   useEffect(() => {
-    if (!loaded) return;
+    if (!loaded || loadedDateRef.current !== today) return;
     AsyncStorage.setItem(STORAGE_KEY(today), JSON.stringify(checks)).catch((e) =>
       console.warn('[HomeScreenV1] save checks failed', e),
     );

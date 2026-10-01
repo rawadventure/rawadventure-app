@@ -32,7 +32,12 @@ import {
   type StreakEntry,
 } from '../../lib/streak';
 import { currentWeekKey, todayLocalDate } from '../../lib/calendar';
-import { jokerUsedNotice, streakBrokenNotice } from '../../data/global-copy';
+import { loadDailyChecksCounts, removeDailyChecks } from '../../lib/dailyChecks';
+import {
+  autoValidatedNotice,
+  jokerUsedNotice,
+  streakBrokenNotice,
+} from '../../data/global-copy';
 import {
   LOCAL_KEYS,
   type PendingTierReach,
@@ -107,20 +112,53 @@ export function useStreakDomain({
           : day <= 16
             ? 'phase_0'
             : 'phase_1';
+        const today = todayLocalDate();
+        // D44 : coches Phase 0 restées sur l'appareil — une journée passée à
+        // ≥ 5/7 est validée à sa date, les autres clés passées sont obsolètes.
+        const checksByDate = await loadDailyChecksCounts();
+        const staleCheckDates = Object.keys(checksByDate).filter((d) => d < today);
         const resolved = resolveMissedDays({
           history,
           consumptions,
-          today: todayLocalDate(),
+          today,
           phase,
+          checksByDate,
         });
-        if (resolved.entries.length === 0) return;
+        if (resolved.entries.length === 0) {
+          await removeDailyChecks(staleCheckDates);
+          return;
+        }
 
         // Persistance batch — Supabase en connecté, AsyncStorage en anonyme.
-        const nextData = withCoherenceResolution(
+        let nextData = withCoherenceResolution(
           dataRef.current,
           resolved.entries,
           resolved.consumptions,
         );
+
+        // D44 : palier franchi par une validation auto → enregistré, et
+        // différé (D30) : la modale IA-50 se joue à la prochaine validation
+        // manuelle, jamais en plein chargement.
+        let pendingFromAuto: PendingTierReach | null = null;
+        let prevStreak = currentStreakFromHistory(history);
+        for (const e of resolved.entries) {
+          const tier = tierJustReached(prevStreak, e.streak_value_after);
+          prevStreak = e.streak_value_after;
+          if (!tier) continue;
+          const now = new Date().toISOString();
+          const existing = nextData.tierReaches.find((t) => t.tier_id === tier);
+          const updated: TierReach = existing
+            ? { ...existing, last_reached_at: now, reach_count: existing.reach_count + 1 }
+            : { tier_id: tier, first_reached_at: now, last_reached_at: now, reach_count: 1 };
+          nextData = withTierReach(nextData, updated);
+          pendingFromAuto = {
+            tierId: tier,
+            isFirstReach: updated.reach_count === 1,
+            streakValue: e.streak_value_after,
+            deferredAt: now,
+          };
+        }
+
         if (user) {
           const rows = resolved.entries.map((e) => ({ user_id: user.id, ...e }));
           await must(
@@ -139,6 +177,28 @@ export function useStreakDomain({
                 .upsert(cRows, { onConflict: 'user_id,week_key' }),
             );
           }
+          // D44 : ligne `progress` par journée auto-validée (day_id = position
+          // D38 de cette journée = validations antérieures + 1).
+          let dayId = day;
+          for (const auto of resolved.autoValidated) {
+            await must(
+              supabase.from('progress').upsert(
+                {
+                  user_id: user.id,
+                  day_id: dayId,
+                  is_minimum: false,
+                  actions_count: Math.min(auto.actionsCount, THRESHOLD_PHASE_0_TOTAL),
+                  validated_at: new Date().toISOString(),
+                },
+                { onConflict: 'user_id,day_id' },
+              ),
+            );
+            dayId += 1;
+          }
+          if (pendingFromAuto) await store.saveTierReach(
+            nextData.tierReaches.find((t) => t.tier_id === pendingFromAuto!.tierId)!,
+            nextData.tierReaches,
+          );
         } else {
           await AsyncStorage.setItem(
             LOCAL_KEYS.streakHistory,
@@ -150,22 +210,35 @@ export function useStreakDomain({
               JSON.stringify(nextData.jokerConsumptions),
             );
           }
+          if (pendingFromAuto) {
+            await AsyncStorage.setItem(
+              LOCAL_KEYS.tierReaches,
+              JSON.stringify(nextData.tierReaches),
+            );
+          }
         }
+        if (pendingFromAuto) await setPendingTier(pendingFromAuto);
+        await removeDailyChecks(staleCheckDates);
         commitData(nextData);
 
         // Message sobre, non-culpabilisant (D26). Texte routé par slots de
         // copy dans src/data/global-copy.ts (D23, F-13 audit Lou).
         // Reprise de position (D38) : les jours manqués ne comptent pas en
-        // progression, donc `day` (calculé avant résolution) est bien le
-        // jour où l'utilisateur reprend.
+        // progression ; les journées auto-validées (D44) si — le jour de
+        // reprise est donc `day` + nombre de validations auto.
+        const resumeDay = day + resolved.autoValidated.length;
+        if (resolved.autoValidated.length > 0) {
+          const n = autoValidatedNotice(resolved.autoValidated);
+          showNotice(n.title, n.body);
+        }
         const broke = resolved.entries.some(
           (e) => e.validation_status === 'broken_streak',
         );
         if (broke) {
-          const n = streakBrokenNotice(phase, day);
+          const n = streakBrokenNotice(phase, resumeDay);
           showNotice(n.title, n.body);
         } else if (resolved.consumptions.length > 0) {
-          const n = jokerUsedNotice(phase, day);
+          const n = jokerUsedNotice(phase, resumeDay);
           showNotice(n.title, n.body);
         }
       }).catch((e) => {
@@ -173,7 +246,7 @@ export function useStreakDomain({
         console.warn('[ProgressContext] cohérence calendaire échouée', e);
       });
     },
-    [user, enqueueMutation, commitData],
+    [user, store, enqueueMutation, commitData, setPendingTier],
   );
 
 
@@ -191,6 +264,12 @@ export function useStreakDomain({
         const userValidatedManually = args.userValidatedManually ?? true;
 
         const current = dataRef.current;
+        // D27 — une journée validée reste validée. Garde au niveau de la
+        // mutation (les écrans gardent aussi) : un second appel le même jour
+        // réécrirait l'entrée et pourrait consommer le joker une 2e fois.
+        if (current.streakHistory.some((e) => e.local_date === localDate)) {
+          throw new Error(`Journée ${localDate} déjà validée (D27).`);
+        }
         const decision = determineValidationStatus({
           phase,
           actionsCount: args.actionsCount,

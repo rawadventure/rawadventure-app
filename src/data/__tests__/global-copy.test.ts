@@ -16,6 +16,7 @@ import {
   repriseText,
   streakBrokenNotice,
   jokerUsedNotice,
+  autoValidatedNotice,
 } from '../global-copy';
 
 describe('repriseText (copy.global.streak-reprise, D38)', () => {
@@ -53,5 +54,29 @@ describe('jokerUsedNotice (copy.global.message-joker-consomme, D26)', () => {
     expect(n.body).toContain('Série conservée');
     expect(n.body).toContain('[copy à valider]');
     expect(n.body).not.toContain('8'); // hors Phase 0 : formulation neutre
+  });
+});
+
+describe('autoValidatedNotice (copy.global.journee-auto-validee, D44)', () => {
+  test('une journée : hier, nombre d actions, marqueur placeholder', () => {
+    const n = autoValidatedNotice([{ local_date: '2026-10-14', actionsCount: 5 }]);
+    expect(n.title).toBe('Journée validée');
+    expect(n.body).toContain('5 actions sur 7');
+    expect(n.body).toContain('[copy à valider]');
+  });
+
+  test('plusieurs journées : formulation au pluriel', () => {
+    const n = autoValidatedNotice([
+      { local_date: '2026-10-13', actionsCount: 6 },
+      { local_date: '2026-10-14', actionsCount: 5 },
+    ]);
+    expect(n.title).toBe('Journées validées');
+    expect(n.body).toContain('2 journées');
+  });
+
+  test('ton : pas d exclamation, pas de pression', () => {
+    const n = autoValidatedNotice([{ local_date: '2026-10-14', actionsCount: 5 }]);
+    expect(n.body).not.toContain('!');
+    expect(n.body).not.toMatch(/perds|perdu|dommage/i);
   });
 });

@@ -356,3 +356,146 @@ describe('streak.resolveMissedDays', () => {
     expect(r.consumptions).toHaveLength(1);
   });
 });
+
+// ─── D44 (1er octobre 2026) — validation automatique de la veille ≥ 5/7 ──────
+// Retour testeurs beta : une journée cochée mais jamais « validée » à la main
+// comptait comme manquée. À la première ouverture après minuit, une journée
+// Phase 0 non validée avec au moins THRESHOLD_PHASE_0_ACTIONS coches est
+// validée automatiquement à sa date (valid_above_threshold, série +1). En
+// dessous du seuil : règles de jour manqué inchangées (joker / cassure).
+
+describe('streak.resolveMissedDays — validation automatique D44', () => {
+  const validated = (local_date: string, streak: number): StreakEntry => ({
+    local_date,
+    validation_status: 'valid_above_threshold',
+    phase: 'phase_0',
+    streak_value_after: streak,
+    joker_used: false,
+  });
+
+  test('hier 5 coches, non validé → valid_above_threshold, série +1, date remontée', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-08', 4)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-09': 5 },
+    });
+    expect(r.entries).toEqual([
+      {
+        local_date: '2026-07-09',
+        validation_status: 'valid_above_threshold',
+        phase: 'phase_0',
+        streak_value_after: 5,
+        joker_used: false,
+      },
+    ]);
+    expect(r.consumptions).toEqual([]);
+    expect(r.autoValidated).toEqual([{ local_date: '2026-07-09', actionsCount: 5 }]);
+  });
+
+  test('hier 4 coches (sous le seuil) → jour manqué classique (joker), pas de validation', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-08', 4)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-09': 4 },
+    });
+    expect(r.entries[0].validation_status).toBe('missed_with_joker');
+    expect(r.autoValidated).toEqual([]);
+  });
+
+  test('historique vide + hier 5 coches → première validation, série 1', () => {
+    const r = resolveMissedDays({
+      history: [],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-09': 6 },
+    });
+    expect(r.entries).toHaveLength(1);
+    expect(r.entries[0]).toMatchObject({
+      local_date: '2026-07-09',
+      validation_status: 'valid_above_threshold',
+      streak_value_after: 1,
+    });
+    expect(r.autoValidated).toEqual([{ local_date: '2026-07-09', actionsCount: 6 }]);
+  });
+
+  test('historique vide + coches d avant-hier seulement → avant-hier validé, hier joker', () => {
+    const r = resolveMissedDays({
+      history: [],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-08': 5 },
+    });
+    expect(r.entries.map((e) => [e.local_date, e.validation_status, e.streak_value_after])).toEqual([
+      ['2026-07-08', 'valid_above_threshold', 1],
+      ['2026-07-09', 'missed_with_joker', 1],
+    ]);
+  });
+
+  test('mélange chronologique : J-2 auto-validé puis J-1 manqué → joker sur J-1, série conservée', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-07', 3)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-08': 5, '2026-07-09': 2 },
+    });
+    expect(r.entries.map((e) => [e.local_date, e.validation_status, e.streak_value_after])).toEqual([
+      ['2026-07-08', 'valid_above_threshold', 4],
+      ['2026-07-09', 'missed_with_joker', 4],
+    ]);
+    expect(r.autoValidated).toEqual([{ local_date: '2026-07-08', actionsCount: 5 }]);
+  });
+
+  test('les coches d aujourd hui ne sont jamais traitées (journée encore ouverte)', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-09', 4)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-10': 7 },
+    });
+    expect(r.entries).toEqual([]);
+    expect(r.autoValidated).toEqual([]);
+  });
+
+  test('une date déjà dans l historique n est pas re-validée (D27)', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-09', 4)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+      checksByDate: { '2026-07-09': 7 },
+    });
+    expect(r.entries).toEqual([]);
+    expect(r.autoValidated).toEqual([]);
+  });
+
+  test('hors Phase 0 : les coches ne valident rien (Phase 1 = sessions, validées à la session)', () => {
+    const r = resolveMissedDays({
+      history: [{ ...validated('2026-07-08', 20), phase: 'phase_1' }],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_1',
+      checksByDate: { '2026-07-09': 7 },
+    });
+    expect(r.entries[0].validation_status).toBe('missed_with_joker');
+    expect(r.autoValidated).toEqual([]);
+  });
+
+  test('sans checksByDate : comportement inchangé (rétro-compatible)', () => {
+    const r = resolveMissedDays({
+      history: [validated('2026-07-08', 4)],
+      consumptions: [],
+      today: '2026-07-10',
+      phase: 'phase_0',
+    });
+    expect(r.entries[0].validation_status).toBe('missed_with_joker');
+    expect(r.autoValidated).toEqual([]);
+  });
+});

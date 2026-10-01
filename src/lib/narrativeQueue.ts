@@ -110,6 +110,19 @@ export function nextNarrativeEvent(
     if (currentPhase === 'phase_0' && !narrativeFlags.welcome_video) {
       return { kind: 'welcome_video' };
     }
+    // D44 — rattrapage : une journée validée automatiquement (cohérence
+    // calendaire, coches ≥ 5/7 sans tap « Valider ») ne passe pas par
+    // day_validated. Sa charnière se joue ici, la plus ancienne d'abord, une
+    // par lancement (D25). `currentDay > day` ⇔ jour `day` validé. Périmètre
+    // Phase 0 (J14 avant S0.1 — ordre narratif).
+    if (currentPhase === 'phase_0') {
+      for (const day of [3, 7, 11, 14] as const) {
+        const flag = CHARNIERE_FLAGS[day];
+        if (currentDay > day && !narrativeFlags[flag]) {
+          return { kind: 'charniere', day, flag };
+        }
+      }
+    }
     // IA-20 / IA-21 — premier lancement du jour de position 15 / 16.
     if (currentDay === 15 && !narrativeFlags.s0_1_screen) {
       return { kind: 's0_1_screen' };

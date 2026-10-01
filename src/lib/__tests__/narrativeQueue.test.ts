@@ -25,12 +25,17 @@ import {
 } from '../narrativeQueue';
 
 const NO_FLAGS = {};
-const ALL_PHASE0_FLAGS = {
+// Parcours nominal jusqu'à J14 : vidéo J1 + 4 charnières vues (D44 : une
+// charnière non vue d'un jour validé se rattrape à l'ouverture).
+const P0_SEEN = {
   welcome_video: 'x',
   j3_charniere: 'x',
   j7_charniere: 'x',
   j11_charniere: 'x',
   j14_charniere: 'x',
+};
+const ALL_PHASE0_FLAGS = {
+  ...P0_SEEN,
   s0_1_screen: 'x',
   s0_2_screen: 'x',
 };
@@ -84,7 +89,7 @@ describe('hub_open — vidéo J1, S0.1, S0.2 (IA-12/IA-20/IA-21)', () => {
   test('F1 : ouverture au jour 15 → S0.1 (se joue à l ouverture, pas à la validation)', () => {
     expect(
       nextNarrativeEvent(
-        input({ currentDay: 15, narrativeFlags: { welcome_video: 'x' } }),
+        input({ currentDay: 15, narrativeFlags: P0_SEEN }),
       ),
     ).toEqual({ kind: 's0_1_screen' });
   });
@@ -100,7 +105,7 @@ describe('hub_open — vidéo J1, S0.1, S0.2 (IA-12/IA-20/IA-21)', () => {
       nextNarrativeEvent(
         input({
           currentDay: 15,
-          narrativeFlags: { welcome_video: 'x', s0_1_screen: 'x' },
+          narrativeFlags: { ...P0_SEEN, s0_1_screen: 'x' },
         }),
       ),
     ).toBeNull();
@@ -111,7 +116,7 @@ describe('hub_open — vidéo J1, S0.1, S0.2 (IA-12/IA-20/IA-21)', () => {
       nextNarrativeEvent(
         input({
           currentDay: 16,
-          narrativeFlags: { welcome_video: 'x', s0_1_screen: 'x' },
+          narrativeFlags: { ...P0_SEEN, s0_1_screen: 'x' },
         }),
       ),
     ).toEqual({ kind: 's0_2_screen' });
@@ -347,5 +352,85 @@ describe('day_validated — joker (message sobre)', () => {
         }),
       ),
     ).toMatchObject({ kind: 'charniere', day: 3 });
+  });
+});
+
+// ─── D44 — rattrapage de charnière après validation automatique ──────────────
+// Une journée validée automatiquement (cohérence, pas de tap « Valider ») ne
+// passe pas par le trigger day_validated : sa charnière (D19) se joue à
+// l'ouverture suivante du hub, une seule à la fois (D25), dans l'ordre.
+
+describe('hub_open — rattrapage charnière après validation auto (D44)', () => {
+  test('J3 validé automatiquement (position 4, flag absent) → charnière J3 à l ouverture', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 4, narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toEqual({ kind: 'charniere', day: 3, flag: 'j3_charniere' });
+  });
+
+  test('plusieurs charnières en retard → la plus ancienne d abord (D25 : une par lancement)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 9, narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toEqual({ kind: 'charniere', day: 3, flag: 'j3_charniere' });
+    expect(
+      nextNarrativeEvent(
+        input({
+          currentDay: 9,
+          narrativeFlags: { welcome_video: 'x', j3_charniere: 'x' },
+        }),
+      ),
+    ).toEqual({ kind: 'charniere', day: 7, flag: 'j7_charniere' });
+  });
+
+  test('charnière du jour de position courant non validé → rien (elle se joue à la validation)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 3, narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toBeNull();
+  });
+
+  test('toutes vues → rien', () => {
+    expect(
+      nextNarrativeEvent(
+        input({
+          currentDay: 12,
+          narrativeFlags: {
+            welcome_video: 'x',
+            j3_charniere: 'x',
+            j7_charniere: 'x',
+            j11_charniere: 'x',
+          },
+        }),
+      ),
+    ).toBeNull();
+  });
+
+  test('J14 auto-validé (position 15) : charnière J14 avant S0.1', () => {
+    const flags = {
+      welcome_video: 'x',
+      j3_charniere: 'x',
+      j7_charniere: 'x',
+      j11_charniere: 'x',
+    };
+    expect(
+      nextNarrativeEvent(input({ currentDay: 15, narrativeFlags: flags })),
+    ).toEqual({ kind: 'charniere', day: 14, flag: 'j14_charniere' });
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 15, narrativeFlags: { ...flags, j14_charniere: 'x' } }),
+      ),
+    ).toEqual({ kind: 's0_1_screen' });
+  });
+
+  test('hors phase_0 : pas de rattrapage (périmètre limité à la Phase 0)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 20, currentPhase: 'phase_1', narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toBeNull();
   });
 });

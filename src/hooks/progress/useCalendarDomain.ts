@@ -71,7 +71,14 @@ export function useCalendarDomain({
       }
     };
     const sub = AppState.addEventListener('change', onAppStateChange);
-    return () => sub.remove();
+    // Retours testeurs 30 sept 2026 (« validation pas fluide ») : une app
+    // laissée ouverte au premier plan ne reçoit aucun 'active' à minuit et
+    // restait sur la veille. Contrôle périodique léger, même garde.
+    const tick = setInterval(() => onAppStateChange('active'), 60_000);
+    return () => {
+      sub.remove();
+      clearInterval(tick);
+    };
   }, []);
 
 

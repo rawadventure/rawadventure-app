@@ -79,3 +79,27 @@ export function notifPrePromptCopy(): {
     ctaLater: 'Pas maintenant',
   };
 }
+
+/**
+ * Slot `copy.global.journee-auto-validee` (D44, 1er octobre 2026) : une ou
+ * plusieurs journées Phase 0 passées, cochées à ≥ 5/7 sans tap « Valider »,
+ * ont été validées automatiquement à l'ouverture suivante.
+ */
+export function autoValidatedNotice(
+  days: Array<{ local_date: string; actionsCount: number }>,
+): { title: string; body: string } {
+  if (days.length === 1) {
+    return {
+      title: 'Journée validée',
+      body:
+        `Hier, tu avais coché ${days[0].actionsCount} actions sur 7 : ` +
+        `ta journée est validée. [copy à valider]`,
+    };
+  }
+  return {
+    title: 'Journées validées',
+    body:
+      `${days.length} journées cochées à 5 actions ou plus ont été validées. ` +
+      `[copy à valider]`,
+  };
+}
