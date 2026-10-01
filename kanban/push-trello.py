@@ -51,6 +51,7 @@ DOC_REFS = {
     "R4-16": "docs/contenu/arbitrages-et-demandes-phase1.md",
     "R4-17": "docs/contenu/arbitrages-et-demandes-phase1.md",
     "R9-15": "docs/contenu/arbitrages-et-demandes-phase1.md + docs/tests/salve-phase1-s1-s8.md",
+    "R4-18": "docs/contenu/propositions-fiches-actions-phase0.md",
 }
 
 
@@ -98,10 +99,18 @@ def desired_state(blocks):
                     f"Qui : {OWNER_LABELS.get(t['owner'], t['owner'])}")
             if t["id"] in DOC_REFS:
                 desc_lines.append(f"Docs : {DOC_REFS[t['id']]}")
+            # Texte libre (contexte, attendus) conservé sous l'en-tête standard.
+            if t.get("details"):
+                desc_lines += ["", t["details"]]
+            # Liste dédiée (ex. « Mimi & Jacky ») tant que la tâche n'est pas
+            # terminée ; une tâche done rejoint toujours « Fait ».
+            list_name = STATUS_TO_LIST[t["status"]]
+            if t.get("trelloList") and t["status"] != "done":
+                list_name = t["trelloList"]
             out[t["id"]] = {
                 "title": title,
                 "desc": "\n".join(desc_lines),
-                "list": STATUS_TO_LIST[t["status"]],
+                "list": list_name,
                 "block": blk["id"],
                 "status": t["status"],
             }

@@ -95,6 +95,24 @@ class DesiredStateTest(unittest.TestCase):
         self.assertEqual(fmt_estimate(1.5), "1h30")
         self.assertEqual(fmt_estimate(8), "8h")
 
+    def test_liste_trello_dediee_et_details(self):
+        """Tâche portée par Mimi & Jacky : la carte vit dans leur liste et
+        garde un texte d'explication (retours testeurs beta, 1er oct 2026)."""
+        blocks = [{"id": "R4", "title": "Contenu", "tasks": [
+            {"id": "R4-18", "label": "Fiches d'action", "status": "todo",
+             "owner": "mimi-jacky", "trelloList": "Mimi & Jacky",
+             "details": "Pourquoi cette carte\nLigne 2"},
+            {"id": "R4-19", "label": "Faite", "status": "done",
+             "trelloList": "Mimi & Jacky"},
+        ]}]
+        d = desired_state(blocks)
+        self.assertEqual(d["R4-18"]["list"], "Mimi & Jacky")
+        self.assertTrue(d["R4-18"]["desc"].endswith(
+            "\n\nPourquoi cette carte\nLigne 2"))
+        self.assertIn("Qui : Mimi & Jacky", d["R4-18"]["desc"])
+        # Une tâche terminée rejoint toujours « Fait ».
+        self.assertEqual(d["R4-19"]["list"], "Fait")
+
     def test_renvoi_docs(self):
         blocks = [{"id": "R9", "title": "Tests", "tasks": [
             {"id": "R9-15", "label": "Salve", "status": "todo",

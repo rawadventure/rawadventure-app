@@ -468,6 +468,18 @@
           "priority": "polish",
           "estimateH": 1,
           "owner": "mimi-jacky"
+        },
+        {
+          "id": "R4-18",
+          "label": "Fiches d'action Phase 0 : valider « Quand » et « Repère » + 7 questions (Jacky)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-01T13:07:53.000Z",
+          "priority": "important",
+          "estimateH": 1,
+          "owner": "mimi-jacky",
+          "trelloList": "Mimi & Jacky",
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (30 sept) sur la fiche « Défi froid » : elle voudrait savoir à quel moment faire le défi, et ce que « froid » veut dire (température ou critère). Le manque vaut pour les 7 fiches d'action de la Phase 0.\n\n**Ce qui est proposé**\nAjouter deux blocs sur chaque fiche, entre le sous-titre et « Pourquoi » :\n- **Quand** : le meilleur moment de la journée.\n- **Repère** : le critère concret qui dit « c'est fait ».\n\nLes textes « Pourquoi », « Comment » et « Astuce » ne changent pas, sauf l'astuce de « Mouvement ou récupération » (le mot « champions » est à remplacer).\n\n**Document à relire**\nPour chaque action, le texte actuel puis la version proposée. Les ajouts repris du document de Jacky « Challenge 14 jours — la base » sont marqués [Jacky], les autres [à valider]. Stéphane transmet le document.\n\n**Ce qu'on attend de Jacky**\nRépondre aux 7 questions de la liste à cocher. Quatre d'entre elles viennent d'écarts entre son document d'origine et ce que l'app affiche aujourd'hui.\n\nRien n'est codé tant que ce n'est pas validé. Côté code ensuite : environ 1 h."
         }
       ]
     },
