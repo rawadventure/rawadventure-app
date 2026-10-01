@@ -33,7 +33,7 @@ describe('repriseText (copy.global.streak-reprise, D38)', () => {
 describe('streakBrokenNotice (copy.global.streak-remis-a-zero, D26)', () => {
   it('compose titre + corps avec la reprise et le marqueur placeholder', () => {
     const n = streakBrokenNotice('phase_0', 3);
-    expect(n.title).toBe('Streak remis à zéro');
+    expect(n.title).toBe('Série remise à zéro');
     expect(n.body).toContain('repart de zéro');
     expect(n.body).toContain('jour 3');
     expect(n.body).toContain('[copy à valider]');
@@ -50,7 +50,7 @@ describe('jokerUsedNotice (copy.global.message-joker-consomme, D26)', () => {
   it('compose titre + corps avec la reprise et le marqueur placeholder', () => {
     const n = jokerUsedNotice('phase_1', 8);
     expect(n.title).toBe('Joker utilisé');
-    expect(n.body).toContain('Streak conservé');
+    expect(n.body).toContain('Série conservée');
     expect(n.body).toContain('[copy à valider]');
     expect(n.body).not.toContain('8'); // hors Phase 0 : formulation neutre
   });

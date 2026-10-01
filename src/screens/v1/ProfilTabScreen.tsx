@@ -195,7 +195,7 @@ export default function ProfilTabScreen() {
             )}
           </Card>
 
-          <Card title="Streak" subtitle={`Joker hebdo : ${jokerAvailable ? 'disponible' : 'consommé'}`}>
+          <Card title="Ma série" subtitle={`Joker hebdo : ${jokerAvailable ? 'disponible' : 'consommé'}`}>
             <View style={{ alignItems: 'flex-start', marginTop: space[2] }}>
               <StreakBubble days={streak} />
             </View>
@@ -369,11 +369,6 @@ export default function ProfilTabScreen() {
               </>
             )}
           </View>
-
-          <Text style={styles.note}>
-            Sprint 4 — placeholder. L'écran IA-70 complet (abonnement, paramètres, aide,
-            galerie paliers, légal) viendra en Sprint 5+.
-          </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -488,10 +483,4 @@ const styles = StyleSheet.create({
   label: { ...interTextStyle('body'), color: neutralColors.textSecondary },
   value: { ...interTextStyle('bodyLargeEmphasis'), color: brandColors.deep },
   actions: { gap: space[3], marginTop: space[5] },
-  note: {
-    ...interTextStyle('caption'),
-    color: neutralColors.textSecondary,
-    textAlign: 'center',
-    marginTop: space[6],
-  },
 });

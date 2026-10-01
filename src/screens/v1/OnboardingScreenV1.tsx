@@ -194,7 +194,7 @@ export default function OnboardingScreenV1({ onComplete, onAlreadyHaveAccount }:
         <ScrollView contentContainerStyle={styles.scroll} keyboardShouldPersistTaps="handled">
           <Animated.View style={[slideAnimStyle, styles.flex]}>
           {index === 0 && <SlideWelcome />}
-          {index === 1 && <SlideText title="Le constat" body={"Fatigue. Brouillard mental. Corps lourds.\n\nOn a fini par croire que c'était normal.\nÇa ne l'est pas."} />}
+          {index === 1 && <SlideText title="Le constat" body={"Fatigue. Brouillard mental. Corps lourd.\n\nOn a fini par croire que c'était normal.\nÇa ne l'est pas."} />}
           {index === 2 && <SlideText title="La promesse" body={"En 14 jours, ton corps change de vitesse.\nSommeil plus dense. Digestion qui se calme. Tête qui s'allège.\n\nPas de la magie — de la physiologie.\nTu fais. Tu ressens. Tu vois."} />}
           {index === 3 && (
             <SlideQuestionnaireP1

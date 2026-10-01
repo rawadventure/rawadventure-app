@@ -194,7 +194,7 @@ describe('validation cas A (≥ 5/7) — flow complet IA-15', () => {
 
     // Post-validation : bannière + streak 5, journée figée (D27).
     await waitFor(() => expect(screen.getByText('Journée validée')).toBeTruthy());
-    expect(screen.getByText(/Streak 5 jours/)).toBeTruthy();
+    expect(screen.getByText(/Ta série : 5 jours/)).toBeTruthy();
     expect(screen.queryByText('Valider ma journée')).toBeNull();
     // Coches remises à zéro et checkboxes désactivées.
     expect(screen.getByText('0 / 7 cochées')).toBeTruthy();
@@ -220,10 +220,10 @@ describe('validation sous le seuil — soft-rappel D26', () => {
     await user.press(screen.getByText('Valider quand même'));
     await waitFor(() => expect(screen.getByText('Journée validée')).toBeTruthy());
     // Streak conservé (4), pas incrémenté — cas B.
-    expect(screen.getByText(/Streak 4 jours/)).toBeTruthy();
+    expect(screen.getByText(/Ta série : 4 jours/)).toBeTruthy();
     expect(showNotice).toHaveBeenCalledWith(
       'Joker consommé',
-      expect.stringContaining('Streak conservé à 4'),
+      expect.stringContaining('Série conservée à 4'),
     );
   });
 

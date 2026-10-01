@@ -381,7 +381,7 @@ export default function Phase0HomeScreen() {
           // react-native-web (relevé salve de tests 8 juillet).
           showNotice(
             'Joker consommé',
-            `Streak conservé à ${event.newStreak}. Réinitialisation lundi.`,
+            `Série conservée à ${event.newStreak}. Réinitialisation lundi.`,
           );
           break;
         default:
@@ -432,7 +432,7 @@ export default function Phase0HomeScreen() {
                 <View style={styles.validatedBannerText}>
                   <Text style={styles.validatedTitle}>Journée validée</Text>
                   <Text style={styles.validatedSubtitle}>
-                    Streak {streak} jour{streak > 1 ? 's' : ''}. À demain.
+                    Ta série : {streak} jour{streak > 1 ? 's' : ''}. À demain.
                   </Text>
                 </View>
               </View>
@@ -564,8 +564,8 @@ export default function Phase0HomeScreen() {
 
             <Text style={styles.hint}>
               {alreadyValidatedToday
-                ? 'Tap sur une action pour revoir le détail.'
-                : 'Tap court sur le carré pour cocher. Tap court sur l\'action pour voir le détail.'}
+                ? 'Clique sur une action pour revoir le détail.'
+                : 'Appuie sur le carré pour cocher. Clique sur l\'action pour voir le détail.'}
             </Text>
           </View>
         </ScrollView>

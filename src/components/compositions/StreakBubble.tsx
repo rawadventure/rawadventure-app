@@ -43,7 +43,7 @@ export function StreakBubble({
     <View
       style={[styles.bubble, style]}
       accessibilityRole="text"
-      accessibilityLabel={`Streak de ${days} jour${days > 1 ? 's' : ''}`}
+      accessibilityLabel={`Série de ${days} jour${days > 1 ? 's' : ''}`}
       testID={testID}
     >
       <Flame size={14} color={brandColors.flame} fill={brandColors.flame} />

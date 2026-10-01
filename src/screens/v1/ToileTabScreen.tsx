@@ -95,7 +95,7 @@ export default function ToileTabScreen() {
         <View style={styles.body}>
           <Text style={styles.intro}>
             Chaque branche représente un pilier de ta vitalité. Elle se
-            renforce à mesure que tu pratiques. Tap une branche pour le détail.
+            renforce à mesure que tu pratiques. Clique sur une branche pour le détail.
           </Text>
           <View style={styles.toileWrap}>
             <Toile scores={scores} variant="full" onPillarPress={handlePillarPress} />

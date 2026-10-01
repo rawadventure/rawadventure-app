@@ -97,7 +97,7 @@ export default function S01Screen({ visible, streak, onContinue }: S01ScreenProp
 
         {streak > 0 && (
           <View style={styles.streakBlock}>
-            <Text style={styles.streakLabel}>Streak</Text>
+            <Text style={styles.streakLabel}>Ma série</Text>
             <Text style={styles.streakValue}>
               {streak} jour{streak > 1 ? 's' : ''} consécutif{streak > 1 ? 's' : ''}
             </Text>

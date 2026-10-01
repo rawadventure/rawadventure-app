@@ -184,7 +184,7 @@ export function TierReachedModal({
         </View>
         <View style={styles.standardTitleWrap}>
           <Text style={styles.standardTitle}>Palier {tierId} jours</Text>
-          <Text style={styles.standardSubtitle}>Streak {streakValue}</Text>
+          <Text style={styles.standardSubtitle}>Série de {streakValue} jours</Text>
         </View>
       </View>
       <Text style={styles.standardBody}>{TIER_REPEAT_MESSAGE}</Text>

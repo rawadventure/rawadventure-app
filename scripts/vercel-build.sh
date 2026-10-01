@@ -10,6 +10,13 @@ set -euo pipefail
 npx expo export --platform web --source-maps
 cp -r public/* dist/ 2>/dev/null || true
 
+# PWA : Expo n'émet ni manifest ni apple-touch-icon dans le <head>. Sans eux,
+# Chrome Android construit l'écran de lancement depuis le favicon (image
+# floue, retour testeurs 30 sept) et iOS prend une capture comme icône.
+if ! grep -q 'rel="manifest"' dist/index.html; then
+  perl -i -pe 's#</head>#<link rel="manifest" href="/manifest.json" /><link rel="apple-touch-icon" href="/apple-touch-icon.png" /></head>#' dist/index.html
+fi
+
 RELEASE="rawadventure@$(node -p "require('./package.json').version")"
 
 if [ -n "${SENTRY_AUTH_TOKEN:-}" ]; then

@@ -35,10 +35,10 @@ export function streakBrokenNotice(
   day: number,
 ): { title: string; body: string } {
   return {
-    title: 'Streak remis à zéro',
+    title: 'Série remise à zéro',
     body:
-      `Des journées sont passées sans validation. Ton streak repart de zéro — ` +
-      `la prochaine validation le relance. ${repriseText(phase, day)} [copy à valider]`,
+      `Des journées sont passées sans validation. Ta série repart de zéro — ` +
+      `la prochaine validation la relance. ${repriseText(phase, day)} [copy à valider]`,
   };
 }
 
@@ -54,7 +54,7 @@ export function jokerUsedNotice(
     title: 'Joker utilisé',
     body:
       `Ton joker de la semaine a couvert une journée manquée. ` +
-      `Streak conservé. ${repriseText(phase, day)} [copy à valider]`,
+      `Série conservée. ${repriseText(phase, day)} [copy à valider]`,
   };
 }
 

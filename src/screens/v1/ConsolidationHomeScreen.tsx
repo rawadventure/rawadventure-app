@@ -75,7 +75,7 @@ export default function ConsolidationHomeScreen() {
           <View style={styles.pillarsCard}>
             <Text style={styles.cardTitle}>Tes 8 piliers</Text>
             <Text style={styles.cardHint}>
-              Tap un pilier pour voir sa fiche et lancer une session libre.
+              Clique sur un pilier pour voir sa fiche et lancer une session libre.
             </Text>
             <View style={styles.grid}>
               {PILLAR_IDS.map((pid) => {

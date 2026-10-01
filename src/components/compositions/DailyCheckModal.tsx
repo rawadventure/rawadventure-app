@@ -78,7 +78,7 @@ export function DailyCheckModal({
       ? `${actionsCount} actions sur ${total}. Le corps enregistre.`
       : `${actionsCount} session sur ${total}. La pratique compte.`;
 
-  const bodyBelow = `${actionsCount} action${actionsCount > 1 ? 's' : ''} sur ${total} — sous le seuil minimum. Tu peux encore en cocher d'autres avant de valider, ou valider quand même (un joker hebdomadaire est consommé si dispo, sinon le streak casse).`;
+  const bodyBelow = `${actionsCount} action${actionsCount > 1 ? 's' : ''} sur ${total} — sous le seuil minimum. Tu peux encore en cocher d'autres avant de valider, ou valider quand même (un joker hebdomadaire est consommé si dispo, sinon la série casse).`;
 
   return (
     <Modal visible={visible} onClose={onClose} variant="standard">

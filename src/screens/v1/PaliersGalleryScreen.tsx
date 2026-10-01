@@ -110,10 +110,10 @@ export default function PaliersGalleryScreen() {
         >
           <ChevronLeft size={26} color={brandColors.deep} />
         </Pressable>
-        <Text style={styles.marker}>STREAK · PALIERS</Text>
+        <Text style={styles.marker}>SÉRIE · PALIERS</Text>
         <Text style={styles.title}>Tes paliers</Text>
         <Text style={styles.subtitle}>
-          {`${reachedCount} sur ${totalCount} atteint${reachedCount > 1 ? 's' : ''} · streak en cours : ${streak} jour${streak > 1 ? 's' : ''}`}
+          {`${reachedCount} sur ${totalCount} atteint${reachedCount > 1 ? 's' : ''} · série en cours : ${streak} jour${streak > 1 ? 's' : ''}`}
         </Text>
       </View>
 
@@ -180,7 +180,7 @@ export default function PaliersGalleryScreen() {
         </View>
 
         <Text style={styles.footnote}>
-          Les paliers déjà atteints restent acquis même si le streak repart à
+          Les paliers déjà atteints restent acquis même si ta série repart à
           zéro — ce qui est posé est posé.
         </Text>
       </ScrollView>

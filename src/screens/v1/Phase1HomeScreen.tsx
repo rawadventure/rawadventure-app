@@ -313,7 +313,7 @@ export default function Phase1HomeScreen() {
                           {SESSION_INDEX_LABEL[idx]}
                         </Text>
                         <Text style={styles.sessionHint}>
-                          {isDone ? 'Validée' : 'Tap pour démarrer'}
+                          {isDone ? 'Validée' : 'Clique ici pour démarrer'}
                         </Text>
                       </View>
                     </TouchableOpacity>

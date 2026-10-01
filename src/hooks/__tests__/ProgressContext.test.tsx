@@ -286,7 +286,7 @@ describe('cohérence calendaire — résolution des jours manqués', () => {
     expect(d1?.validation_status).toBe('missed_with_joker');
     expect(d2?.validation_status).toBe('broken_streak');
     expect(showNotice).toHaveBeenCalledWith(
-      'Streak remis à zéro',
+      'Série remise à zéro',
       expect.anything(),
     );
   });

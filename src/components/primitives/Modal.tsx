@@ -136,7 +136,7 @@ export function Modal({
               onPress={handleOverlayPress}
               accessibilityRole="button"
               accessibilityLabel="Fermer"
-              accessibilityHint={dismissable ? 'Tap pour fermer' : undefined}
+              accessibilityHint={dismissable ? 'Appuie pour fermer' : undefined}
             />
           </Animated.View>
 

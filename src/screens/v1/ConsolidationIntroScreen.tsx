@@ -36,7 +36,7 @@ const AFFORDANCES: Affordance[] = [
   {
     icon: Compass,
     title: 'Revisiter chaque pilier',
-    body: "Les 8 piliers travaillés restent ouverts. Tu tap dans la Toile pour relire la fiche, refaire une session, ou juste te repérer.",
+    body: "Les 8 piliers travaillés restent ouverts. Clique sur la Toile pour relire la fiche, refaire une session, ou juste te repérer.",
   },
   {
     icon: RotateCcw,
@@ -45,8 +45,8 @@ const AFFORDANCES: Affordance[] = [
   },
   {
     icon: Flame,
-    title: 'Streak qui continue',
-    body: "Une session par jour suffit à entretenir ton streak. Les paliers continuent de se débloquer.",
+    title: 'Une série qui continue',
+    body: "Une session par jour suffit à entretenir ta série. Les paliers continuent de se débloquer.",
   },
   {
     icon: BookOpen,

@@ -78,7 +78,7 @@ export default function S8ExitScreen({
         {/* Streak final */}
         {streak > 0 && (
           <View style={styles.streakBlock}>
-            <Text style={styles.streakLabel}>Streak final</Text>
+            <Text style={styles.streakLabel}>Série finale</Text>
             <Text style={styles.streakValue}>
               {streak} jour{streak > 1 ? 's' : ''} consécutif{streak > 1 ? 's' : ''}
             </Text>
