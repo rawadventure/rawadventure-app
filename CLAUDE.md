@@ -305,8 +305,10 @@ La modale IA-50 a **deux variantes** selon la décision D29. Au **premier franch
 
 | ID | Nom | Statut |
 |---|---|---|
-| IA-74 | Conditions générales | à créer |
-| IA-75 | Politique de confidentialité | à créer |
+| IA-74 | Conditions générales | existant (`LegalScreen`, texte embarqué sur web/PWA, navigateur intégré en natif) |
+| IA-75 | Politique de confidentialité | existant (`LegalScreen`, idem ; couvre aussi les mentions légales) |
+
+Les textes légaux sont recopiés du site par `node scripts/sync-legal.js` (fichiers `src/data/legal/*.generated.ts`). **À relancer après toute modification des pages légales de rawadventure.world**, sinon la PWA affiche une version périmée.
 
 **Bilan : 45 écrans V1, environ 9 existent partiellement dans le proto, 36 sont à créer.** Un audit précis du proto sera mené dans une session ultérieure pour confronter le code existant à cet inventaire — d'ici là, considérer ce mapping comme indicatif.
 

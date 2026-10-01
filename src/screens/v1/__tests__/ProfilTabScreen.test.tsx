@@ -11,7 +11,7 @@
  */
 
 import React from 'react';
-import { Linking } from 'react-native';
+import { Linking, Platform } from 'react-native';
 import { render, screen, userEvent } from '@testing-library/react-native';
 
 jest.mock('../../../lib/supabase', () => ({
@@ -85,6 +85,7 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 import ProfilTabScreen from '../ProfilTabScreen';
+import { openExternal } from '../../../lib/openExternal';
 
 let linkingSpy: jest.SpyInstance;
 
@@ -178,19 +179,37 @@ describe('navigation et actions', () => {
     expect(mockSignOut).toHaveBeenCalledTimes(1);
   });
 
-  test('liens légaux (App Store §5.1.1) → rawadventure.world', async () => {
+  test('liens légaux natif (App Store §5.1.1) → navigateur intégré sur rawadventure.world', async () => {
     await render(<ProfilTabScreen />);
     const user = userEvent.setup();
     await user.press(screen.getByText('Conditions générales'));
-    expect(linkingSpy).toHaveBeenCalledWith('https://rawadventure.world/cgu/');
+    expect(openExternal).toHaveBeenCalledWith('https://rawadventure.world/cgu/');
     await user.press(screen.getByText('Politique de confidentialité'));
-    expect(linkingSpy).toHaveBeenCalledWith(
+    expect(openExternal).toHaveBeenCalledWith(
       'https://rawadventure.world/politique-confidentialite/',
     );
     await user.press(screen.getByText('Mentions légales'));
-    expect(linkingSpy).toHaveBeenCalledWith(
+    expect(openExternal).toHaveBeenCalledWith(
       'https://rawadventure.world/mentions-legales/',
     );
+    expect(linkingSpy).not.toHaveBeenCalled();
+  });
+
+  test('liens légaux web/PWA → texte affiché DANS l app, « Fermer » ramène au Profil (retours testeurs 30 sept)', async () => {
+    const os = jest.replaceProperty(Platform, 'OS', 'web');
+    try {
+      await render(<ProfilTabScreen />);
+      const user = userEvent.setup();
+      await user.press(screen.getByText('Conditions générales'));
+      expect(screen.getByText(/Conditions Générales d.Utilisation et de Vente/)).toBeTruthy();
+      expect(openExternal).not.toHaveBeenCalled();
+      expect(linkingSpy).not.toHaveBeenCalled();
+      await user.press(screen.getByText('Fermer'));
+      expect(screen.queryByText(/Conditions Générales d.Utilisation et de Vente/)).toBeNull();
+      expect(screen.getByText('Se déconnecter')).toBeTruthy();
+    } finally {
+      os.restore();
+    }
   });
 });
 

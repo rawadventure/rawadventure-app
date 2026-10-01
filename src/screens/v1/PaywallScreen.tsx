@@ -31,7 +31,6 @@ import React, { useEffect, useState } from 'react';
 import {
   Alert,
   AppState,
-  Linking,
   Platform,
   Pressable,
   ScrollView,
@@ -39,6 +38,8 @@ import {
   Text,
   View,
 } from 'react-native';
+import { useLegalViewer } from '../../hooks/useLegalViewer';
+import LegalScreen from './LegalScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { openExternal } from '../../lib/openExternal';
 import { ArrowLeft, ArrowRight, ExternalLink } from 'lucide-react-native';
@@ -71,6 +72,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
   const { reload, state: subscriptionState } = useSubscription();
   const { currentDay, currentPhase } = useProgress();
   const [loading, setLoading] = useState(false);
+  const legal = useLegalViewer();
 
   // Variant copy selon contexte parcours.
   //  - decouverte    : J1-J13, conversion précoce (D3) — l'utilisateur explore
@@ -281,9 +283,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
               En continuant, tu acceptes nos{' '}
               <Text
                 style={styles.link}
-                onPress={() =>
-                  Linking.openURL('https://rawadventure.world/cgu/').catch(() => {})
-                }
+                onPress={() => legal.openLegal('cgu')}
                 accessibilityRole="link"
               >
                 conditions générales
@@ -291,11 +291,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
               {' '}et notre{' '}
               <Text
                 style={styles.link}
-                onPress={() =>
-                  Linking.openURL(
-                    'https://rawadventure.world/politique-confidentialite/',
-                  ).catch(() => {})
-                }
+                onPress={() => legal.openLegal('politique-confidentialite')}
                 accessibilityRole="link"
               >
                 politique de confidentialité
@@ -305,6 +301,7 @@ export default function PaywallScreen({ onBack }: PaywallScreenProps = {}) {
           </View>
         </View>
       </ScrollView>
+      <LegalScreen doc={legal.legalDoc} onClose={legal.closeLegal} />
     </SafeAreaView>
   );
 }

@@ -12,7 +12,7 @@
  */
 
 import React, { useState } from 'react';
-import { Alert, Linking, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { openExternal } from '../../lib/openExternal';
 import {
   cancelAllNotifications,
@@ -28,6 +28,8 @@ import { brandColors, interTextStyle, neutralColors, pillarColors, space } from 
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
+import { useLegalViewer } from '../../hooks/useLegalViewer';
+import LegalScreen from './LegalScreen';
 import { supabase } from '../../lib/supabase';
 import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
@@ -44,6 +46,7 @@ export default function ProfilTabScreen() {
     resetSubscription,
     reload: reloadSubscription,
   } = useSubscription();
+  const legal = useLegalViewer();
   const [portalLoading, setPortalLoading] = useState(false);
 
   /**
@@ -216,29 +219,19 @@ export default function ProfilTabScreen() {
             <Button
               label="Conditions générales"
               variant="ghost"
-              onPress={() =>
-                Linking.openURL('https://rawadventure.world/cgu/').catch(() => {})
-              }
+              onPress={() => legal.openLegal('cgu')}
               fullWidth
             />
             <Button
               label="Politique de confidentialité"
               variant="ghost"
-              onPress={() =>
-                Linking.openURL(
-                  'https://rawadventure.world/politique-confidentialite/',
-                ).catch(() => {})
-              }
+              onPress={() => legal.openLegal('politique-confidentialite')}
               fullWidth
             />
             <Button
               label="Mentions légales"
               variant="ghost"
-              onPress={() =>
-                Linking.openURL(
-                  'https://rawadventure.world/mentions-legales/',
-                ).catch(() => {})
-              }
+              onPress={() => legal.openLegal('mentions-legales')}
               fullWidth
             />
           </Card>
@@ -371,6 +364,7 @@ export default function ProfilTabScreen() {
           </View>
         </View>
       </ScrollView>
+      <LegalScreen doc={legal.legalDoc} onClose={legal.closeLegal} />
     </SafeAreaView>
   );
 }

@@ -20,13 +20,14 @@
 import React, { useState } from 'react';
 import {
   KeyboardAvoidingView,
-  Linking,
   Platform,
   StyleSheet,
   Text,
   TextInput,
   View,
 } from 'react-native';
+import { useLegalViewer } from '../../hooks/useLegalViewer';
+import LegalScreen from './LegalScreen';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowRight } from 'lucide-react-native';
 import { Button } from '../../components/primitives';
@@ -99,6 +100,7 @@ export default function RegisterScreen({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const legal = useLegalViewer();
 
   const handleSubmit = async () => {
     // Mode forgot : email seul, pas de password.
@@ -314,9 +316,7 @@ export default function RegisterScreen({
                 En créant ton compte, tu acceptes nos{' '}
                 <Text
                   style={styles.link}
-                  onPress={() =>
-                    Linking.openURL('https://rawadventure.world/cgu/').catch(() => {})
-                  }
+                  onPress={() => legal.openLegal('cgu')}
                   accessibilityRole="link"
                 >
                   conditions générales
@@ -324,11 +324,7 @@ export default function RegisterScreen({
                 {' '}et notre{' '}
                 <Text
                   style={styles.link}
-                  onPress={() =>
-                    Linking.openURL(
-                      'https://rawadventure.world/politique-confidentialite/',
-                    ).catch(() => {})
-                  }
+                  onPress={() => legal.openLegal('politique-confidentialite')}
                   accessibilityRole="link"
                 >
                   politique de confidentialité
@@ -339,6 +335,7 @@ export default function RegisterScreen({
           </View>
         </View>
       </KeyboardAvoidingView>
+      <LegalScreen doc={legal.legalDoc} onClose={legal.closeLegal} />
     </SafeAreaView>
   );
 }
