@@ -2,6 +2,7 @@ import React, { useCallback, useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { NavigationContainer, LinkingOptions } from '@react-navigation/native';
+import { APP_DOCUMENT_TITLE } from './src/navigation/documentTitle';
 import * as Linking from 'expo-linking';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -142,7 +143,7 @@ function App() {
           <ProgressProvider>
             <SubscriptionProvider>
               <TabBarProvider>
-                <NavigationContainer linking={linking}>
+                <NavigationContainer linking={linking} documentTitle={APP_DOCUMENT_TITLE}>
                   <StatusBar style="dark" />
                   <RootNavigator />
                 </NavigationContainer>
