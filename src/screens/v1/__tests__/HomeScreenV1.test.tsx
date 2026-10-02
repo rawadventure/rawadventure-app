@@ -196,8 +196,72 @@ describe('validation cas A (≥ 5/7) — flow complet IA-15', () => {
     await waitFor(() => expect(screen.getByText('Journée validée')).toBeTruthy());
     expect(screen.getByText(/Ta série : 5 jours/)).toBeTruthy();
     expect(screen.queryByText('Valider ma journée')).toBeNull();
-    // Coches remises à zéro et checkboxes désactivées.
-    expect(screen.getByText('0 / 7 cochées')).toBeTruthy();
+    // Retours testeurs 30 sept 2026 (option A, note historique) : les cases
+    // cochées restent visibles après validation, en lecture seule.
+    expect(screen.getByText('5 / 7 cochées')).toBeTruthy();
+    const boxes = screen.getAllByRole('checkbox');
+    expect(boxes.filter((b) => b.props.accessibilityState?.checked)).toHaveLength(5);
+    expect(boxes.every((b) => b.props.accessibilityState?.disabled)).toBe(true);
+    // Journée figée (D27) : un appui sur une case ne change rien.
+    await user.press(boxes[6]);
+    expect(screen.getByText('5 / 7 cochées')).toBeTruthy();
+    // Coches conservées en stockage pour une réouverture le même jour.
+    const raw = await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`);
+    expect(Object.values(JSON.parse(raw!)).filter(Boolean)).toHaveLength(5);
+  });
+
+  test('réouverture de l app le même jour après validation : cases cochées relues depuis le stockage', async () => {
+    // État laissé par une validation plus tôt dans la journée : aujourd'hui
+    // dans l'historique + coches du jour encore en stockage.
+    await seedAnonymousStorage({
+      history: validatedRun(5, THURSDAY),
+      narrativeFlags: {
+        ...WELCOME_SEEN,
+        j3_charniere: '2026-10-05T08:00:00.000Z',
+      },
+    });
+    await AsyncStorage.setItem(
+      `daily_check_actions.${THURSDAY}`,
+      JSON.stringify({
+        activation_matinale: true,
+        defi_froid: true,
+        mouvement_recuperation: true,
+        mineralisation: true,
+        fenetre_digestive: true,
+        fruits: false,
+        soiree_sans_ecrans: false,
+      }),
+    );
+    await renderHome();
+    await waitFor(() => expect(screen.getByText('5 / 7 cochées')).toBeTruthy());
+    expect(screen.getByText('Journée validée')).toBeTruthy();
+    expect(screen.queryByText('Valider ma journée')).toBeNull();
+  });
+
+  test('le lendemain : nouvelle journée vierge, les cases de la veille validée sont nettoyées (pas de double validation)', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: {
+        ...WELCOME_SEEN,
+        j3_charniere: '2026-10-05T08:00:00.000Z',
+      },
+    });
+    await renderHome();
+    const user = await checkActions(5);
+    await user.press(screen.getByText('Valider ma journée'));
+    const validateButtons = screen.getAllByText('Valider ma journée');
+    await user.press(validateButtons[validateButtons.length - 1]);
+    await waitFor(() => expect(screen.getByText(/Ta série : 5 jours/)).toBeTruthy());
+
+    await act(async () => advanceDevClock(1));
+
+    await waitFor(() => expect(screen.getByText('Jour 6 sur 14')).toBeTruthy());
+    await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
+    await waitFor(async () =>
+      expect(await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`)).toBeNull(),
+    );
+    // La veille était déjà validée à la main : aucune validation automatique.
+    expect(showNotice).not.toHaveBeenCalledWith('Journée validée', expect.anything());
   });
 });
 

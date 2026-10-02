@@ -349,9 +349,11 @@ export default function Phase0HomeScreen() {
       });
       setModalVisible(false);
 
-      // Reset local des coches après validation (la journée est figée — D27).
-      await AsyncStorage.removeItem(STORAGE_KEY(today));
-      setChecks(EMPTY_CHECKS);
+      // Les coches restent affichées en lecture seule jusqu'à minuit (retours
+      // testeurs 30 sept 2026 : après validation on ne voyait plus ce qu'on
+      // avait coché). La journée est figée (D27) : cases désactivées. La clé
+      // du jour est nettoyée par la cohérence calendaire du lendemain (D44),
+      // qui ne revalide jamais une date déjà dans l'historique.
 
       // F-06 (audit Lou) : cascade post-validation encodée une seule fois
       // dans src/lib/narrativeQueue (D19/D25/D29/D30/D38 en commentaires du
