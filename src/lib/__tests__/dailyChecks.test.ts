@@ -6,6 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   countChecked,
   dailyChecksKey,
+  loadDailyChecks,
   loadDailyChecksCounts,
   removeDailyChecks,
 } from '../dailyChecks';
@@ -59,5 +60,21 @@ describe('dailyChecks.removeDailyChecks', () => {
 
   test('liste vide → no-op', async () => {
     await expect(removeDailyChecks([])).resolves.toBeUndefined();
+  });
+});
+
+describe('dailyChecks.loadDailyChecks (D45 — récapitulatif de la veille)', () => {
+  test('renvoie la carte des coches d une date', async () => {
+    await AsyncStorage.setItem(
+      'daily_check_actions.2026-10-14',
+      JSON.stringify({ defi_froid: true, fruits: false }),
+    );
+    expect(await loadDailyChecks('2026-10-14')).toEqual({ defi_froid: true, fruits: false });
+  });
+
+  test('date sans coches ou valeur illisible → null', async () => {
+    expect(await loadDailyChecks('2026-10-14')).toBeNull();
+    await AsyncStorage.setItem('daily_check_actions.2026-10-14', '{oops');
+    expect(await loadDailyChecks('2026-10-14')).toBeNull();
   });
 });

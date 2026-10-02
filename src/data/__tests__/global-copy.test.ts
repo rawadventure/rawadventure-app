@@ -17,6 +17,7 @@ import {
   streakBrokenNotice,
   jokerUsedNotice,
   autoValidatedNotice,
+  yesterdayRecapCopy,
 } from '../global-copy';
 
 describe('repriseText (copy.global.streak-reprise, D38)', () => {
@@ -78,5 +79,19 @@ describe('autoValidatedNotice (copy.global.journee-auto-validee, D44)', () => {
     const n = autoValidatedNotice([{ local_date: '2026-10-14', actionsCount: 5 }]);
     expect(n.body).not.toContain('!');
     expect(n.body).not.toMatch(/perds|perdu|dommage/i);
+  });
+});
+
+describe('yesterdayRecapCopy (copy.IA-11.recap-hier, D45)', () => {
+  test('ligne d accueil fixe ; le nombre d actions est dans le détail, accordé', () => {
+    expect(yesterdayRecapCopy(5).line).toBe('Hier : Mes actions');
+    expect(yesterdayRecapCopy(1).line).toBe('Hier : Mes actions');
+    expect(yesterdayRecapCopy(5).summary).toBe('5 actions sur 7');
+    expect(yesterdayRecapCopy(1).summary).toBe('1 action sur 7');
+  });
+
+  test('ton : pas d exclamation, pas de jugement sur un petit nombre', () => {
+    const c = yesterdayRecapCopy(1);
+    expect(`${c.line} ${c.title} ${c.validated} ${c.close}`).not.toMatch(/!|seulement|dommage|perdu/i);
   });
 });

@@ -103,3 +103,31 @@ export function autoValidatedNotice(
       `[copy à valider]`,
   };
 }
+
+/**
+ * Slot `copy.IA-11.recap-hier` (D45, 2 octobre 2026) : récapitulatif de la
+ * veille sur l'accueil Phase 0 — ligne discrète « Hier : Mes actions »
+ * (libellé fixé par Stéphane, 2 oct) + détail en lecture seule. Le nombre
+ * d'actions n'apparaît que dans le détail, sans jugement (pas de pression
+ * par la perte).
+ */
+export function yesterdayRecapCopy(count: number): {
+  line: string;
+  title: string;
+  summary: string;
+  validated: string;
+  done: string;
+  notDone: string;
+  close: string;
+} {
+  const summary = `${count} action${count > 1 ? 's' : ''} sur 7`;
+  return {
+    line: 'Hier : Mes actions',
+    title: 'Hier',
+    summary,
+    validated: 'Journée validée.',
+    done: 'fait',
+    notDone: 'non fait',
+    close: 'Fermer',
+  };
+}

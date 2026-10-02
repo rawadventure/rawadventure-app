@@ -31,7 +31,7 @@ import {
   type Phase,
   type StreakEntry,
 } from '../../lib/streak';
-import { currentWeekKey, todayLocalDate } from '../../lib/calendar';
+import { addDays, currentWeekKey, todayLocalDate } from '../../lib/calendar';
 import { loadDailyChecksCounts, removeDailyChecks } from '../../lib/dailyChecks';
 import {
   autoValidatedNotice,
@@ -114,9 +114,13 @@ export function useStreakDomain({
             : 'phase_1';
         const today = todayLocalDate();
         // D44 : coches Phase 0 restées sur l'appareil — une journée passée à
-        // ≥ 5/7 est validée à sa date, les autres clés passées sont obsolètes.
+        // ≥ 5/7 est validée à sa date.
         const checksByDate = await loadDailyChecksCounts();
-        const staleCheckDates = Object.keys(checksByDate).filter((d) => d < today);
+        // D45 : les coches de la veille restent sur l'appareil (récapitulatif
+        // « Hier » en lecture seule) ; seules les plus anciennes sont nettoyées.
+        // Une date déjà dans l'historique n'est jamais revalidée.
+        const yesterday = addDays(today, -1);
+        const staleCheckDates = Object.keys(checksByDate).filter((d) => d < yesterday);
         const resolved = resolveMissedDays({
           history,
           consumptions,

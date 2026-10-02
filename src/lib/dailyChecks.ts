@@ -55,3 +55,17 @@ export async function removeDailyChecks(dates: LocalDate[]): Promise<void> {
   if (dates.length === 0) return;
   await AsyncStorage.multiRemove(dates.map(dailyChecksKey));
 }
+
+/**
+ * Coches d'une date précise, ou `null` si rien n'est stocké / illisible.
+ * Sert au récapitulatif de la veille (D45).
+ */
+export async function loadDailyChecks(localDate: LocalDate): Promise<DailyChecksMap | null> {
+  const raw = await AsyncStorage.getItem(dailyChecksKey(localDate));
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as DailyChecksMap;
+  } catch {
+    return null;
+  }
+}

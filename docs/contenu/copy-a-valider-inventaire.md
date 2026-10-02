@@ -121,6 +121,18 @@
 
 ---
 
+## Ajout du 2 octobre 2026 (retours testeurs beta — D44 et D45)
+
+**22.** Message affiché à l'ouverture quand la journée de la veille a été validée automatiquement (au moins 5 actions cochées, sans appui sur « Valider ») :
+> Journée validée — Hier, tu avais coché 5 actions sur 7 : ta journée est validée.
+
+Variante quand plusieurs journées sont validées d'un coup :
+> Journées validées — 2 journées cochées à 5 actions ou plus ont été validées.
+
+**23.** Récapitulatif de la veille sur l'accueil Phase 0 (ligne discrète sous les actions, puis fenêtre de détail) :
+> Hier : Mes actions
+> Fenêtre de détail : titre « Hier » — « 5 actions sur 7 » — mention « Journée validée. » — bouton « Fermer »
+
 ## Comment valider
 
 Pour chaque numéro : « OK tel quel », ou la réécriture. Stéphane transmet à Claude Code qui applique et retire les marqueurs. Priorité suggérée : paywall (6-9), transitions S0 (1-3), charnières (4-5), puis le reste.

@@ -24,3 +24,6 @@ export type { VideoPreviewProps } from './VideoPreview';
 
 export { NotifPrePromptModal } from './NotifPrePromptModal';
 export type { NotifPrePromptModalProps } from './NotifPrePromptModal';
+
+export { YesterdayRecap } from './YesterdayRecap';
+export type { YesterdayRecapProps } from './YesterdayRecap';

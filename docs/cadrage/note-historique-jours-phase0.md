@@ -2,7 +2,7 @@
 
 *Document de travail du 1er octobre 2026.*
 
-> **Décision de Stéphane (2 octobre 2026)** : option A faite tout de suite ; option B à proposer aux testeuses avant de la coder ; option C gardée pour après la beta. Les questions de fin de note restent ouvertes pour B et C.
+> **Décision de Stéphane (2 octobre 2026)** : options A et B faites (B = décision D45, CLAUDE.md § 10) ; option C gardée pour après la beta. Choix retenus pour B : un seul jour en arrière, détail gardé sur le téléphone uniquement, lecture seule. Les questions de fin de note restent ouvertes pour C.
 
 ## La demande
 

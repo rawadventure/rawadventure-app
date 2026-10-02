@@ -238,7 +238,7 @@ describe('validation cas A (≥ 5/7) — flow complet IA-15', () => {
     expect(screen.queryByText('Valider ma journée')).toBeNull();
   });
 
-  test('le lendemain : nouvelle journée vierge, les cases de la veille validée sont nettoyées (pas de double validation)', async () => {
+  test('le lendemain : nouvelle journée vierge, pas de double validation de la veille', async () => {
     await seedAnonymousStorage({
       history: validatedRun(4),
       narrativeFlags: {
@@ -257,9 +257,6 @@ describe('validation cas A (≥ 5/7) — flow complet IA-15', () => {
 
     await waitFor(() => expect(screen.getByText('Jour 6 sur 14')).toBeTruthy());
     await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
-    await waitFor(async () =>
-      expect(await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`)).toBeNull(),
-    );
     // La veille était déjà validée à la main : aucune validation automatique.
     expect(showNotice).not.toHaveBeenCalledWith('Journée validée', expect.anything());
   });
@@ -604,7 +601,6 @@ describe('D44 — coches de la veille ≥ 5/7 validées automatiquement au chang
     // Nouvelle journée ouverte : rien de coché, bouton de validation présent.
     await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
     expect(screen.getByText('Valider ma journée')).toBeTruthy();
-    expect(await AsyncStorage.getItem(`daily_check_actions.${THURSDAY}`)).toBeNull();
   });
 
   test('J3 : 5 coches sans valider → lendemain : charnière J3 rattrapée à l ouverture (D19/D25)', async () => {
@@ -637,5 +633,77 @@ describe('D44 — coches de la veille ≥ 5/7 validées automatiquement au chang
     await waitFor(() => expect(screen.getByText('0 / 7 cochées')).toBeTruthy());
     const friday = await AsyncStorage.getItem('daily_check_actions.2026-10-16');
     expect(friday == null || Object.values(JSON.parse(friday)).filter(Boolean).length === 0).toBe(true);
+  });
+});
+
+// ─── D45 (2 octobre 2026) — récapitulatif de la veille, lecture seule ────────
+// Retour testeuse : « Peut-on revoir les cases cochées de la veille ? »
+// (option B de docs/cadrage/note-historique-jours-phase0.md).
+
+describe('D45 — « Hier » : cases cochées de la veille en lecture seule', () => {
+  const YESTERDAY = '2026-10-14';
+  const yesterdayChecks = JSON.stringify({
+    activation_matinale: true,
+    defi_froid: true,
+    mouvement_recuperation: false,
+    mineralisation: true,
+    fenetre_digestive: true,
+    fruits: true,
+    soiree_sans_ecrans: false,
+  });
+
+  test('veille cochée → ligne « Hier : Mes actions », détail des 7 actions, fermeture', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-05T08:00:00.000Z' },
+    });
+    await AsyncStorage.setItem(`daily_check_actions.${YESTERDAY}`, yesterdayChecks);
+    await renderHome();
+    const user = userEvent.setup();
+
+    const line = await screen.findByText('Hier : Mes actions');
+    await user.press(line);
+
+    expect(screen.getByText('Hier')).toBeTruthy();
+    expect(screen.getByText('5 actions sur 7')).toBeTruthy();
+    expect(screen.getByLabelText('Défi froid : fait')).toBeTruthy();
+    expect(screen.getByLabelText('Fruits dans la journée : fait')).toBeTruthy();
+    expect(screen.getByLabelText('Soirée sans écrans : non fait')).toBeTruthy();
+    expect(screen.getByLabelText('Mouvement ou récupération : non fait')).toBeTruthy();
+    // La veille est dans l'historique en « validée » → confirmation sobre.
+    expect(screen.getByText('Journée validée.')).toBeTruthy();
+
+    await user.press(screen.getByText('Fermer'));
+    await waitFor(() => expect(screen.queryByLabelText('Défi froid : fait')).toBeNull());
+    // Lecture seule : les cases du jour ne sont pas affectées.
+    expect(screen.getByText('0 / 7 cochées')).toBeTruthy();
+  });
+
+  test('aucune coche la veille → pas de ligne « Hier »', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-05T08:00:00.000Z' },
+    });
+    await renderHome();
+    expect(screen.queryByText(/^Hier :/)).toBeNull();
+  });
+
+  test('flow réel : cocher 5 cases, valider, revenir le lendemain → « Hier : Mes actions »', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-05T08:00:00.000Z' },
+    });
+    await renderHome();
+    const user = await checkActions(5);
+    await user.press(screen.getByText('Valider ma journée'));
+    const validateButtons = screen.getAllByText('Valider ma journée');
+    await user.press(validateButtons[validateButtons.length - 1]);
+    await waitFor(() => expect(screen.getByText(/Ta série : 5 jours/)).toBeTruthy());
+    expect(screen.queryByText(/^Hier :/)).toBeNull();
+
+    await act(async () => advanceDevClock(1));
+
+    await waitFor(() => expect(screen.getByText('Jour 6 sur 14')).toBeTruthy());
+    expect(await screen.findByText('Hier : Mes actions')).toBeTruthy();
   });
 });

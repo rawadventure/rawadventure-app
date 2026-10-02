@@ -1120,7 +1120,8 @@ describe('D44 — validation automatique de la veille (cohérence calendaire)', 
     });
     expect(result.current.streak).toBe(3);
     expect(result.current.currentDay).toBe(4);
-    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBeNull();
+    // D45 : les coches de la veille restent lisibles (récapitulatif « Hier »).
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBe(checks(5));
     expect(showNotice).toHaveBeenCalledWith(
       'Journée validée',
       expect.stringContaining('5 actions sur 7'),
@@ -1136,8 +1137,32 @@ describe('D44 — validation automatique de la veille (cohérence calendaire)', 
       expect(e?.validation_status).toBe('missed_with_joker');
     });
     expect(result.current.currentDay).toBe(3);
-    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBeNull();
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBe(checks(3));
     expect(showNotice).not.toHaveBeenCalledWith('Journée validée', expect.anything());
+  });
+
+  test('D45 : seules les coches de la veille sont conservées — les plus anciennes sont nettoyées', async () => {
+    await seedAnonymousStorage({ history: validatedRun(3, daysAgo(1)) });
+    await AsyncStorage.multiSet([
+      [`daily_check_actions.${daysAgo(1)}`, checks(6)],
+      [`daily_check_actions.${daysAgo(2)}`, checks(5)],
+      [`daily_check_actions.${daysAgo(5)}`, checks(2)],
+    ]);
+    await renderProgress();
+    await waitFor(async () =>
+      expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(2)}`)).toBeNull(),
+    );
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(5)}`)).toBeNull();
+    expect(await AsyncStorage.getItem(`daily_check_actions.${daysAgo(1)}`)).toBe(checks(6));
+  });
+
+  test('D45 : une veille déjà validée à la main n est jamais revalidée par ses coches conservées', async () => {
+    await seedAnonymousStorage({ history: validatedRun(3, daysAgo(1)) });
+    await AsyncStorage.setItem(`daily_check_actions.${daysAgo(1)}`, checks(7));
+    const { result } = await renderProgress();
+    await act(async () => {});
+    expect(result.current.streak).toBe(3);
+    expect(showNotice).not.toHaveBeenCalled();
   });
 
   test('les coches d aujourd hui restent intactes', async () => {

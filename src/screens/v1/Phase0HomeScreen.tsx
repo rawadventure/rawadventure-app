@@ -71,7 +71,8 @@ import {
 import { getInterFamily } from '../../theme';
 import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
-import { todayLocalDate } from '../../lib/calendar';
+import { addDays, todayLocalDate } from '../../lib/calendar';
+import { YesterdayRecap } from '../../components/compositions/YesterdayRecap';
 import { dailyChecksKey } from '../../lib/dailyChecks';
 import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
@@ -164,6 +165,17 @@ export default function Phase0HomeScreen() {
     () => streakHistory.some((e) => e.local_date === today),
     [streakHistory, today],
   );
+
+  // D45 — la veille est-elle dans l'historique comme journée validée ?
+  const yesterdayValidated = useMemo(() => {
+    const yesterday = addDays(today, -1);
+    return streakHistory.some(
+      (e) =>
+        e.local_date === yesterday &&
+        (e.validation_status === 'valid_above_threshold' ||
+          e.validation_status === 'valid_with_joker'),
+    );
+  }, [streakHistory, today]);
 
   // F-06 (audit Lou) : les priorités narratives vivent dans
   // src/lib/narrativeQueue (fonction pure, testée) — l'écran ne fait
@@ -580,6 +592,9 @@ export default function Phase0HomeScreen() {
                 style={styles.validateBtn}
               />
             )}
+
+            {/* D45 — récapitulatif de la veille, lecture seule. */}
+            <YesterdayRecap today={today} yesterdayValidated={yesterdayValidated} />
 
             <Text style={styles.hint}>
               {alreadyValidatedToday
