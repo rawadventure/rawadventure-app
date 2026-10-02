@@ -97,12 +97,6 @@ export function useOnboardingMigrationDomain({
    */
   const migrateLocalToRemote = useCallback(
     async (userId: string, accountCreatedAtIso: string) => {
-      const dynamicId =
-        profileDynamicId ??
-        (await AsyncStorage.getItem(LOCAL_KEYS.profileDynamicId).then((v) =>
-          v ? JSON.parse(v) : null,
-        ));
-
       // F-03 (audit Lou) : chaque écriture passe par must() — supabase-js ne
       // throw pas, il résout { error }. Sans la garde, une écriture échouée
       // laissait la migration « réussir » puis effacer les clés locales →
@@ -143,15 +137,33 @@ export function useOnboardingMigrationDomain({
         LOCAL_KEYS.pendingTierReach,
         null,
       );
+      // Réponses d'onboarding : même règle (retour testeur beta, 2 oct 2026).
+      // À l'arrivée de la session, loadData (connecté) écrase le state avec le
+      // profil distant encore vierge ; lues depuis les closures, les réponses
+      // partaient vides en base.
+      const localAnswers = await readLocal<Record<string, string>>(
+        LOCAL_KEYS.onboardingData,
+        onboardingData,
+      );
+      const dynamicId = await readLocal<string | null>(
+        LOCAL_KEYS.profileDynamicId,
+        profileDynamicId,
+      );
 
-      // 1. Update profil distant avec onboarding_data + profile_dynamic_id
+      // 1. Update profil distant avec onboarding_data + profile_dynamic_id.
+      //    Jamais de vide : l'effet pendingMigration peut rejouer la migration
+      //    (ses deps bougent quand loadData met à jour le state) alors que le
+      //    premier passage a déjà effacé les clés locales — ce second passage
+      //    ne doit pas remplacer les réponses écrites par le premier.
       await must(
         supabase
           .from('profiles')
           .update({
             onboarding_done: true,
-            onboarding_data: onboardingData,
-            profile_dynamic_id: dynamicId,
+            ...(Object.keys(localAnswers).length > 0
+              ? { onboarding_data: localAnswers }
+              : {}),
+            ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
             account_created_at: accountCreatedAtIso,
             narrative_flags: localFlags,
             pending_tier_reach: localPendingTier,

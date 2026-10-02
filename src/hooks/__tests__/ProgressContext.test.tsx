@@ -1094,6 +1094,87 @@ describe('migration locale → distante (§2.10)', () => {
       sb.client.from = origFrom;
     }
   });
+
+  // Régression beta (2 oct 2026, compte testeur réel) : `onboarding_data` vide
+  // et `profile_dynamic_id` nul en base après une inscription avec confirmation
+  // email. À l'arrivée de la session, loadData (connecté) lit le profil créé
+  // par le trigger (réponses vides) et écrase le state ; l'effet
+  // pendingMigration peut alors rejouer migrateLocalToRemote (ses deps bougent)
+  // avec ce state vide, clés locales déjà effacées par le premier passage →
+  // les réponses écrites en base étaient remplacées par du vide.
+  describe('réponses d onboarding — jamais remplacées par du vide', () => {
+    const ANSWERS = {
+      energy: '3',
+      body: 'Neutre',
+      mental: 'Tranquille',
+      motivation: 'Sérieusement',
+    };
+
+    /** Onboarding anonyme terminé, puis session arrivée sur un profil distant
+     *  vierge (tel que posé par le trigger on_auth_user_created) : le state
+     *  in-memory est écrasé par le remote avant toute migration. */
+    async function renderWithOverwrittenState() {
+      const utils = await renderProgress();
+      await act(async () => {
+        await utils.result.current.completeOnboarding(ANSWERS, 'P2');
+      });
+      sb.setTables({
+        profiles: {
+          id: 'u1',
+          onboarding_done: false,
+          onboarding_data: {},
+          profile_dynamic_id: null,
+          account_created_at: null,
+        },
+        streak_history: [],
+        joker_consumptions: [],
+        tier_reaches: [],
+        pillar_evaluations: [],
+      });
+      mockUser = { id: 'u1' };
+      await act(async () => {
+        utils.rerender({});
+      });
+      await waitFor(() =>
+        expect(utils.result.current.profileDynamicId).toBeNull(),
+      );
+      return utils;
+    }
+
+    const profileUpdates = () =>
+      sb.calls
+        .filter((c) => c.table === 'profiles' && c.op === 'update')
+        .map((c) => c.payload as Record<string, unknown>);
+
+    test('state écrasé par le remote → la migration lit les réponses dans AsyncStorage', async () => {
+      const utils = await renderWithOverwrittenState();
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      const updates = profileUpdates();
+      expect(updates).toHaveLength(1);
+      expect(updates[0]).toMatchObject({
+        onboarding_done: true,
+        onboarding_data: ANSWERS,
+        profile_dynamic_id: 'P2',
+      });
+    });
+
+    test('second passage (clés locales déjà effacées) → n écrit ni réponses vides ni profil nul', async () => {
+      const utils = await renderWithOverwrittenState();
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      const updates = profileUpdates();
+      expect(updates).toHaveLength(2);
+      expect(updates[1]).not.toHaveProperty('onboarding_data');
+      expect(updates[1]).not.toHaveProperty('profile_dynamic_id');
+      expect(updates[1]).toMatchObject({ onboarding_done: true });
+    });
+  });
 });
 
 // ─── D44 (1er octobre 2026) — validation automatique de la veille ≥ 5/7 ──────

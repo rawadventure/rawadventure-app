@@ -40,10 +40,21 @@ test.describe('Hub connecté (compte de test)', () => {
   test.skip(!EMAIL || !PASSWORD, 'E2E_TEST_EMAIL / E2E_TEST_PASSWORD non définis');
 
   test('connexion → hub Phase 0 avec actions du jour et streak', async ({ page }) => {
+    // Connexion refusée : RegisterScreen passe par showNotice → window.alert
+    // sur web. Sans cette écoute, Playwright ferme le dialogue en silence et
+    // le test meurt 30 s plus tard sur un timeout opaque (CI rouge du 29 sept
+    // au 2 oct 2026 : mot de passe du compte changé, secret GitHub périmé).
+    let refusal: string | null = null;
+    page.on('dialog', async (dialog) => {
+      refusal = dialog.message().replace(/\s+/g, ' ');
+      await dialog.dismiss();
+    });
+
     await page.goto('/');
     await page.getByText("J'ai déjà un compte").click({ timeout: 30_000 });
     await page.getByPlaceholder('Email').fill(EMAIL!);
-    await page.getByPlaceholder('Mot de passe', { exact: true }).fill(PASSWORD!);
+    const passwordField = page.getByPlaceholder('Mot de passe', { exact: true });
+    await passwordField.fill(PASSWORD!);
     await page.getByText('Me connecter', { exact: true }).click();
 
     // Premier passage du compte : onboarding à compléter. Ensuite : hub direct.
@@ -51,7 +62,21 @@ test.describe('Hub connecté (compte de test)', () => {
     const onboardingHero = page.getByText('14 jours offerts pour relancer ta machine', {
       exact: false,
     });
-    await expect(hub.or(onboardingHero).first()).toBeVisible({ timeout: 30_000 });
+    const landing = hub.or(onboardingHero).first();
+    await expect
+      .poll(async () => refusal ?? ((await landing.isVisible()) ? 'landed' : 'pending'), {
+        timeout: 30_000,
+      })
+      .not.toBe('pending');
+    if (refusal) {
+      // Le champ est vidé avant l'échec : la capture d'accessibilité jointe
+      // aux artefacts ne doit pas contenir le mot de passe en clair.
+      await passwordField.fill('');
+    }
+    expect(
+      refusal,
+      `Connexion du compte E2E refusée (« ${refusal} ») — vérifier E2E_TEST_PASSWORD (secret GitHub + .env.e2e)`,
+    ).toBeNull();
     if (await onboardingHero.isVisible()) {
       await completeOnboarding(page);
     }
