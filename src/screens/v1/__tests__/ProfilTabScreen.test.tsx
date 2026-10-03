@@ -124,6 +124,31 @@ describe('infos parcours et compte', () => {
   });
 });
 
+describe('revoir la vidéo de bienvenue (IA-12, retours testeurs 3 oct 2026)', () => {
+  test('Phase 0 : entrée visible, ouvre l écran de bienvenue, « Continuer » le referme', async () => {
+    await render(<ProfilTabScreen />);
+    expect(screen.queryByText("C'est parti.")).toBeNull();
+    const user = userEvent.setup();
+    await user.press(screen.getByText('Revoir la vidéo de bienvenue'));
+    expect(screen.getByText("C'est parti.")).toBeTruthy();
+    await user.press(screen.getByText('Continuer'));
+    expect(screen.queryByText("C'est parti.")).toBeNull();
+  });
+
+  test('S0 (jour 15) : entrée absente', async () => {
+    mockCurrentDay = 15;
+    await render(<ProfilTabScreen />);
+    expect(screen.queryByText('Revoir la vidéo de bienvenue')).toBeNull();
+  });
+
+  test('Phase 1 : entrée absente', async () => {
+    mockCurrentPhase = 'phase_1';
+    mockCurrentDay = 2;
+    await render(<ProfilTabScreen />);
+    expect(screen.queryByText('Revoir la vidéo de bienvenue')).toBeNull();
+  });
+});
+
 describe('card abonnement — gating des CTA', () => {
   test('free à J5 → « Découvrir l abonnement » (D3 : dès J3) → navigate Paywall ; pas de portail Stripe', async () => {
     await render(<ProfilTabScreen />);

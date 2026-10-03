@@ -14,6 +14,12 @@
  * juillet 2026). Vidéo re-tournée → régénérer le jpg :
  * ffmpeg -ss 1 -i video.mp4 -vf "crop=540:304:0:328" -q:v 3 poster.jpg
  * (base : frame source 540x960 verticale ; adapter le crop si autre format).
+ *
+ * Exception — `welcome-j1-bienvenue` est CARRÉ (720x720) : la bande 16:9
+ * coupait le visage, et l'écran IA-12 affiche sa preview en carré (retours
+ * testeurs, choix Stéphane 3 octobre 2026). Régénérer avec :
+ * ffmpeg -ss 1 -i video.mp4 -vf "crop=1080:1080:0:220,scale=720:720" -q:v 3 poster.jpg
+ * (base : frame source 1080x1920 ; décalage 220 = tête entière dans le cadre).
  */
 
 import type { ImageSourcePropType } from 'react-native';

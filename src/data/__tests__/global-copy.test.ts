@@ -19,6 +19,7 @@ import {
   autoValidatedNotice,
   yesterdayRecapCopy,
   validationRuleHint,
+  welcomeReplayLabel,
 } from '../global-copy';
 
 describe('repriseText (copy.global.streak-reprise, D38)', () => {
@@ -79,6 +80,12 @@ describe('validationRuleHint (copy.IA-11.regle-validation)', () => {
     expect(validationRuleHint()).toBe(
       '5 actions sur 7 suffisent pour valider. Coche le jour même\u00a0: à minuit, la journée se ferme.',
     );
+  });
+});
+
+describe('welcomeReplayLabel (copy.IA-12.revoir-video)', () => {
+  it('libellé validé par Stéphane le 3 oct 2026', () => {
+    expect(welcomeReplayLabel()).toBe('Revoir la vidéo de bienvenue');
   });
 });
 

@@ -381,6 +381,42 @@ describe('vidéo de bienvenue J1 (IA-12)', () => {
   });
 });
 
+describe('revoir la vidéo de bienvenue (IA-12, retours testeurs 3 oct 2026)', () => {
+  const LINK = 'Revoir la vidéo de bienvenue';
+
+  test('J2 : lien visible, rouvre l écran, « Continuer » ramène à l accueil sans rien changer', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(1),
+      narrativeFlags: WELCOME_SEEN,
+    });
+    await renderHome();
+    expect(screen.getByText('Jour 2 sur 14')).toBeTruthy();
+    expect(screen.queryByText("C'est parti.")).toBeNull();
+    const flagsBefore = await AsyncStorage.getItem('narrative_flags');
+
+    const user = userEvent.setup();
+    await user.press(screen.getByText(LINK));
+    await waitFor(() => expect(screen.getByText("C'est parti.")).toBeTruthy());
+    await user.press(screen.getByText('Continuer'));
+    await waitFor(() => expect(screen.queryByText("C'est parti.")).toBeNull());
+
+    expect(screen.getByText('Jour 2 sur 14')).toBeTruthy();
+    expect(await AsyncStorage.getItem('narrative_flags')).toBe(flagsBefore);
+    // Relecture ≠ premier lancement : pas de pre-prompt notifications.
+    expect(screen.queryByText('Un rappel par jour')).toBeNull();
+  });
+
+  test('J4 : lien absent', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(3),
+      narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-14T08:00:00.000Z' },
+    });
+    await renderHome();
+    expect(screen.getByText('Jour 4 sur 14')).toBeTruthy();
+    expect(screen.queryByText(LINK)).toBeNull();
+  });
+});
+
 describe('pre-prompt notifications J1 (R3-5)', () => {
   const notifMock = jest.requireMock('expo-notifications') as {
     getPermissionsAsync: jest.Mock;

@@ -30,6 +30,9 @@ import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { useLegalViewer } from '../../hooks/useLegalViewer';
 import LegalScreen from './LegalScreen';
+import WelcomeVideoScreen from './WelcomeVideoScreen';
+import { canReplayWelcomeInProfile } from '../../lib/welcomeReplay';
+import { welcomeReplayLabel } from '../../data/global-copy';
 import { supabase } from '../../lib/supabase';
 import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
@@ -48,6 +51,7 @@ export default function ProfilTabScreen() {
   } = useSubscription();
   const legal = useLegalViewer();
   const [portalLoading, setPortalLoading] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
 
   /**
    * Ouvre le Stripe Customer Portal pour ce user.
@@ -152,6 +156,17 @@ export default function ProfilTabScreen() {
                 {accountCreatedAt ? new Date(accountCreatedAt).toLocaleDateString('fr-FR') : '—'}
               </Text>
             </View>
+            {/* IA-12 — relecture de l'écran de bienvenue, Phase 0 seulement
+                (retours testeurs). Aucun effet sur la progression. */}
+            {canReplayWelcomeInProfile({ currentPhase, currentDay }) && (
+              <Button
+                label={welcomeReplayLabel()}
+                variant="ghost"
+                onPress={() => setShowWelcome(true)}
+                fullWidth
+                style={{ marginTop: space[2] }}
+              />
+            )}
           </Card>
 
           <Card title="Mon abonnement" subtitle={subscriptionState.status}>
@@ -365,6 +380,7 @@ export default function ProfilTabScreen() {
         </View>
       </ScrollView>
       <LegalScreen doc={legal.legalDoc} onClose={legal.closeLegal} />
+      <WelcomeVideoScreen visible={showWelcome} onContinue={() => setShowWelcome(false)} />
     </SafeAreaView>
   );
 }

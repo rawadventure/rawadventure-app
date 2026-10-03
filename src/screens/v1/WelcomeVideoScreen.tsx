@@ -70,8 +70,15 @@ export default function WelcomeVideoScreen({ visible, onContinue }: WelcomeVideo
           </Text>
         </View>
 
-        {/* Vidéo Mimi & Jacky bienvenue J0 — preview 16:9 + lecture. */}
-        <VideoPreview uri={VIDEO_URL} accessibilityLabel="Lire la vidéo de bienvenue" />
+        {/* Vidéo Mimi & Jacky bienvenue J0 — preview carrée + lecture.
+            Carré (et non 16:9 comme les autres vidéos) : la source est
+            verticale, la bande 16:9 coupait le visage (retours testeurs,
+            choix Stéphane 3 octobre 2026). Poster carré dédié. */}
+        <VideoPreview
+          uri={VIDEO_URL}
+          accessibilityLabel="Lire la vidéo de bienvenue"
+          style={styles.video}
+        />
 
         <View style={styles.notes}>
           <Text style={styles.note}>
@@ -108,6 +115,7 @@ const styles = StyleSheet.create({
     gap: space[5],
   },
   head: { gap: space[3] },
+  video: { aspectRatio: 1 },
   marker: {
     ...interTextStyle('caption'),
     color: brandColors.deep,

@@ -76,7 +76,8 @@ import { YesterdayRecap } from '../../components/compositions/YesterdayRecap';
 import { dailyChecksKey } from '../../lib/dailyChecks';
 import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
-import { validationRuleHint } from '../../data/global-copy';
+import { validationRuleHint, welcomeReplayLabel } from '../../data/global-copy';
+import { canReplayWelcomeOnHome } from '../../lib/welcomeReplay';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 const PHASE_0_TOTAL = 7;
@@ -605,6 +606,23 @@ export default function Phase0HomeScreen() {
                 ? 'Clique sur une action pour revoir le détail.'
                 : 'Appuie sur le carré pour cocher. Clique sur l\'action pour voir le détail.'}
             </Text>
+
+            {/* IA-12 — relecture discrète de l'écran de bienvenue, J1 à J3
+                (retours testeurs). Rouvre la même couche, sans toucher aux
+                flags narratifs ni à la progression. */}
+            {canReplayWelcomeOnHome({
+              currentPhase,
+              currentDay,
+              welcomeSeen: !!narrativeFlags.welcome_video,
+            }) && (
+              <TouchableOpacity
+                onPress={() => setShowWelcomeVideo(true)}
+                hitSlop={12}
+                accessibilityRole="button"
+              >
+                <Text style={[styles.hint, styles.replayLink]}>{welcomeReplayLabel()}</Text>
+              </TouchableOpacity>
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -792,5 +810,8 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: 'center',
     marginTop: space[3],
+  },
+  replayLink: {
+    textDecorationLine: 'underline',
   },
 });

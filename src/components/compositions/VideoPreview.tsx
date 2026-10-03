@@ -264,8 +264,12 @@ export function VideoPreview({
       )}
       {poster && !webPlaying && (
         <Image
+          testID="video-poster"
           source={poster}
-          style={StyleSheet.absoluteFill}
+          // Dimensions explicites : sur web, une image embarquée garde sinon
+          // sa taille d'origine (absoluteFill ne la contraint pas) — bande
+          // noire sur grand écran, coin haut-gauche zoomé sur téléphone.
+          style={styles.poster}
           resizeMode="cover"
           accessibilityIgnoresInvertColors
         />
@@ -306,6 +310,11 @@ const styles = StyleSheet.create({
     aspectRatio: 16 / 9,
     alignSelf: 'center',
     position: 'relative',
+  },
+  poster: {
+    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
   },
   playOverlay: {
     ...StyleSheet.absoluteFillObject,

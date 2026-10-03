@@ -147,3 +147,12 @@ export function yesterdayRecapCopy(count: number): {
 export function validationRuleHint(): string {
   return '5 actions sur 7 suffisent pour valider. Coche le jour même\u00a0: à minuit, la journée se ferme.';
 }
+
+/**
+ * Slot `copy.IA-12.revoir-video` (retours testeurs beta, 3 octobre 2026) :
+ * libellé du lien discret de l'accueil (J1 à J3) et de l'entrée Profil
+ * (Phase 0) qui rouvrent l'écran de bienvenue. Validé par Stéphane le 3 oct.
+ */
+export function welcomeReplayLabel(): string {
+  return 'Revoir la vidéo de bienvenue';
+}
