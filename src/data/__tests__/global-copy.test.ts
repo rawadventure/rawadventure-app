@@ -18,6 +18,7 @@ import {
   jokerUsedNotice,
   autoValidatedNotice,
   yesterdayRecapCopy,
+  validationRuleHint,
 } from '../global-copy';
 
 describe('repriseText (copy.global.streak-reprise, D38)', () => {
@@ -55,6 +56,29 @@ describe('jokerUsedNotice (copy.global.message-joker-consomme, D26)', () => {
     expect(n.body).toContain('Série conservée');
     expect(n.body).toContain('[copy à valider]');
     expect(n.body).not.toContain('8'); // hors Phase 0 : formulation neutre
+  });
+
+  // Retour testeur beta (3 oct 2026) : la règle « on coche le jour même »
+  // n'était écrite nulle part. Rappel en Phase 0 uniquement — en Phase 1 on
+  // ne coche pas des actions, la règle des sessions n'est pas cadrée ici.
+  it('Phase 0 : rappelle que la journée se coche le jour même, sans reproche', () => {
+    const n = jokerUsedNotice('phase_0', 3);
+    expect(n.body).toContain('une journée sans validation');
+    expect(n.body).toContain('Une journée se coche le jour même, avant minuit.');
+    expect(n.body).toContain('jour 3');
+    expect(n.body).not.toContain('manquée');
+  });
+
+  it('Phase 1 : pas de rappel de la règle des coches', () => {
+    expect(jokerUsedNotice('phase_1', 8).body).not.toContain('se coche');
+  });
+});
+
+describe('validationRuleHint (copy.IA-11.regle-validation)', () => {
+  it('donne le seuil puis l échéance — texte fixé par Stéphane le 3 oct 2026', () => {
+    expect(validationRuleHint()).toBe(
+      '5 actions sur 7 suffisent pour valider. Coche le jour même\u00a0: à minuit, la journée se ferme.',
+    );
   });
 });
 

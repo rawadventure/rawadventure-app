@@ -133,6 +133,20 @@ Variante quand plusieurs journées sont validées d'un coup :
 > Hier : Mes actions
 > Fenêtre de détail : titre « Hier » — « 5 actions sur 7 » — mention « Journée validée. » — bouton « Fermer »
 
+---
+
+## Ajout du 3 octobre 2026 (retour testeur beta — règle « on coche le jour même »)
+
+*Contexte pour Jacky : un testeur cochait et validait le lendemain matin pour la veille, parce que la règle n'était écrite nulle part. Résultat pour lui : journées non comptées, joker consommé. Deux textes ajoutés.*
+
+**24.** Règle du jeu sur l'accueil Phase 0, ligne discrète juste sous le bouton « Valider ma journée » (visible chaque jour tant que la journée n'est pas validée — formulation retenue par Stéphane, slot `copy.IA-11.regle-validation`) :
+> 5 actions sur 7 suffisent pour valider. Coche le jour même : à minuit, la journée se ferme.
+
+**19 bis.** Joker consommé — nouvelle version du n°19 en Phase 0 (ajout de la phrase de rappel, « journée sans validation » au lieu de « journée manquée ») :
+> Ton joker de la semaine a couvert une journée sans validation. Série conservée. Une journée se coche le jour même, avant minuit. Tu reprends au jour {X}, là où tu t'étais arrêté.
+
+*En Phase 1, le message reste sans la phrase de rappel (on n'y coche pas des actions).*
+
 ## Comment valider
 
 Pour chaque numéro : « OK tel quel », ou la réécriture. Stéphane transmet à Claude Code qui applique et retire les marqueurs. Priorité suggérée : paywall (6-9), transitions S0 (1-3), charnières (4-5), puis le reste.

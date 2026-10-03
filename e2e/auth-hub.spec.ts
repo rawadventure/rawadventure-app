@@ -86,5 +86,7 @@ test.describe('Hub connecté (compte de test)', () => {
     await expect(page.getByText(/Jour \d+ sur 14/)).toBeVisible();
     await expect(page.getByText('Activation matinale')).toBeVisible();
     await expect(page.getByText('Valider ma journée')).toBeVisible();
+    // Règle du jeu sous le bouton (retour testeur beta, 3 oct 2026).
+    await expect(page.getByText('Coche le jour même', { exact: false })).toBeVisible();
   });
 });

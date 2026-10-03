@@ -126,6 +126,9 @@ afterEach(() => {
   unpinClock();
 });
 
+const RULE_HINT =
+  '5 actions sur 7 suffisent pour valider. Coche le jour même\u00a0: à minuit, la journée se ferme.';
+
 describe('rendu du hub — Jour X sur 14, message du jour, 7 actions', () => {
   test('J5 : libellé de jour, message J5, 7 actions listées, bouton désactivé à 0 coche', async () => {
     await seedAnonymousStorage({
@@ -143,6 +146,8 @@ describe('rendu du hub — Jour X sur 14, message du jour, 7 actions', () => {
     // Bouton validation présent mais désactivé sans coche.
     const btn = screen.getByText('Valider ma journée');
     expect(btn).toBeTruthy();
+    // Règle du jeu sous le bouton (retour testeur beta, 3 oct 2026).
+    expect(screen.getByText(RULE_HINT)).toBeTruthy();
   });
 
   test('cocher des actions met le compteur à jour', async () => {
@@ -196,6 +201,8 @@ describe('validation cas A (≥ 5/7) — flow complet IA-15', () => {
     await waitFor(() => expect(screen.getByText('Journée validée')).toBeTruthy());
     expect(screen.getByText(/Ta série : 5 jours/)).toBeTruthy();
     expect(screen.queryByText('Valider ma journée')).toBeNull();
+    // La règle disparaît avec le bouton : journée figée, plus rien à cocher.
+    expect(screen.queryByText(RULE_HINT)).toBeNull();
     // Retours testeurs 30 sept 2026 (option A, note historique) : les cases
     // cochées restent visibles après validation, en lecture seule.
     expect(screen.getByText('5 / 7 cochées')).toBeTruthy();

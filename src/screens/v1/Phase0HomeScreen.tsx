@@ -76,6 +76,7 @@ import { YesterdayRecap } from '../../components/compositions/YesterdayRecap';
 import { dailyChecksKey } from '../../lib/dailyChecks';
 import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
+import { validationRuleHint } from '../../data/global-copy';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 const PHASE_0_TOTAL = 7;
@@ -564,15 +565,18 @@ export default function Phase0HomeScreen() {
             </Card>
 
             {!alreadyValidatedToday && (
-              <Button
-                label="Valider ma journée"
-                onPress={() => setModalVisible(true)}
-                disabled={!canValidate}
-                fullWidth
-                size="large"
-                context="phase0"
-                style={styles.validateBtn}
-              />
+              <>
+                <Button
+                  label="Valider ma journée"
+                  onPress={() => setModalVisible(true)}
+                  disabled={!canValidate}
+                  fullWidth
+                  size="large"
+                  context="phase0"
+                  style={styles.validateBtn}
+                />
+                <Text style={styles.hint}>{validationRuleHint()}</Text>
+              </>
             )}
 
             {/* Phase A — CTA "Démarrer évaluation Respiration" retiré du hub.

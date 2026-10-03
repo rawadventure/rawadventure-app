@@ -44,17 +44,22 @@ export function streakBrokenNotice(
 
 /**
  * Slot `copy.global.message-joker-consomme` (D26/D6) : le joker
- * hebdomadaire a couvert une journée manquée.
+ * hebdomadaire a couvert une journée sans validation. En Phase 0, rappel
+ * de la règle « on coche le jour même » (retour testeur beta, 3 oct 2026 :
+ * elle n'était écrite nulle part). Pas de rappel en Phase 1 — on n'y coche
+ * pas des actions.
  */
 export function jokerUsedNotice(
   phase: Phase,
   day: number,
 ): { title: string; body: string } {
+  const rule =
+    phase === 'phase_0' ? 'Une journée se coche le jour même, avant minuit. ' : '';
   return {
     title: 'Joker utilisé',
     body:
-      `Ton joker de la semaine a couvert une journée manquée. ` +
-      `Série conservée. ${repriseText(phase, day)} [copy à valider]`,
+      `Ton joker de la semaine a couvert une journée sans validation. ` +
+      `Série conservée. ${rule}${repriseText(phase, day)} [copy à valider]`,
   };
 }
 
@@ -130,4 +135,15 @@ export function yesterdayRecapCopy(count: number): {
     notDone: 'non fait',
     close: 'Fermer',
   };
+}
+
+/**
+ * Slot `copy.IA-11.regle-validation` (retour testeur beta, 3 octobre 2026) :
+ * règle du jeu affichée sous le bouton « Valider ma journée » de l'accueil
+ * Phase 0 — le seuil (D6), puis l'échéance (D20/D27 : une journée se coche
+ * le jour même). Texte fixé par Stéphane le 3 oct. Espace insécable avant
+ * les deux-points : sans elle, « : » passe seul à la ligne sur mobile.
+ */
+export function validationRuleHint(): string {
+  return '5 actions sur 7 suffisent pour valider. Coche le jour même\u00a0: à minuit, la journée se ferme.';
 }
