@@ -416,10 +416,12 @@ export async function applyTimelineSnapshot(
         supabase.from('progress').delete().eq('user_id', ctx.userId),
       ]);
 
-      // Update profiles.account_created_at.
+      // Update profiles.account_created_at + flags du snapshot. Remplacement
+      // direct voulu : saveNarrativeFlags fusionne désormais avec la base,
+      // les flags d'un état antérieur ne seraient sinon jamais retirés.
       await supabase
         .from('profiles')
-        .update({ account_created_at: accountIso })
+        .update({ account_created_at: accountIso, narrative_flags: narrativeFlags })
         .eq('id', ctx.userId);
 
       // Re-insert streak_history.

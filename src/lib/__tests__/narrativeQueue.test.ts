@@ -358,7 +358,8 @@ describe('day_validated — joker (message sobre)', () => {
 // ─── D44 — rattrapage de charnière après validation automatique ──────────────
 // Une journée validée automatiquement (cohérence, pas de tap « Valider ») ne
 // passe pas par le trigger day_validated : sa charnière (D19) se joue à
-// l'ouverture suivante du hub, une seule à la fois (D25), dans l'ordre.
+// l'ouverture suivante du hub — uniquement pour le jour de parcours juste
+// terminé (D25 : une seule candidate par tirage).
 
 describe('hub_open — rattrapage charnière après validation auto (D44)', () => {
   test('J3 validé automatiquement (position 4, flag absent) → charnière J3 à l ouverture', () => {
@@ -369,20 +370,28 @@ describe('hub_open — rattrapage charnière après validation auto (D44)', () =
     ).toEqual({ kind: 'charniere', day: 3, flag: 'j3_charniere' });
   });
 
-  test('plusieurs charnières en retard → la plus ancienne d abord (D25 : une par lancement)', () => {
+  // Régression retour testeuse (4 oct 2026) : flags perdus en base → J3
+  // rejouée à la position 6 avec une série de 5 jours. Le rattrapage ne vaut
+  // que pour le jour de parcours juste terminé ; plus ancien = jamais rejoué.
+  test('charnière plus ancienne que le jour précédent → rien (J3 à la position 6)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 6, narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toBeNull();
+  });
+
+  test('plusieurs charnières non vues → seule celle du jour précédent se rattrape', () => {
+    expect(
+      nextNarrativeEvent(
+        input({ currentDay: 8, narrativeFlags: { welcome_video: 'x' } }),
+      ),
+    ).toEqual({ kind: 'charniere', day: 7, flag: 'j7_charniere' });
     expect(
       nextNarrativeEvent(
         input({ currentDay: 9, narrativeFlags: { welcome_video: 'x' } }),
       ),
-    ).toEqual({ kind: 'charniere', day: 3, flag: 'j3_charniere' });
-    expect(
-      nextNarrativeEvent(
-        input({
-          currentDay: 9,
-          narrativeFlags: { welcome_video: 'x', j3_charniere: 'x' },
-        }),
-      ),
-    ).toEqual({ kind: 'charniere', day: 7, flag: 'j7_charniere' });
+    ).toBeNull();
   });
 
   test('charnière du jour de position courant non validé → rien (elle se joue à la validation)', () => {

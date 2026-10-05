@@ -12,6 +12,7 @@ import {
   createAnonymousStore,
   createRemoteStore,
   type ProgressStore,
+  mergeNarrativeFlags,
 } from '../../lib/progressStore';
 import { EMPTY_PROGRESS_DATA, type ProgressData } from '../../lib/progressData';
 import type { JokerConsumption, StreakEntry } from '../../lib/streak';
@@ -150,6 +151,27 @@ export function useOnboardingMigrationDomain({
         profileDynamicId,
       );
 
+      // Flags narratifs et palier différé : même règle que les réponses
+      // (retour testeuse, 4 oct 2026). Rien de local → on ne touche pas aux
+      // colonnes ; sinon fusion avec la base, jamais de remplacement.
+      let flagsPatch: { narrative_flags?: Partial<Record<string, string>> } = {};
+      if (Object.keys(localFlags).length > 0) {
+        const row = await must(
+          supabase
+            .from('profiles')
+            .select('narrative_flags')
+            .eq('id', userId)
+            .single(),
+        );
+        flagsPatch = {
+          narrative_flags: mergeNarrativeFlags(
+            (row as { narrative_flags?: Partial<Record<string, string>> | null } | null)
+              ?.narrative_flags,
+            localFlags,
+          ),
+        };
+      }
+
       // 1. Update profil distant avec onboarding_data + profile_dynamic_id.
       //    Jamais de vide : l'effet pendingMigration peut rejouer la migration
       //    (ses deps bougent quand loadData met à jour le state) alors que le
@@ -165,8 +187,8 @@ export function useOnboardingMigrationDomain({
               : {}),
             ...(dynamicId ? { profile_dynamic_id: dynamicId } : {}),
             account_created_at: accountCreatedAtIso,
-            narrative_flags: localFlags,
-            pending_tier_reach: localPendingTier,
+            ...flagsPatch,
+            ...(localPendingTier ? { pending_tier_reach: localPendingTier } : {}),
           })
           .eq('id', userId),
       );

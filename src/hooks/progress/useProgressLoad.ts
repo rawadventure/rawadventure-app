@@ -33,6 +33,13 @@ type ProgressLoadDeps = {
   commitData: (next: ProgressData) => void;
   narrativeFlagsRef: MutableRefObject<Partial<Record<NarrativeEventId, string>>>;
   setLoading: (v: boolean) => void;
+  /** Verrou de chargement : id (ou null en anonyme) du compte dont les
+   *  données viennent d'être appliquées. */
+  setLoadedFor: (userId: string | null) => void;
+  /** Compteur de chargements : seul le dernier lancé applique son résultat.
+   *  Un chargement anonyme qui se termine après le chargement du compte ne
+   *  doit ni écraser ses données ni reposer le verrou sur « anonyme ». */
+  loadSeqRef: MutableRefObject<number>;
   setOnboardingDone: (v: boolean) => void;
   setOnboardingData: (v: Record<string, string>) => void;
   setProfileDynamicId: (v: string | null) => void;
@@ -51,6 +58,8 @@ export function createProgressLoader({
   commitData,
   narrativeFlagsRef,
   setLoading,
+  setLoadedFor,
+  loadSeqRef,
   setOnboardingDone,
   setOnboardingData,
   setProfileDynamicId,
@@ -63,18 +72,24 @@ export function createProgressLoader({
   setPendingMigrationState,
 }: ProgressLoadDeps) {
   const loadData = async () => {
+    const seq = ++loadSeqRef.current;
+    const isLatest = () => seq === loadSeqRef.current;
     setLoading(true);
     try {
       const local = await createAnonymousStore().load();
       const remote = user ? await createRemoteStore(user.id).load() : null;
+      if (!isLatest()) return;
       applySnapshots(local, remote, user?.id ?? null);
       // Sprint B email confirm — restaure pendingMigration (clé locale pure).
       const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
-      if (rawPM) setPendingMigrationState(JSON.parse(rawPM));
+      if (rawPM && isLatest()) setPendingMigrationState(JSON.parse(rawPM));
     } catch (e) {
       console.error('[ProgressContext] Erreur chargement progression:', e);
     } finally {
-      setLoading(false);
+      if (isLatest()) {
+        setLoadedFor(user?.id ?? null);
+        setLoading(false);
+      }
     }
   };
 

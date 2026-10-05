@@ -156,6 +156,37 @@ describe('RemoteStore (Supabase)', () => {
     ).rejects.toThrow('RLS denied');
   });
 
+  // Régression retour testeuse (4 oct 2026) : un hub monté avant la fin du
+  // chargement écrivait { welcome_video } seul et effaçait j3/j7 en base.
+  // L'écriture FUSIONNE avec la colonne distante — un flag posé ne disparaît
+  // jamais, et sa date de premier affichage est conservée.
+  test('saveNarrativeFlags fusionne avec les flags distants (jamais d écrasement)', async () => {
+    sb.setTables({
+      profiles: {
+        id: 'u1',
+        narrative_flags: { welcome_video: 'ancien', j3_charniere: 'ancien' },
+      },
+    });
+    const store = createRemoteStore('u1');
+    await store.saveNarrativeFlags({ welcome_video: 'nouveau' });
+    const update = sb.calls.find(
+      (c) => c.table === 'profiles' && c.op === 'update',
+    );
+    expect((update!.payload as Record<string, unknown>).narrative_flags).toEqual({
+      welcome_video: 'ancien',
+      j3_charniere: 'ancien',
+    });
+  });
+
+  test('saveNarrativeFlags : lecture distante en échec → throw, aucune écriture', async () => {
+    sb.failNext('profiles', 'select', { message: 'offline' });
+    const store = createRemoteStore('u1');
+    await expect(
+      store.saveNarrativeFlags({ welcome_video: 'x' }),
+    ).rejects.toThrow('offline');
+    expect(sb.calls.filter((c) => c.op === 'update')).toHaveLength(0);
+  });
+
   test('reset : update profiles (colonnes F-04 incluses) + deletes des 7 tables', async () => {
     const store = createRemoteStore('u1');
     await store.reset();

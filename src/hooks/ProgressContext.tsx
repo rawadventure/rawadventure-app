@@ -66,7 +66,18 @@ const ProgressContext = createContext<ProgressContextType | null>(null);
 export function ProgressProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
 
-  const [loading, setLoading] = useState(true);
+  const [loadingState, setLoading] = useState(true);
+  // Verrou de chargement par utilisateur (retour testeuse, 4 oct 2026).
+  // `loadingState` seul laissait passer une frame « session présente,
+  // données du compte pas encore chargées » : chargement anonyme fini, puis
+  // session qui arrive (l'effet loadData ne repasse loading à true qu'après
+  // ce render), ou chargement anonyme qui se termine pendant le chargement
+  // distant. Avec un stockage local resté à « onboarding terminé », le hub
+  // se montait à vide et écrivait des flags narratifs sur le compte.
+  // undefined = aucun chargement abouti.
+  const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
+  const loading = loadingState || loadedFor !== (user?.id ?? null);
+  const loadSeqRef = useRef(0);
 
   // Onboarding
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -172,6 +183,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     commitData,
     narrativeFlagsRef,
     setLoading,
+    setLoadedFor,
+    loadSeqRef,
     setOnboardingDone,
     setOnboardingData,
     setProfileDynamicId,

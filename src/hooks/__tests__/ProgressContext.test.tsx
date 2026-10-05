@@ -1174,6 +1174,128 @@ describe('migration locale → distante (§2.10)', () => {
       expect(updates[1]).not.toHaveProperty('profile_dynamic_id');
       expect(updates[1]).toMatchObject({ onboarding_done: true });
     });
+
+    // Retour testeuse (4 oct 2026) : même famille de bug pour les flags
+    // narratifs et le palier différé — la migration ne les remplace jamais
+    // par du vide.
+    test('flags locaux vides → la migration n écrit ni narrative_flags ni pending_tier_reach', async () => {
+      const utils = await renderWithOverwrittenState();
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      for (const update of profileUpdates()) {
+        expect(update).not.toHaveProperty('narrative_flags');
+        expect(update).not.toHaveProperty('pending_tier_reach');
+      }
+    });
+
+    test('flags locaux présents → fusionnés avec les flags distants', async () => {
+      const utils = await renderWithOverwrittenState();
+      sb.setTables({
+        profiles: {
+          id: 'u1',
+          onboarding_done: true,
+          narrative_flags: { j3_charniere: 'distant' },
+        },
+        streak_history: [],
+        joker_consumptions: [],
+        tier_reaches: [],
+        pillar_evaluations: [],
+      });
+      await AsyncStorage.setItem(
+        'narrative_flags',
+        JSON.stringify({ welcome_video: 'local' }),
+      );
+      await act(async () => {
+        await utils.result.current.migrateLocalToRemote('u1', ISO);
+      });
+      const updates = profileUpdates();
+      expect(updates[updates.length - 1].narrative_flags).toEqual({
+        welcome_video: 'local',
+        j3_charniere: 'distant',
+      });
+    });
+  });
+});
+
+// ─── Verrou de chargement par utilisateur (retour testeuse, 4 oct 2026) ──────
+// Stockage local resté à « onboarding terminé » (connexion à un compte
+// existant dans un contexte où l'onboarding anonyme avait été refait) : à
+// l'arrivée de la session, le hub se montait une frame AVANT le chargement
+// distant — jour 1, aucun flag — et marquait welcome_video en écrasant les
+// flags du compte. `loading` doit rester vrai tant que les données du compte
+// connecté ne sont pas appliquées.
+describe('verrou de chargement — jamais « connecté » avec des données non chargées', () => {
+  const REMOTE = {
+    profiles: {
+      id: 'u1',
+      onboarding_done: true,
+      onboarding_data: {},
+      profile_dynamic_id: null,
+      account_created_at: '2026-10-01T08:00:00.000Z',
+      narrative_flags: { welcome_video: 'vu', j3_charniere: 'vu' },
+    },
+    streak_history: [],
+    joker_consumptions: [],
+    tier_reaches: [],
+    pillar_evaluations: [],
+  };
+
+  type Frame = { user: string | null; loading: boolean; j3: boolean };
+
+  function renderLogged(frames: Frame[]) {
+    return renderHook(
+      () => {
+        const p = useProgress();
+        frames.push({
+          user: mockUser?.id ?? null,
+          loading: p.loading,
+          j3: !!p.narrativeFlags.j3_charniere,
+        });
+        return p;
+      },
+      { wrapper: progressWrapper },
+    );
+  }
+
+  const unloadedFrames = (frames: Frame[]) =>
+    frames.filter((f) => f.user === 'u1' && !f.loading && !f.j3);
+
+  test('session arrivée après le chargement local → aucune frame prête sans les données du compte', async () => {
+    await seedAnonymousStorage({});
+    const frames: Frame[] = [];
+    const utils = await renderLogged(frames);
+    await waitFor(() => expect(utils.result.current.loading).toBe(false));
+
+    sb.setTables(REMOTE);
+    mockUser = { id: 'u1' };
+    await act(async () => {
+      utils.rerender({});
+    });
+    await waitFor(() =>
+      expect(utils.result.current.narrativeFlags.j3_charniere).toBeDefined(),
+    );
+    expect(utils.result.current.loading).toBe(false);
+    expect(unloadedFrames(frames)).toEqual([]);
+  });
+
+  test('session arrivée pendant le chargement local → idem (deux chargements concurrents)', async () => {
+    await seedAnonymousStorage({});
+    sb.setTables(REMOTE);
+    const frames: Frame[] = [];
+    const utils = await renderLogged(frames);
+    mockUser = { id: 'u1' };
+    await act(async () => {
+      utils.rerender({});
+    });
+    await waitFor(() =>
+      expect(utils.result.current.narrativeFlags.j3_charniere).toBeDefined(),
+    );
+    await waitFor(() => expect(utils.result.current.loading).toBe(false));
+    expect(unloadedFrames(frames)).toEqual([]);
   });
 });
 

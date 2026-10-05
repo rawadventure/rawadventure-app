@@ -112,13 +112,16 @@ export function nextNarrativeEvent(
     }
     // D44 — rattrapage : une journée validée automatiquement (cohérence
     // calendaire, coches ≥ 5/7 sans tap « Valider ») ne passe pas par
-    // day_validated. Sa charnière se joue ici, la plus ancienne d'abord, une
-    // par lancement (D25). `currentDay > day` ⇔ jour `day` validé. Périmètre
-    // Phase 0 (J14 avant S0.1 — ordre narratif).
+    // day_validated. Sa charnière se joue ici. Seul le jour de parcours juste
+    // terminé se rattrape (`currentDay === day + 1`) : une charnière plus
+    // ancienne n'est jamais rejouée — sinon des flags perdus font ressortir
+    // « Jour 3 » à la position 6 (retour testeuse, 4 oct 2026). Au plus une
+    // charnière candidate par tirage (D25). Périmètre Phase 0 (J14 avant
+    // S0.1 — ordre narratif).
     if (currentPhase === 'phase_0') {
       for (const day of [3, 7, 11, 14] as const) {
         const flag = CHARNIERE_FLAGS[day];
-        if (currentDay > day && !narrativeFlags[flag]) {
+        if (currentDay === day + 1 && !narrativeFlags[flag]) {
           return { kind: 'charniere', day, flag };
         }
       }

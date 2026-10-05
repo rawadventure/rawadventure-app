@@ -203,6 +203,17 @@ export function createAnonymousStore(): ProgressStore {
   };
 }
 
+/**
+ * Fusion de flags narratifs : union des clés, la valeur déjà en base gagne
+ * (date du premier affichage conservée). Un flag posé ne disparaît jamais.
+ */
+export function mergeNarrativeFlags(
+  remote: StoreNarrativeFlags | null | undefined,
+  incoming: StoreNarrativeFlags | null | undefined,
+): StoreNarrativeFlags {
+  return { ...(incoming ?? {}), ...(remote ?? {}) } as StoreNarrativeFlags;
+}
+
 // ─── Implémentation Supabase (mode connecté) ────────────────────────────────
 
 export function createRemoteStore(userId: string): ProgressStore {
@@ -276,10 +287,24 @@ export function createRemoteStore(userId: string): ProgressStore {
       );
     },
     async saveNarrativeFlags(flags) {
+      // Lire-fusionner-écrire : la colonne n'est jamais remplacée par la
+      // seule mémoire de l'app (retour testeuse 4 oct 2026 — une mémoire
+      // vide effaçait les flags déjà posés). Non atomique, mais les flags
+      // sont posés une fois et jamais retirés hors reset().
+      const row = await must(
+        supabase
+          .from('profiles')
+          .select('narrative_flags')
+          .eq('id', userId)
+          .single(),
+      );
+      const remote =
+        ((row as { narrative_flags?: StoreNarrativeFlags | null } | null)
+          ?.narrative_flags as StoreNarrativeFlags | null | undefined) ?? null;
       await must(
         supabase
           .from('profiles')
-          .update({ narrative_flags: flags })
+          .update({ narrative_flags: mergeNarrativeFlags(remote, flags) })
           .eq('id', userId),
       );
     },
