@@ -382,3 +382,36 @@ Test fonctionnel app : pass / fail (détails)
 **Tables futures à ajouter** (pas bloquant V1) :
 - `subscriptions` : Sprint webhook Stripe — schema + RLS dans §8.1
 
+
+---
+
+## 12. Résultats audit complet (7 octobre 2026) — R8-8
+
+Audit en lecture seule sur la base live via le CLI (`supabase db query --linked`, `supabase db advisors --linked`), 20 comptes, 12 tables. Correctif appliqué le même jour (migration `supabase/migrations/20261007_r8_8_rls_hardening.sql`, lancée par Stéphane).
+
+| Vérif | Avant | Après |
+|---|---|---|
+| Tables RLS enabled | ✅ 12/12 | ✅ 12/12 |
+| Policies totales | 47 (doublons) | 39 |
+| `profiles` policies | 6 — dont **INSERT + DELETE non prévus** | 2 (SELECT, UPDATE) |
+| `progress` policies | 8 (×2 doublons) | 4 |
+| `subscriptions` | 1 SELECT (F-09 OK) | inchangé |
+| `stripe_webhook_events` | 0 policy, RLS on (voulu) | inchangé |
+| Policies anon | 0 | 0 |
+| Grants `profiles` authenticated | SELECT, INSERT, DELETE + UPDATE 8 colonnes | SELECT + UPDATE 8 colonnes (sans `dev_tools_enabled`) |
+| `handle_new_user` / `set_updated_at` EXECUTE anon/authenticated | oui (advisors 0028/0029/0011) | révoqué, `search_path` fixé |
+| Trigger `on_auth_user_created` | ✅ | ✅ |
+| Advisors sécurité | 4 WARN + 1 INFO | 1 WARN (réglage Dashboard, voir ci-dessous) |
+| Edge Functions | portail : JWT vérifié, lookup limité au user ; webhook : signature Stripe vérifiée | — |
+
+**Faille corrigée.** Les policies INSERT + DELETE sur `profiles` (jamais utilisées par l'app, row posée par le trigger) permettaient à un utilisateur connecté de supprimer puis réinsérer sa row avec `dev_tools_enabled = true`, contournant le verrou par colonne de la migration F-07 (D43) → panneau DEV, mock abonnement, Phase 1 sans payer. Fermée par retrait des policies + REVOKE INSERT/DELETE.
+
+**Test fonctionnel** (rôle `authenticated` simulé avec le compte demo2, transactions annulées) : lecture de son propre profil OK ; DELETE, INSERT (avec `dev_tools_enabled = true`) et UPDATE de `dev_tools_enabled` → `42501 permission denied`.
+
+**Reste à faire — Stéphane, Dashboard** : Authentication → Settings → activer « Leaked password protection » (advisor `auth_leaked_password_protection`).
+
+**Notes hors RLS** (pas bloquant) :
+- Bucket `phase0-videos` public (18 fichiers, 364 Mo), aucune policy storage : lecture par URL, pas d'upload client. OK pour les vidéos Phase 0 gratuites ; à reconsidérer pour tout contenu payant (R8-9).
+- Realtime : aucune table dans la publication `supabase_realtime` (R8-6 « postgres_changes » inactif côté base — à vérifier si l'app en dépend).
+- Les grants par défaut Supabase donnent `anon`/`authenticated` tous les privilèges table (dont TRUNCATE, inatteignable via l'API). RLS fait le filtrage ; hygiène possible plus tard (`REVOKE ALL ... FROM anon`), non prioritaire.
+- Les migrations du repo sont appliquées à la main (SQL editor / CLI), pas enregistrées dans `supabase migration list`.
