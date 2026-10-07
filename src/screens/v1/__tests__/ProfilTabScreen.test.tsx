@@ -4,7 +4,7 @@
  * Couvre : infos parcours, card abonnement (statut/plan/renouvellement),
  * gating des CTA (portail Stripe seulement si abonnement existant ;
  * « Découvrir l'abonnement » seulement non-abonné ET dès J3 — D3),
- * navigation paliers, déconnexion, liens légaux (App Store §5.1.1),
+ * navigation paliers et vidéos (IA-70), déconnexion, liens légaux (App Store §5.1.1),
  * absence totale de boutons DEV hors mode DEV (posture reset V1 §2.11).
  *
  * Hooks mockés (pattern PaywallScreen).
@@ -34,10 +34,13 @@ jest.mock('../../../hooks/AuthContext', () => ({
 let mockCurrentDay = 5;
 let mockCurrentPhase = 'phase_0';
 let mockProfileDynamicId: string | null = 'fatigue-motivation';
+let mockNarrativeFlags: Record<string, string> = { welcome_video: '2026-10-10T08:00:00.000Z' };
 jest.mock('../../../hooks/ProgressContext', () => ({
   useProgress: () => ({
     currentDay: mockCurrentDay,
     currentPhase: mockCurrentPhase,
+    currentPillarId: null,
+    narrativeFlags: mockNarrativeFlags,
     streak: 5,
     jokerAvailable: true,
     profileDynamicId: mockProfileDynamicId,
@@ -95,6 +98,7 @@ beforeEach(() => {
   mockCurrentDay = 5;
   mockCurrentPhase = 'phase_0';
   mockProfileDynamicId = 'fatigue-motivation';
+  mockNarrativeFlags = { welcome_video: '2026-10-10T08:00:00.000Z' };
   mockSubscriptionState = { status: 'free', plan: null, renewsAt: null };
   mockSubscriptionActive = false;
   mockDevToolsEnabled = false;
@@ -124,26 +128,29 @@ describe('infos parcours et compte', () => {
   });
 });
 
-describe('revoir la vidéo de bienvenue (IA-12, retours testeurs 3 oct 2026)', () => {
-  test('Phase 0 : entrée visible, ouvre l écran de bienvenue, « Continuer » le referme', async () => {
+describe('revoir les vidéos (IA-70, retour testeuse 7 oct 2026)', () => {
+  test('bienvenue déjà jouée → « Revoir les vidéos » → navigate NarrativeVideos', async () => {
     await render(<ProfilTabScreen />);
-    expect(screen.queryByText("C'est parti.")).toBeNull();
     const user = userEvent.setup();
-    await user.press(screen.getByText('Revoir la vidéo de bienvenue'));
-    expect(screen.getByText("C'est parti.")).toBeTruthy();
-    await user.press(screen.getByText('Continuer'));
-    expect(screen.queryByText("C'est parti.")).toBeNull();
+    await user.press(screen.getByText('Revoir les vidéos'));
+    expect(mockNavigate).toHaveBeenCalledWith('NarrativeVideos');
   });
 
-  test('S0 (jour 15) : entrée absente', async () => {
-    mockCurrentDay = 15;
+  test('aucune vidéo débloquée (jour 0, attente pré-Phase 0) → entrée absente', async () => {
+    mockNarrativeFlags = {};
+    mockCurrentDay = 0;
     await render(<ProfilTabScreen />);
-    expect(screen.queryByText('Revoir la vidéo de bienvenue')).toBeNull();
+    expect(screen.queryByText('Revoir les vidéos')).toBeNull();
   });
 
-  test('Phase 1 : entrée absente', async () => {
+  test('Phase 1 : entrée toujours présente (la bienvenue reste rejouable)', async () => {
     mockCurrentPhase = 'phase_1';
     mockCurrentDay = 2;
+    await render(<ProfilTabScreen />);
+    expect(screen.getByText('Revoir les vidéos')).toBeTruthy();
+  });
+
+  test('ancienne entrée IA-12 « Revoir la vidéo de bienvenue » retirée du Profil', async () => {
     await render(<ProfilTabScreen />);
     expect(screen.queryByText('Revoir la vidéo de bienvenue')).toBeNull();
   });

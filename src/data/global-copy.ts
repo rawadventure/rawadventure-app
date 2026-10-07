@@ -13,6 +13,8 @@
  */
 
 import type { Phase } from '../lib/streak';
+import type { NarrativeVideoId } from './narrative-videos';
+import { getPillarMeta } from './pillar-registry';
 
 /**
  * Slot `copy.global.streak-reprise` (D38) : phrase de reprise de position.
@@ -155,4 +157,41 @@ export function validationRuleHint(): string {
  */
 export function welcomeReplayLabel(): string {
   return 'Revoir la vidéo de bienvenue';
+}
+
+/**
+ * Slots `copy.IA-70.revoir-videos.*` (retour testeuse beta, 7 octobre 2026 :
+ * impossible de réécouter la fin de la vidéo J7 après une interruption).
+ * Libellé de l'entrée Profil et titre de l'écran qui liste les vidéos
+ * narratives déjà débloquées, plus le titre affiché pour chaque vidéo.
+ * Titres = placeholders cohérents avec le ton — [copy à valider] par
+ * Mimi & Jacky.
+ */
+export function narrativeVideosEntryLabel(): string {
+  return 'Revoir les vidéos';
+}
+
+export function narrativeVideoTitle(id: NarrativeVideoId): string {
+  switch (id) {
+    case 'welcome':
+      return 'Bienvenue';
+    case 'j7':
+      return 'Une semaine';
+    case 'j14':
+      return 'Fin de la Phase 0';
+    case 's0_1':
+      return 'Tes 14 jours';
+    case 's0_2':
+      return 'La suite du parcours';
+    default: {
+      const pillarId = id.replace('pillar_', '');
+      const name = getPillarMeta(pillarId)?.name ?? pillarId;
+      return `Intro — ${name}`;
+    }
+  }
+}
+
+/** Texte sobre si la liste est vide (impossible après J1, prévu par sécurité). */
+export function narrativeVideosEmptyText(): string {
+  return 'Les vidéos du parcours apparaîtront ici au fur et à mesure.';
 }

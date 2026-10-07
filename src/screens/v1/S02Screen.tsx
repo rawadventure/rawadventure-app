@@ -38,6 +38,7 @@ import {
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import { VideoPreview } from '../../components/compositions/VideoPreview';
+import { S0_2_VIDEO_URL } from '../../data/narrative-videos';
 import { LogoRawAdventure } from '../../components/illustrations';
 import {
   brandColors,
@@ -83,12 +84,9 @@ export type S02ScreenProps = {
   onDiscoverSubscription?: () => void;
 };
 
-/**
- * URL vidéo S0.2 roadmap Phase 1 — Supabase Storage public bucket
- * `phase0-videos`. Brief contenu Session 2 (Mimi & Jacky), ~60-90s.
- */
-const VIDEO_URL =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-2-roadmap.mp4';
+/** Vidéo S0.2 roadmap Phase 1 (Brief contenu Session 2). URL dans le
+ *  registre `narrative-videos` (aussi rejouable depuis IA-70). */
+const VIDEO_URL = S0_2_VIDEO_URL;
 
 export default function S02Screen({ visible, onStartEvaluation, onDiscoverSubscription }: S02ScreenProps) {
   return (

@@ -46,7 +46,8 @@ import { getInterFamily } from '../../theme';
 import { useAuth } from '../../hooks/AuthContext';
 import { useProgress } from '../../hooks/ProgressContext';
 import { supabase } from '../../lib/supabase';
-import { getPillarMeta } from '../../data/pillar-registry';
+import { getPillarMeta, type PillarId } from '../../data/pillar-registry';
+import { PILLAR_INTRO_VIDEO_URL } from '../../data/narrative-videos';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
 type Nav = NativeStackNavigationProp<Phase0StackParamList>;
@@ -61,26 +62,11 @@ const ENGAGEMENT_LABEL: Record<EngagementLevel, string> = {
 };
 
 /**
- * URLs vidéos intro pilier — Supabase Storage public bucket `phase0-videos`.
- * Tournage Brief contenu Session 3 (Mimi & Jacky), 60-90s par pilier.
- * 8 vidéos prévues, intégrées au fur et à mesure de la livraison.
- * Format : MP4 H.264, portrait 1080×1920.
- *
- * Mapping par pillarId (D39 ordre canonique). null → placeholder texte.
+ * Vidéos intro pilier — Brief contenu Session 3 (Mimi & Jacky), 60-90s par
+ * pilier, MP4 H.264 portrait 1080×1920. URLs dans le registre
+ * `narrative-videos` (aussi rejouables depuis IA-70 une fois le pilier
+ * atteint). Pilier inconnu → placeholder texte.
  */
-const SUPABASE_VIDEOS_BASE =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
-
-const PILLAR_INTRO_VIDEO_URL: Record<string, string | null> = {
-  S1: `${SUPABASE_VIDEOS_BASE}/pilier-s1-respiration.mp4`,
-  S2: `${SUPABASE_VIDEOS_BASE}/pilier-s2-activite-physique.mp4`,
-  S3: `${SUPABASE_VIDEOS_BASE}/pilier-s3-alimentation.mp4`,
-  S4: `${SUPABASE_VIDEOS_BASE}/pilier-s4-connexion-vivant.mp4`,
-  S5: `${SUPABASE_VIDEOS_BASE}/pilier-s5-repos-regeneration.mp4`,
-  S6: `${SUPABASE_VIDEOS_BASE}/pilier-s6-passion.mp4`,
-  S7: `${SUPABASE_VIDEOS_BASE}/pilier-s7-mindset.mp4`,
-  S8: `${SUPABASE_VIDEOS_BASE}/pilier-s8-elimination-detox.mp4`,
-};
 
 export default function PillarOverviewScreen() {
   const navigation = useNavigation<Nav>();
@@ -104,7 +90,7 @@ export default function PillarOverviewScreen() {
   const [sessionsByDay, setSessionsByDay] = useState<Map<number, number>>(new Map());
   const [loading, setLoading] = useState(true);
 
-  const introVideoUrl = PILLAR_INTRO_VIDEO_URL[pillarId] ?? null;
+  const introVideoUrl = PILLAR_INTRO_VIDEO_URL[pillarId as PillarId] ?? null;
 
   // Charge engagement + comptage sessions par jour de la semaine
   const fetchData = useCallback(async () => {

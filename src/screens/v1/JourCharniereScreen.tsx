@@ -25,6 +25,7 @@ import { Sparkle } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import { VideoPreview } from '../../components/compositions/VideoPreview';
+import { CHARNIERE_VIDEO_URL } from '../../data/narrative-videos';
 import {
   brandColors,
   interTextStyle,
@@ -47,13 +48,6 @@ export type JourCharniereScreenProps = {
   onViewGallery?: () => void;
 };
 
-/** Vidéo Mimi & Jacky "Fin de Phase 0" pour J14 — à shooter (brief contenu
- *  Session 1 étendu). URL Supabase placeholder en attendant. Le fichier peut
- *  ne pas exister tant que tournage pas fait → fallback gracieux côté Video
- *  component. */
-const CHARNIERE_VIDEO_BASE =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos';
-
 /**
  * Jours-charnière "riches" (badge cercle + vidéo Mimi & Jacky), par opposition
  * aux jours text-only (J3, J11). J7 et J14 sont des moments d'histoire liés à
@@ -61,19 +55,20 @@ const CHARNIERE_VIDEO_BASE =
  * (`charniere-j7-une-semaine.mp4`, ex-`palier-7j.mp4`) a été repositionnée en
  * marqueur de progression — décision Stéphane 2026-07-01, conforme D19 :
  * J3/J7/J11/J14 charnières. La récompense de série démarre désormais à
- * 15 jours (streak.ts).
+ * 15 jours (streak.ts). URLs dans le registre `narrative-videos` (aussi
+ * rejouables depuis IA-70).
  */
 const RICH_CHARNIERE: Partial<
   Record<CharniereDay, { videoUrl: string; badgeNumber: string; badgeLabel: string; badgeColor: string }>
 > = {
   7: {
-    videoUrl: `${CHARNIERE_VIDEO_BASE}/charniere-j7-une-semaine.mp4`,
+    videoUrl: CHARNIERE_VIDEO_URL[7],
     badgeNumber: '7',
     badgeLabel: 'JOURS',
     badgeColor: brandColors.sun,
   },
   14: {
-    videoUrl: `${CHARNIERE_VIDEO_BASE}/charniere-j14-fin-phase-0.mp4`,
+    videoUrl: CHARNIERE_VIDEO_URL[14],
     badgeNumber: '14',
     badgeLabel: 'JOURS',
     badgeColor: brandColors.sun,

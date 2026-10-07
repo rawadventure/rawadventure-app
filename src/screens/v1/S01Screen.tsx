@@ -32,6 +32,7 @@ import { Sparkle } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import { VideoPreview } from '../../components/compositions/VideoPreview';
+import { S0_1_VIDEO_URL } from '../../data/narrative-videos';
 import { Toile, makeMockScores } from '../../components/toile';
 import {
   brandColors,
@@ -50,12 +51,9 @@ export type S01ScreenProps = {
   onContinue: () => void;
 };
 
-/**
- * URL vidéo S0.1 célébration — Supabase Storage public bucket `phase0-videos`.
- * Brief contenu Session 2 (Mimi & Jacky), ~60-90s, portrait 1080×1920.
- */
-const VIDEO_URL =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/s0-1-celebration.mp4';
+/** Vidéo S0.1 célébration (Brief contenu Session 2). URL dans le registre
+ *  `narrative-videos` (aussi rejouable depuis IA-70). */
+const VIDEO_URL = S0_1_VIDEO_URL;
 
 export default function S01Screen({ visible, streak, onContinue }: S01ScreenProps) {
   // Mock scores level1 — l'utilisateur n'a pas encore fait d'évaluation initiale.

@@ -30,9 +30,8 @@ import { useProgress } from '../../hooks/ProgressContext';
 import { useSubscription } from '../../hooks/SubscriptionContext';
 import { useLegalViewer } from '../../hooks/useLegalViewer';
 import LegalScreen from './LegalScreen';
-import WelcomeVideoScreen from './WelcomeVideoScreen';
-import { canReplayWelcomeInProfile } from '../../lib/welcomeReplay';
-import { welcomeReplayLabel } from '../../data/global-copy';
+import { listReplayableVideos } from '../../lib/narrativeReplay';
+import { narrativeVideosEntryLabel } from '../../data/global-copy';
 import { supabase } from '../../lib/supabase';
 import { isDevToolsEnabled } from '../../lib/devToolsEnabled';
 import type { ProfilStackParamList } from '../../navigation/ProfilStack';
@@ -51,7 +50,6 @@ export default function ProfilTabScreen() {
   } = useSubscription();
   const legal = useLegalViewer();
   const [portalLoading, setPortalLoading] = useState(false);
-  const [showWelcome, setShowWelcome] = useState(false);
 
   /**
    * Ouvre le Stripe Customer Portal pour ce user.
@@ -128,7 +126,11 @@ export default function ProfilTabScreen() {
     accountCreatedAt,
     resetAll,
     applyDevSnapshot,
+    narrativeFlags,
+    currentPillarId,
   } = useProgress();
+  const canReplayVideos =
+    listReplayableVideos({ narrativeFlags, currentPhase, currentPillarId }).length > 0;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -156,13 +158,15 @@ export default function ProfilTabScreen() {
                 {accountCreatedAt ? new Date(accountCreatedAt).toLocaleDateString('fr-FR') : '—'}
               </Text>
             </View>
-            {/* IA-12 — relecture de l'écran de bienvenue, Phase 0 seulement
-                (retours testeurs). Aucun effet sur la progression. */}
-            {canReplayWelcomeInProfile({ currentPhase, currentDay }) && (
+            {/* IA-70 — relecture des vidéos narratives déjà débloquées
+                (bienvenue, charnières, S0, intros pilier — retour testeuse
+                7 oct 2026). Remplace l'entrée IA-12 « Revoir la vidéo de
+                bienvenue » du 3 oct. Aucun effet sur la progression. */}
+            {canReplayVideos && (
               <Button
-                label={welcomeReplayLabel()}
+                label={narrativeVideosEntryLabel()}
                 variant="ghost"
-                onPress={() => setShowWelcome(true)}
+                onPress={() => navigation.navigate('NarrativeVideos')}
                 fullWidth
                 style={{ marginTop: space[2] }}
               />
@@ -380,7 +384,6 @@ export default function ProfilTabScreen() {
         </View>
       </ScrollView>
       <LegalScreen doc={legal.legalDoc} onClose={legal.closeLegal} />
-      <WelcomeVideoScreen visible={showWelcome} onContinue={() => setShowWelcome(false)} />
     </SafeAreaView>
   );
 }

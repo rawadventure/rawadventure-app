@@ -14,7 +14,6 @@
 import type { Phase } from './streak';
 
 const HOME_LAST_DAY = 3;
-const PHASE_0_LAST_DAY = 14;
 
 /** Accueil IA-11 : J1 à J3, une fois la vidéo jouée une première fois. */
 export function canReplayWelcomeOnHome(input: {
@@ -29,13 +28,4 @@ export function canReplayWelcomeOnHome(input: {
     currentDay >= 1 &&
     currentDay <= HOME_LAST_DAY
   );
-}
-
-/** Profil IA-70 : J1 à J14 (les jours 15-16 sont S0, déjà hors Phase 0). */
-export function canReplayWelcomeInProfile(input: {
-  currentPhase: Phase;
-  currentDay: number;
-}): boolean {
-  const { currentPhase, currentDay } = input;
-  return currentPhase === 'phase_0' && currentDay >= 1 && currentDay <= PHASE_0_LAST_DAY;
 }

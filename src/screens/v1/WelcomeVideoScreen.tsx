@@ -26,18 +26,16 @@ import { X } from 'lucide-react-native';
 import { Modal } from '../../components/primitives/Modal';
 import { Button } from '../../components/primitives/Button';
 import { VideoPreview } from '../../components/compositions/VideoPreview';
+import { WELCOME_VIDEO_URL } from '../../data/narrative-videos';
 import {
   brandColors,
   interTextStyle,
   space,
 } from '../../theme';
 
-/**
- * URL vidéo bienvenue J0 — Supabase Storage public bucket `phase0-videos`.
- * Vidéo Mimi & Jacky : vision, qui on est, mission, démarche (ton friendly).
- */
-const VIDEO_URL =
-  'https://aknvitrtfxqjdwiyxryt.supabase.co/storage/v1/object/public/phase0-videos/welcome-j1-bienvenue.mp4';
+/** Vidéo Mimi & Jacky bienvenue J1 : vision, qui on est, mission, démarche.
+ *  URL dans le registre `narrative-videos` (aussi rejouable depuis IA-70). */
+const VIDEO_URL = WELCOME_VIDEO_URL;
 
 export type WelcomeVideoScreenProps = {
   visible: boolean;
