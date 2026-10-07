@@ -408,7 +408,7 @@ Audit en lecture seule sur la base live via le CLI (`supabase db query --linked`
 
 **Test fonctionnel** (rôle `authenticated` simulé avec le compte demo2, transactions annulées) : lecture de son propre profil OK ; DELETE, INSERT (avec `dev_tools_enabled = true`) et UPDATE de `dev_tools_enabled` → `42501 permission denied`.
 
-**Reste à faire — Stéphane, Dashboard** : Authentication → Settings → activer « Leaked password protection » (advisor `auth_leaked_password_protection`).
+**Leaked password protection** (advisor `auth_leaked_password_protection`) : réservée aux plans Pro (tentative du 7 octobre refusée : « available on Pro Plans and up »). Accepté en V1 — mot de passe 6 caractères minimum + rate limiting actifs. À activer à la bascule live (R2-14), quand le projet passe en Pro.
 
 **Notes hors RLS** (pas bloquant) :
 - Bucket `phase0-videos` public (18 fichiers, 364 Mo), aucune policy storage : lecture par URL, pas d'upload client. OK pour les vidéos Phase 0 gratuites ; à reconsidérer pour tout contenu payant (R8-9).

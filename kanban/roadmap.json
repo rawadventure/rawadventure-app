@@ -231,10 +231,10 @@
         },
         {
           "id": "R2-14",
-          "label": "Stripe LIVE setup (product + prices + pricing table + webhook + portal)",
+          "label": "Stripe LIVE setup (product + prices + pricing table + webhook + portal) — au passage en Pro : activer « Prevent use of leaked passwords » (Auth → Attack Protection, Pro only, acté 7 oct)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-10-07T12:09:08.733005Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "stephane"
