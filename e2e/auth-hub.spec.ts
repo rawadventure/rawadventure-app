@@ -85,8 +85,18 @@ test.describe('Hub connecté (compte de test)', () => {
     // Hub Phase 0 complet : jour de position, 7 actions, bouton validation.
     await expect(page.getByText(/Jour \d+ sur 14/)).toBeVisible();
     await expect(page.getByText('Activation matinale')).toBeVisible();
-    await expect(page.getByText('Valider ma journée')).toBeVisible();
-    // Règle du jeu sous le bouton (retour testeur beta, 3 oct 2026).
-    await expect(page.getByText('Coche le jour même', { exact: false })).toBeVisible();
+    // Le compte sert aussi aux tests manuels : si sa journée est déjà
+    // validée, le hub affiche la bannière « Journée validée » à la place du
+    // bouton (D27) — état légitime, pas une régression (CI rouge des 3 et
+    // 5 oct 2026 pour cette seule raison).
+    const validateButton = page.getByText('Valider ma journée', { exact: true });
+    const validatedBanner = page.getByText('Journée validée', { exact: true });
+    await expect(validateButton.or(validatedBanner).first()).toBeVisible();
+    if (await validateButton.isVisible()) {
+      // Règle du jeu sous le bouton (retour testeur beta, 3 oct 2026).
+      await expect(page.getByText('Coche le jour même', { exact: false })).toBeVisible();
+    } else {
+      await expect(page.getByText('À demain', { exact: false })).toBeVisible();
+    }
   });
 });
