@@ -165,10 +165,10 @@ export default function ProfilTabScreen() {
             {canReplayVideos && (
               <Button
                 label={narrativeVideosEntryLabel()}
-                variant="ghost"
+                variant="secondary"
                 onPress={() => navigation.navigate('NarrativeVideos')}
                 fullWidth
-                style={{ marginTop: space[2] }}
+                style={{ marginTop: space[3] }}
               />
             )}
           </Card>
