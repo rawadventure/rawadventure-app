@@ -563,10 +563,10 @@
         },
         {
           "id": "R6-2",
-          "label": "Séparer les clés Supabase test / production",
-          "status": "todo",
+          "label": "Séparer les clés Supabase test / production — FAIT 7-8 oct : projet TEST (oczteusahpcjzbjrvjfc) = schéma PROD, auth + Resend + demo2/demo3, .env Mac + secrets CI + Vercel Preview branchés, Edge Functions Stripe test déployées ; doc docs/release/environnements-supabase.md",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-09-16T15:30:00.000Z",
+          "updatedAt": "2026-10-08T08:53:49.839647Z",
           "estimateH": 2,
           "owner": "claude"
         },

@@ -2,7 +2,7 @@
 
 *Ce fichier est le contexte projet de Claude Code pour le repo Raw Adventure App. Il vit à la racine du repo et est lu en début de chaque session. Sa source de vérité reste les documents du Project Claude.ai (référencés en section 8). Si une info de ce fichier semble contredire un doc Project plus récent, c'est le doc Project qui gagne — il faut alors mettre à jour ce CLAUDE.md.*
 
-*Daté du 5 octobre 2026 — Version 1.10 (précision de D44 : rattrapage de charnière limité au jour de parcours juste terminé). À mettre à jour à chaque décision structurelle nouvelle.*
+*Daté du 8 octobre 2026 — Version 1.11 (deux projets Supabase TEST / PROD, R6-2). À mettre à jour à chaque décision structurelle nouvelle.*
 
 ---
 
@@ -109,6 +109,8 @@ Conséquence directe : **désinstallation de l'app = streak perdu, progression p
 Implications pratiques pour Claude Code. Pas de fetch vers une API distante pour les données métier. Pas de sync entre téléphone et tablette du même utilisateur. Pas de "récupérer mon compte" si désinstallation. Pas de Firebase Auth ni d'équivalent en V1. Les seules requêtes réseau légitimes en V1 concernent le téléchargement des médias vidéo (qui peuvent venir d'un CDN) et la gestion de l'abonnement (passerelle de paiement type Stripe/RevenueCat, à arbitrer en Feature Spec abonnement).
 
 *Précision V1.2 (8 mai 2026, post-audit V0).* Le proto V0 actuel utilise **Supabase** comme backend pour `profiles` et `progress` (au lieu d'une approche purement locale). Cette décision V0 antérieure à D28 reste compatible avec D28 en pratique : Supabase sert à l'authentification et à la persistance distante minimale du profil et de l'historique de validation des jours, le reste vit en local (AsyncStorage). Les futures tables Supabase pour la V1 (streak_history, joker_consumptions, tier_reaches, pillar_evaluations, pillar_sessions, level_adaptive_choices) sont documentées dans le **Schéma de données V1** (étape 7 du Plan de patches en cascade, à venir).
+
+*Précision V1.11 (8 octobre 2026, R6-2).* **Deux projets Supabase** : **TEST** (`oczteusahpcjzbjrvjfc` — dev local, CI GitHub, previews Vercel, Stripe en clés test) et **PROD** (`aknvitrtfxqjdwiyxryt` — PWA `app.rawadventure.world`, testeurs beta, builds stores). La production n'est jamais un terrain de test. Le CLI local est lié à TEST par défaut ; toute migration SQL s'applique sur TEST d'abord, PROD ensuite. Détail : `docs/release/environnements-supabase.md`.
 
 ### État du proto V0 et dette identifiée
 
@@ -497,6 +499,8 @@ Pour aller plus vite quand la mémoire flanche. Détail complet dans la Synthès
 ---
 
 ## 11. Historique des versions de ce CLAUDE.md
+
+**Version 1.11 — 8 octobre 2026.** Ajout en section 5 de la précision R6-2 : deux projets Supabase (TEST pour dev, CI, previews et Stripe test ; PROD pour la PWA des testeurs et les stores), CLI lié à TEST par défaut, migrations appliquées deux fois. Aucune décision produit nouvelle — chantier infrastructure, documenté dans `docs/release/environnements-supabase.md`.
 
 **Version 1.10 — 5 octobre 2026.** Précision de **D44** en section 10 : rattrapage de charnière limité au jour de parcours juste terminé. Contexte : une testeuse beta a revu la charnière J3 à la position 6 ; cause racine technique (flags narratifs écrasés en base par un accueil monté avant la fin du chargement du compte) corrigée dans le même lot — verrou de chargement par utilisateur dans `ProgressContext`, écriture des flags par fusion (`mergeNarrativeFlags`, `src/lib/progressStore.ts`). Aucune décision produit nouvelle.
 
