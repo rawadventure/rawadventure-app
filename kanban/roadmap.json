@@ -130,6 +130,17 @@
           "status": "done",
           "sessionId": null,
           "updatedAt": "2026-06-03T04:55:43.050Z"
+        },
+        {
+          "id": "R1-19",
+          "label": "Revoir la modale IA-15 (validation sous le seuil) — copy, pression par la perte, bannière après cassure",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-08T10:24:57.781015Z",
+          "priority": "important",
+          "estimateH": 2,
+          "owner": "stephane",
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : elle a cru avoir tout perdu après une journée à 4 actions sur 7. Le message joker a été corrigé le jour même (commit b93c12a). Stéphane a gelé la réécriture de la modale IA-15 elle-même : il veut la revoir en entier plus tard.\n\n**Ce qui est à revoir**\n- Le corps de la modale sous le seuil : « un joker hebdomadaire est consommé si dispo, sinon la série casse » — pression par la perte, contraire à la grille de copy (§ 4).\n- Le titre « Tu peux faire mieux. » — à confirmer ou remplacer.\n- Après une vraie cassure (2e jour sous le seuil dans la même semaine), l'accueil affiche quand même la bannière « Journée validée » alors que la journée ne compte pas. Le hub regarde seulement si la date est dans l'historique, pas le statut.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nCopy définitif de la modale + choix de l'affichage du hub après cassure (bannière « Journée fermée » ou équivalent). Code ensuite : environ 1 h, avec tests de flow."
         }
       ]
     },
