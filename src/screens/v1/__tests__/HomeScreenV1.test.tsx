@@ -148,6 +148,8 @@ describe('rendu du hub — Jour X sur 14, message du jour, 7 actions', () => {
     expect(btn).toBeTruthy();
     // Règle du jeu sous le bouton (retour testeur beta, 3 oct 2026).
     expect(screen.getByText(RULE_HINT)).toBeTruthy();
+    // Règle du joker sous la règle de validation (retour testeuse 8 oct 2026).
+    expect(screen.getByText('Un joker par semaine couvre un jour en dessous.')).toBeTruthy();
   });
 
   test('cocher des actions met le compteur à jour', async () => {
@@ -290,9 +292,34 @@ describe('validation sous le seuil — soft-rappel D26', () => {
     // Streak conservé (4), pas incrémenté — cas B.
     expect(screen.getByText(/Ta série : 4 jours/)).toBeTruthy();
     expect(showNotice).toHaveBeenCalledWith(
-      'Joker consommé',
-      expect.stringContaining('Série conservée à 4'),
+      'Joker utilisé',
+      'Ta série reste à 4 et ta journée compte. Nouveau joker lundi.',
     );
+  });
+
+  // Retour testeuse beta 8 oct 2026 : 2e jour sous le seuil dans la même
+  // semaine ISO → cassure. Jusqu'ici aucun message (bulle à 0 en silence).
+  test('2 coches, joker déjà consommé cette semaine → Valider quand même → série à 0, notice de cassure', async () => {
+    await seedAnonymousStorage({
+      history: validatedRun(4),
+      jokerConsumptions: [{ week_key: '2026-W42', consumed_for_local_date: '2026-10-13' }],
+      narrativeFlags: {
+        ...WELCOME_SEEN,
+        j3_charniere: '2026-10-05T08:00:00.000Z',
+      },
+    });
+    await renderHome();
+    const user = await checkActions(2);
+    await user.press(screen.getByText('Valider ma journée'));
+    await user.press(screen.getByText('Valider quand même'));
+
+    await waitFor(() =>
+      expect(showNotice).toHaveBeenCalledWith(
+        'Série remise à zéro',
+        expect.stringContaining('5 actions sur 7'),
+      ),
+    );
+    expect(showNotice).not.toHaveBeenCalledWith('Joker utilisé', expect.anything());
   });
 
   test('"Cocher d autres actions" referme la modale sans valider', async () => {

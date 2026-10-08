@@ -59,6 +59,7 @@ function validation(
     tierIsFirstReach: false,
     newStreak: 1,
     jokerUsed: false,
+    status: 'valid_above_threshold',
     ...partial,
   };
 }
@@ -352,6 +353,53 @@ describe('day_validated — joker (message sobre)', () => {
         }),
       ),
     ).toMatchObject({ kind: 'charniere', day: 3 });
+  });
+});
+
+// ─── Cassure à la validation manuelle (retour testeuse beta, 8 oct 2026) ────
+// Validation « quand même » sous le seuil, joker déjà consommé cette semaine :
+// la journée n'est PAS validée (pas de progression D38), la série tombe à 0.
+// Jusqu'ici silencieux — l'utilisateur voyait la bulle passer à 0 sans mot.
+
+describe('day_validated — cassure de série (streak_broken_notice)', () => {
+  test('broken_streak → notice de cassure, pas de joker_notice', () => {
+    expect(
+      nextNarrativeEvent(
+        input({
+          trigger: 'day_validated',
+          currentDay: 5,
+          narrativeFlags: { welcome_video: 'x' },
+          validationResult: validation({ status: 'broken_streak', newStreak: 0 }),
+        }),
+      ),
+    ).toEqual({ kind: 'streak_broken_notice' });
+  });
+
+  test('jour-charnière cassé → pas de charnière (rien n a été validé, D38)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({
+          trigger: 'day_validated',
+          currentDay: 3,
+          narrativeFlags: { welcome_video: 'x' },
+          validationResult: validation({ status: 'broken_streak', newStreak: 0 }),
+        }),
+      ),
+    ).toEqual({ kind: 'streak_broken_notice' });
+  });
+
+  test('palier différé non repêché sur une cassure (ce n est pas une validation, D30)', () => {
+    expect(
+      nextNarrativeEvent(
+        input({
+          trigger: 'day_validated',
+          currentDay: 17,
+          narrativeFlags: { welcome_video: 'x' },
+          pendingTierReach: { tierId: 15, isFirstReach: true, streakValue: 15 },
+          validationResult: validation({ status: 'broken_streak', newStreak: 0 }),
+        }),
+      ),
+    ).toEqual({ kind: 'streak_broken_notice' });
   });
 });
 

@@ -20,6 +20,9 @@ import {
   yesterdayRecapCopy,
   validationRuleHint,
   welcomeReplayLabel,
+  jokerConsumedOnValidationNotice,
+  streakBrokenOnValidationNotice,
+  jokerRuleHint,
 } from '../global-copy';
 
 describe('repriseText (copy.global.streak-reprise, D38)', () => {
@@ -124,5 +127,45 @@ describe('yesterdayRecapCopy (copy.IA-11.recap-hier, D45)', () => {
   test('ton : pas d exclamation, pas de jugement sur un petit nombre', () => {
     const c = yesterdayRecapCopy(1);
     expect(`${c.line} ${c.title} ${c.validated} ${c.close}`).not.toMatch(/!|seulement|dommage|perdu/i);
+  });
+});
+
+// ─── Retour testeuse beta 8 oct 2026 : « Réinitialisation lundi » lu comme
+// « tout repart de zéro, reviens lundi ». Les deux notices de validation
+// manuelle sous le seuil (joker / cassure) et la règle du joker passent par
+// des slots identifiés (D23).
+
+describe('jokerConsumedOnValidationNotice (copy.global.joker-consomme-validation)', () => {
+  it('texte fixé par Stéphane le 8 oct 2026 : série conservée, journée comptée, joker lundi', () => {
+    const n = jokerConsumedOnValidationNotice(7);
+    expect(n.title).toBe('Joker utilisé');
+    expect(n.body).toBe('Ta série reste à 7 et ta journée compte. Nouveau joker lundi.');
+  });
+
+  it('ne parle plus de « réinitialisation » (ambigu : lu comme un reset global)', () => {
+    expect(jokerConsumedOnValidationNotice(3).body).not.toMatch(/réinitialis/i);
+  });
+});
+
+describe('streakBrokenOnValidationNotice (copy.global.serie-cassee-validation)', () => {
+  it('explique le seuil, le joker déjà utilisé et la relance — marqueur placeholder', () => {
+    const n = streakBrokenOnValidationNotice();
+    expect(n.title).toBe('Série remise à zéro');
+    expect(n.body).toContain('5 actions sur 7');
+    expect(n.body).toContain('joker');
+    expect(n.body).toContain('repart de zéro');
+    expect(n.body).toContain('[copy à valider]');
+  });
+
+  it('ne culpabilise pas : pas de pression par la perte, pas d exclamation (règles § 4)', () => {
+    const n = streakBrokenOnValidationNotice();
+    expect(n.body).not.toMatch(/perds|perdu|dommage/i);
+    expect(n.body).not.toContain('!');
+  });
+});
+
+describe('jokerRuleHint (copy.IA-11.regle-joker)', () => {
+  it('rappelle uniquement la règle du joker — texte validé par Stéphane le 8 oct 2026', () => {
+    expect(jokerRuleHint()).toBe('Un joker par semaine couvre un jour en dessous.');
   });
 });

@@ -30,7 +30,7 @@
  * validation), les deux ne peuvent plus tomber sur la même validation.
  */
 
-import type { Phase, TierId } from './streak';
+import type { Phase, TierId, ValidationStatus } from './streak';
 
 export type NarrativeTrigger = 'hub_open' | 'day_validated';
 
@@ -69,6 +69,9 @@ export type NarrativeQueueInput = {
     tierIsFirstReach: boolean;
     newStreak: number;
     jokerUsed: boolean;
+    /** Statut écrit dans streak_history — `broken_streak` = journée non
+     *  validée (pas de progression D38), série à 0. */
+    status: ValidationStatus;
   };
 };
 
@@ -96,7 +99,10 @@ export type NarrativeEvent =
       isFirstReach: boolean;
       streakValue: number;
     }
-  | { kind: 'joker_notice'; newStreak: number };
+  | { kind: 'joker_notice'; newStreak: number }
+  /** Cassure à la validation manuelle (Cas B sans joker, §2.5) — retour
+   *  testeuse beta 8 oct 2026, jusqu'ici silencieux. */
+  | { kind: 'streak_broken_notice' };
 
 export function nextNarrativeEvent(
   input: NarrativeQueueInput,
@@ -140,6 +146,14 @@ export function nextNarrativeEvent(
   // trigger === 'day_validated'
   const result = input.validationResult;
   if (!result) return null;
+
+  // Cassure (Cas B sans joker) : rien n'a été validé — pas de progression
+  // (D38), donc ni charnière ni repêchage de palier (D30 : « première
+  // validation sans collision », une cassure n'en est pas une). Seul le
+  // message sobre de cassure se joue.
+  if (result.status === 'broken_streak') {
+    return { kind: 'streak_broken_notice' };
+  }
 
   // D30 — collision : un palier atteint un jour S0.x est différé d'un cran.
   const isS0Day = currentDay === 15 || currentDay === 16;

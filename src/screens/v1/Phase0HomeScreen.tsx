@@ -76,7 +76,13 @@ import { YesterdayRecap } from '../../components/compositions/YesterdayRecap';
 import { dailyChecksKey } from '../../lib/dailyChecks';
 import { useDevTools } from '../../hooks/useDevTools';
 import { PHASE_0_ACTIONS, type Phase0ActionId } from '../../data/phase0-actions';
-import { validationRuleHint, welcomeReplayLabel } from '../../data/global-copy';
+import {
+  jokerConsumedOnValidationNotice,
+  jokerRuleHint,
+  streakBrokenOnValidationNotice,
+  validationRuleHint,
+  welcomeReplayLabel,
+} from '../../data/global-copy';
 import { canReplayWelcomeOnHome } from '../../lib/welcomeReplay';
 import type { Phase0StackParamList } from '../../navigation/HomeStack';
 
@@ -409,14 +415,19 @@ export default function Phase0HomeScreen() {
           setCharniereDay(event.day);
           await markNarrativeSeen(event.flag);
           break;
-        case 'joker_notice':
+        case 'joker_notice': {
           // showNotice et pas Alert.alert : Alert est no-op sur
           // react-native-web (relevé salve de tests 8 juillet).
-          showNotice(
-            'Joker consommé',
-            `Série conservée à ${event.newStreak}. Réinitialisation lundi.`,
-          );
+          // Texte par slot de copy (D23) — retour testeuse 8 oct 2026.
+          const n = jokerConsumedOnValidationNotice(event.newStreak);
+          showNotice(n.title, n.body);
           break;
+        }
+        case 'streak_broken_notice': {
+          const n = streakBrokenOnValidationNotice();
+          showNotice(n.title, n.body);
+          break;
+        }
         default:
           break;
       }
@@ -577,6 +588,7 @@ export default function Phase0HomeScreen() {
                   style={styles.validateBtn}
                 />
                 <Text style={styles.hint}>{validationRuleHint()}</Text>
+                <Text style={styles.hintSecondary}>{jokerRuleHint()}</Text>
               </>
             )}
 
@@ -810,6 +822,13 @@ const styles = StyleSheet.create({
     opacity: 0.6,
     textAlign: 'center',
     marginTop: space[3],
+  },
+  hintSecondary: {
+    ...interTextStyle('caption'),
+    color: pillarColors.phase0.text,
+    opacity: 0.6,
+    textAlign: 'center',
+    marginTop: space[1],
   },
   replayLink: {
     textDecorationLine: 'underline',

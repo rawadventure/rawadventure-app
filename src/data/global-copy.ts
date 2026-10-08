@@ -66,6 +66,51 @@ export function jokerUsedNotice(
 }
 
 /**
+ * Slot `copy.global.joker-consomme-validation` (retour testeuse beta,
+ * 8 oct 2026) : validation manuelle sous le seuil, joker de la semaine
+ * disponible et consommé. L'ancien texte en dur « Série conservée à N.
+ * Réinitialisation lundi. » (Phase0HomeScreen) a été lu comme « tout
+ * repart de zéro, reviens lundi » — la testeuse a cru avoir tout perdu.
+ * Texte fixé par Stéphane le 8 oct : la série reste, la journée compte
+ * (valid_with_joker = progression, D38), le joker revient lundi (D6).
+ */
+export function jokerConsumedOnValidationNotice(
+  newStreak: number,
+): { title: string; body: string } {
+  return {
+    title: 'Joker utilisé',
+    body: `Ta série reste à ${newStreak} et ta journée compte. Nouveau joker lundi.`,
+  };
+}
+
+/**
+ * Slot `copy.global.serie-cassee-validation` (retour testeuse beta,
+ * 8 oct 2026) : validation manuelle sous le seuil alors que le joker de la
+ * semaine est déjà consommé (Cas B sans joker, §2.5). Jusqu'ici silencieux :
+ * la bulle passait à 0 sans un mot. La journée n'est pas validée (pas de
+ * progression, D38), la série tombe à 0. Style dicté par Stéphane.
+ */
+export function streakBrokenOnValidationNotice(): { title: string; body: string } {
+  return {
+    title: 'Série remise à zéro',
+    body:
+      `Tu as validé sous la limite des 5 actions sur 7 : ce n'est pas suffisant ` +
+      `pour valider ta journée, et ton joker de la semaine est déjà utilisé. ` +
+      `Ta série repart de zéro. La prochaine journée validée la relance. [copy à valider]`,
+  };
+}
+
+/**
+ * Slot `copy.IA-11.regle-joker` (retour testeuse beta, 8 oct 2026) : la
+ * règle du joker n'était écrite nulle part dans l'app. Ligne affichée sous
+ * `validationRuleHint` sur l'accueil Phase 0. Périmètre volontairement limité
+ * au joker (rien sur la cassure) — texte validé par Stéphane le 8 oct.
+ */
+export function jokerRuleHint(): string {
+  return 'Un joker par semaine couvre un jour en dessous.';
+}
+
+/**
  * Slot `copy.global.notif-preprompt` (R3-5, 29 sept 2026) : couche
  * d'explication affichée à la fermeture de la vidéo J1, AVANT le prompt
  * système de permission notifications (une seule chance de prompt natif

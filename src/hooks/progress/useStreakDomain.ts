@@ -367,6 +367,7 @@ export function useStreakDomain({
         return {
           newStreak,
           jokerUsed: decision.jokerUsed,
+          status: decision.status,
           tierReached,
           tierIsFirstReach,
         };

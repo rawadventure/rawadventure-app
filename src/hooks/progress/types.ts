@@ -5,7 +5,7 @@
  */
 
 import type { LocalDate } from '../../lib/calendar';
-import type { Phase, StreakEntry, TierId } from '../../lib/streak';
+import type { Phase, StreakEntry, TierId, ValidationStatus } from '../../lib/streak';
 
 export type TierReach = {
   tier_id: TierId;
@@ -75,6 +75,9 @@ export type SavePillarEvaluationArgs = {
 export type ValidateDayResult = {
   newStreak: number;
   jokerUsed: boolean;
+  /** Statut écrit dans streak_history (`broken_streak` = journée non
+   *  validée, série à 0 — la file narrative affiche le message de cassure). */
+  status: ValidationStatus;
   tierReached: TierId | null;
   /** `true` si c'est la première fois que ce palier est franchi (D29 →
    *  IA-50 variante vidéo). `false` pour redéclenchements après cassure. */
