@@ -141,6 +141,17 @@
           "estimateH": 2,
           "owner": "stephane",
           "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : elle a cru avoir tout perdu après une journée à 4 actions sur 7. Le message joker a été corrigé le jour même (commit b93c12a). Stéphane a gelé la réécriture de la modale IA-15 elle-même : il veut la revoir en entier plus tard.\n\n**Ce qui est à revoir**\n- Le corps de la modale sous le seuil : « un joker hebdomadaire est consommé si dispo, sinon la série casse » — pression par la perte, contraire à la grille de copy (§ 4).\n- Le titre « Tu peux faire mieux. » — à confirmer ou remplacer.\n- Après une vraie cassure (2e jour sous le seuil dans la même semaine), l'accueil affiche quand même la bannière « Journée validée » alors que la journée ne compte pas. Le hub regarde seulement si la date est dans l'historique, pas le statut.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nCopy définitif de la modale + choix de l'affichage du hub après cassure (bannière « Journée fermée » ou équivalent). Code ensuite : environ 1 h, avec tests de flow."
+        },
+        {
+          "id": "R1-20",
+          "label": "Revue du système joker + cassure (D6) — direction encourageante type Duolingo, pas punitive",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-08T11:58:11.098437Z",
+          "priority": "important",
+          "estimateH": 3,
+          "owner": "stephane",
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : deux journées sous 5 actions sur 7 dans la même semaine remettent la série à zéro. Elle s'est sentie punie et a envisagé de lâcher jusqu'au lundi, alors que le but est justement de s'accrocher pour installer la routine. Stéphane (8 oct) : la revue doit aller vers une direction positive et encourageante, type Duolingo, pas répressive.\n\n**Règle actuelle (D6, Feature Spec Socle § 2.5)**\n- Un joker par semaine calendaire (lundi-dimanche, fuseau local) couvre un jour sous le seuil ou non validé : série conservée.\n- Deuxième jour raté dans la même semaine : série à zéro. La position dans le parcours (Jour X sur 14) ne recule jamais (D38).\n- Même mécanique en Phase 1 (seuil 1 session sur 3).\n\n**Pistes à instruire (aucune actée)**\n- Cassure qui ne remet pas à zéro : la série recule (par exemple à la moitié) au lieu de tomber à 0.\n- Deux jokers par semaine en Phase 0, un seul en Phase 1.\n- Joker qui se « gagne » (par exemple une journée complète 7/7 en recharge un), façon Duolingo.\n- Message de cassure tourné vers la relance plutôt que la perte.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nChoisir la mécanique, puis mise à jour de la Synthèse des décisions (D6 révisée) et de la Feature Spec Socle § 2.5. Code ensuite : src/lib/streak.ts (determineValidationStatus, resolveMissedDays) + tests qui verrouillent la décision, environ 3 h. À faire avec R1-19 (modale IA-15) pour un copy cohérent."
         }
       ]
     },
