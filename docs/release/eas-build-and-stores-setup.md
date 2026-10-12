@@ -228,14 +228,30 @@ Validation Play : ~3-7 jours premier release, ~few hours updates.
 
 ## 7. Variables d'environnement & secrets
 
-EAS Build n'a pas accès aux `.env` locaux. Configurer via :
+EAS Build n'a pas accès au `.env` local (ignoré par git, donc jamais envoyé
+au build cloud). Les variables se posent **par environnement EAS**
+(`production`, `preview`) avec `eas env:create` — `eas secret:create` est
+déprécié, ne plus l'utiliser. Valeur saisie à l'invite, jamais en argument
+ni dans un chat.
+
+| Variable | Visibilité | Valeur |
+|---|---|---|
+| `EXPO_PUBLIC_SUPABASE_URL` | sensitive | projet Supabase **PROD** (`aknvitrtfxqjdwiyxryt`) — preview et production visent PROD (testeurs beta) |
+| `EXPO_PUBLIC_SUPABASE_ANON_KEY` | sensitive | clé anon PROD |
+| `EXPO_PUBLIC_SENTRY_DSN` | plaintext | même DSN que Vercel |
+| `SENTRY_AUTH_TOKEN` | secret | jeton Sentry `eas-build` (upload source maps, R6-25) — **obligatoire**, sinon le build iOS échoue |
 
 ```bash
-npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --value "https://xxx.supabase.co"
-npx eas-cli secret:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --value "eyJxxx..."
+eas env:create --scope project --name EXPO_PUBLIC_SUPABASE_URL --type string --visibility sensitive --environment production --environment preview
+eas env:create --scope project --name EXPO_PUBLIC_SUPABASE_ANON_KEY --type string --visibility sensitive --environment production --environment preview
+eas env:create --scope project --name EXPO_PUBLIC_SENTRY_DSN --type string --visibility plaintext --environment production --environment preview
+eas env:create --scope project --name SENTRY_AUTH_TOKEN --type string --visibility secret --environment production --environment preview
 ```
 
-Vérifier : `npx eas-cli secret:list`
+Vérifier : `eas env:list --scope project --environment production` (idem
+`preview`). Le profil `development` (simulateur) n'a pas de variables :
+Sentry y est désactivé (`SENTRY_DISABLE_AUTO_UPLOAD=true` dans `eas.json`)
+et Supabase n'est pas joignable sans `.env` — build de smoke uniquement.
 
 ---
 

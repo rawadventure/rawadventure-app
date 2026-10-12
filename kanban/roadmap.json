@@ -782,9 +782,9 @@
         {
           "id": "R6-25",
           "label": "Sentry sourcemaps upload EAS hook",
-          "status": "todo",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-10-12T10:11:59.000Z",
           "priority": "important",
           "estimateH": 1,
           "owner": "claude"

@@ -11,7 +11,8 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "sourcemaps:update": "sentry-expo-upload-sourcemaps dist"
   },
   "jest": {
     "preset": "jest-expo",

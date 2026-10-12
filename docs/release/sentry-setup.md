@@ -1,7 +1,7 @@
 # Sentry — Crash reporting + performance monitoring
 
 **Date** : 8 juin 2026
-**Status** : Code prêt, activation requiert compte Sentry + DSN.
+**Status** : actif en PWA (DSN sur Vercel, source maps web uploadées). Builds natifs : upload des source maps câblé par le plugin, jeton EAS à poser (R6-25, 12 oct 2026).
 
 ---
 
@@ -74,9 +74,9 @@ export default Sentry.wrap(App);
 
 ### app.json plugins
 
-`@sentry/react-native` est dans `plugins` → Expo génère config native (iOS
-Podfile + Android Gradle) au build. Sourcemap upload peut être ajouté
-plus tard (cf section "Sourcemaps").
+`@sentry/react-native/expo` est dans `plugins` → Expo génère la config
+native (Xcode build phases + Gradle) au build, upload des source maps
+compris (cf section "Sourcemaps").
 
 ### .env.example
 
@@ -161,26 +161,63 @@ Sentry.setUser(null);
 de Supabase. Pas fait maintenant — pas critique TestFlight, simple
 follow-up.
 
-## Sourcemaps (post-TestFlight)
+## Sourcemaps — builds natifs EAS (R6-25, 12 octobre 2026)
 
-Sans sourcemaps, les stack traces Sentry montrent du JS minifié
-illisible. Pour upload auto à chaque build EAS :
+Sans source maps, les stack traces Sentry montrent du JS minifié illisible.
+Le plugin `@sentry/react-native/expo` (déjà dans `app.json`) injecte lui-même
+les phases d'upload au build natif : source maps JS + dSYM côté iOS
+(`sentry-xcode.sh`, `sentry-xcode-debug-files.sh`), source maps JS côté
+Android (`sentry.gradle`). Il n'y a **aucun hook EAS à écrire** : il suffit
+que `SENTRY_AUTH_TOKEN` soit présent dans l'environnement de build.
 
-1. Sentry Auth Token : Sentry → Settings → Account → Auth Tokens →
-   Create new token (project:write scope)
-2. EAS secret :
+Attention : sans jeton, l'upload iOS **fait échouer le build** (exit 1 dans
+`sentry-xcode.sh`). Le jeton doit donc être posé sur EAS **avant** le premier
+build `preview` ou `production` (R6-17 / R6-18).
+
+### Mise en place (une fois, Stéphane)
+
+1. Sentry → Settings → Auth Tokens → Create new token. Scopes
+   `project:releases`, `project:write`, `org:read`. Nom `eas-build`.
+2. Variable d'environnement EAS (secret, lue au build) :
    ```bash
-   eas secret:create --scope project --name SENTRY_AUTH_TOKEN --value <token>
+   eas env:create --scope project --name SENTRY_AUTH_TOKEN --type string --visibility secret --environment production --environment preview
    ```
-3. Ajout au build script dans `package.json` :
-   ```json
-   "scripts": {
-     "postbuild": "npx sentry-expo-upload-sourcemaps dist"
-   }
-   ```
+   (`eas secret:create` est déprécié depuis eas-cli 12, ne plus l'utiliser.)
+3. Vérifier : `eas env:list --scope project --environment production`.
 
-Pas urgent V1 — TestFlight initial fonctionne sans sourcemaps, on peut
-les ajouter avant submit App Store.
+Profil `development` (`eas.json`) : `SENTRY_DISABLE_AUTO_UPLOAD=true` — build
+simulateur, config Debug, upload inutile et pas de jeton requis.
+
+### Association release ↔ source maps
+
+Les source maps JS natives sont liées aux événements par **Debug ID**
+(injecté par sentry-cli au bundle), pas par le nom de release. Le `release:
+rawadventure@<version>` fixé dans `App.tsx` (F-12) sert à l'onglet Releases
+et au web Vercel ; il n'a pas besoin de coïncider avec le nom natif
+`world.rawadventure.app@<version>+<build>`.
+
+### Mises à jour OTA (`eas update`)
+
+Le plugin ne couvre que les builds. Pour un bundle poussé par `eas update`,
+uploader les source maps à la main juste après, avec `SENTRY_AUTH_TOKEN`
+dans l'environnement local :
+
+```bash
+eas update --channel production --message "..."
+npm run sourcemaps:update
+```
+
+(`sourcemaps:update` = `sentry-expo-upload-sourcemaps dist`, lit org/projet
+dans `app.json`.)
+
+### Vérification
+
+- Log du build EAS : lignes `sentry-cli - Source Map Upload Report` sans
+  erreur (iOS : plus `debug-files upload` pour les dSYM).
+- Sentry → Settings → Projects → rawadventure → Source Maps : un bundle
+  d'artefacts par build.
+- Premier contrôle prévu sur un build `preview` Android (pas de compte store
+  requis) ; iOS au premier build R6-17.
 
 ## Trace audit
 
@@ -197,8 +234,9 @@ les ajouter avant submit App Store.
 - **EXPO_PUBLIC_ prefix** : Expo n'injecte que les vars commençant par
   `EXPO_PUBLIC_` dans le bundle JS. Sans préfixe, `process.env.X` est
   `undefined` côté client.
-- **Sourcemaps** : sans upload, les stack traces sont quasi inutiles. À
-  faire avant prod, pas obligatoire TestFlight.
+- **Sourcemaps** : upload automatique par le plugin au build natif, à
+  condition que `SENTRY_AUTH_TOKEN` soit posé sur EAS — sinon le build iOS
+  échoue (voir section Sourcemaps).
 - **iOS dSYMs** : pour symboliser les crashes natifs iOS, Sentry a besoin
   des fichiers .dSYM. EAS upload auto via le plugin Sentry config dans
   `app.json` (déjà set).
