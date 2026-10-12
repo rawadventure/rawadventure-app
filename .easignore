@@ -1,32 +1,96 @@
-# Fichiers ignorés lors de l'upload du source vers EAS Build cloud.
-# Réduit la taille du tarball (bonne pratique : < 100 Mo).
+# Fichiers exclus de l'archive envoyée à EAS Build (cloud).
+#
+# IMPORTANT : quand .easignore existe, EAS CLI l'utilise À LA PLACE de
+# .gitignore (doc Expo : « the EAS CLI prioritizes it over the .gitignore
+# file »). Il doit donc recopier toutes les règles de .gitignore, sinon les
+# dossiers natifs générés et les fichiers .env partent dans l'archive
+# (constaté le 12 oct 2026 : archive de 342 Mo avec ios/ et .env).
+# Règle : toute nouvelle entrée dans .gitignore se recopie ici.
 
-# Dossiers docs / kanban / contenu — pas nécessaires au build
-docs/
-kanban/
+# ---- Recopie de .gitignore ----
+
+# dependencies
+node_modules/
+
+# Expo
+.expo/
+dist/
+web-build/
+expo-env.d.ts
+
+# Native
+.kotlin/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Metro
+.metro-health-check*
+
+# debug
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# macOS
+.DS_Store
+*.pem
+
+# local env files
+.env*.local
+
+# typescript
+*.tsbuildinfo
+
+# generated native folders — EAS les régénère (prebuild) avec les plugins à jour
+/ios
+/android
+
+# Claude Code (local cache)
 .claude/
 
-# Site légal — repo séparé (deployment GitHub Pages)
+# Variables d'environnement (clés API, secrets) — jamais dans l'archive,
+# les valeurs de build viennent des variables d'environnement EAS
+.env
+
+# EAS Build secrets — credentials externes
+google-play-service-account.json
+google-services.json
+GoogleService-Info.plist
+*.cer
+AuthKey_*.p8
+
+# Playwright
+.playwright-cli/
+test-results/
+playwright-report/
+.env.e2e
+
+# Python
+__pycache__/
+
+# ---- Exclusions propres au build cloud (taille d'archive) ----
+
+# Docs / kanban / contenu — pas nécessaires au build
+docs/
+kanban/
+
+# Site légal — repo séparé (GitHub Pages)
 legal-site/
 
-# Screenshots store — pas nécessaires au build app
+# Captures stores — pas nécessaires au build
 assets/store-screenshots/
 
-# Backups + tests E2E lourds
+# Tests (la CI GitHub les joue, pas EAS)
+e2e/
+
+# Backups, dumps, logs
 *.bak
 *.dump
-
-# Logs locaux
 *.log
 
-# Cache outils dev
-.expo/
+# Cache Metro
 .metro-cache/
-
-# Fichiers macOS
-.DS_Store
-
-# Note : node_modules est déjà ignoré par EAS Build par défaut.
-# .gitignore reste source de vérité pour ce qui n'est jamais versionné
-# (.env, .p8, credentials JSON). .easignore = un cran additionnel
-# spécifique au build cloud.

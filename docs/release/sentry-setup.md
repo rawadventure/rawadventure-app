@@ -216,8 +216,15 @@ dans `app.json`.)
   erreur (iOS : plus `debug-files upload` pour les dSYM).
 - Sentry → Settings → Projects → rawadventure → Source Maps : un bundle
   d'artefacts par build.
-- Premier contrôle prévu sur un build `preview` Android (pas de compte store
-  requis) ; iOS au premier build R6-17.
+- **Contrôle fait le 12 octobre 2026** sur le build `preview` Android
+  `72fcc692` (premier build EAS du projet, 20 min, aucun avertissement) :
+  log « Uploading sourcemaps for release world.rawadventure.app@1.0.0+1
+  distribution 1 », « Uploaded files to Sentry », « Source Map Upload
+  Report » avec `index.android.bundle` + `.map` et le même Debug ID.
+  Chemin UI pour voir le bundle (doc Sentry) : Settings → Projects →
+  rawadventure → **Source Maps**, soit
+  https://adventure-limitedraw.sentry.io/settings/projects/rawadventure/source-maps/
+- iOS : à contrôler au premier build R6-17 (dSYM en plus des source maps).
 
 ## Trace audit
 

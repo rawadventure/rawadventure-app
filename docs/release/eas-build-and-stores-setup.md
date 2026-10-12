@@ -249,7 +249,20 @@ eas env:create --scope project --name SENTRY_AUTH_TOKEN --type string --visibili
 ```
 
 Vérifier : `eas env:list --scope project --environment production` (idem
-`preview`). Le profil `development` (simulateur) n'a pas de variables :
+`preview`). Posées le 12 octobre 2026 sur les deux environnements.
+
+**`.easignore` remplace `.gitignore`** (doc Expo : « the EAS CLI prioritizes
+it over the .gitignore file »). Il recopie donc toutes les règles de
+`.gitignore` : toute nouvelle entrée dans l'un se recopie dans l'autre.
+Sans cela, le premier build (12 oct 2026) a envoyé 342 Mo à EAS, dont le
+dossier `ios/` généré localement et les fichiers `.env`. Avec la recopie,
+l'archive attendue est d'environ 16 Mo.
+
+**`expo-updates`** installé le 12 octobre 2026 (proposé par `eas build` à
+cause du `channel` des profils ; canal + branche `preview` créés sur EAS).
+Aucune mise à jour OTA n'est publiée pour l'instant ; voir
+`sentry-setup.md` § « Mises à jour OTA » pour l'upload des source maps le
+jour où on s'en sert. Le profil `development` (simulateur) n'a pas de variables :
 Sentry y est désactivé (`SENTRY_DISABLE_AUTO_UPLOAD=true` dans `eas.json`)
 et Supabase n'est pas joignable sans `.env` — build de smoke uniquement.
 
