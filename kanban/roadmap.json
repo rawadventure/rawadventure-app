@@ -722,9 +722,9 @@
         {
           "id": "R6-19",
           "label": "Apple Team ID + remplir AASA file",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-10-13T10:09:13.000Z",
+          "updatedAt": "2026-10-13T10:20:27.000Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "claude"

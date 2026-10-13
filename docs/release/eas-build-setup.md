@@ -116,9 +116,10 @@ eas build --profile development --platform ios
 - Compte Apple Developer Organization actif (DUNS reçu + enrollment validé)
 - App créée dans App Store Connect (nom "Raw Adventure", bundle
   `world.rawadventure.app`)
-- Apple Team ID `LSF4FJC6JC` récupéré le 13 octobre 2026 → `eas.json` rempli, AASA rempli
-  dans `eas.json` (3 endroits potentiels) + dans
-  `legal-site/.well-known/apple-app-site-association` (activation Universal Link)
+- Apple Team ID `LSF4FJC6JC` récupéré le 13 octobre 2026 → rempli dans
+  `eas.json` (`submit.production.ios.appleTeamId`) et dans
+  `legal-site/.well-known/apple-app-site-association` (Universal Links,
+  repris par le CDN Apple le jour même)
 - ASC App ID récupéré → remplace `TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION`
 
 ```bash
