@@ -53,7 +53,7 @@ Exclut `docs/`, `kanban/`, `legal-site/`, `assets/store-screenshots/`,
 Placeholders pour Apple credentials :
 - `appleId` : `admin@rawadventure.world` (Apple ID gestionnaire org)
 - `ascAppId` : `TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION`
-- `appleTeamId` : `TO_BE_FILLED_AFTER_APPLE_DEV_ENROLLMENT`
+- `appleTeamId` : `LSF4FJC6JC` (rempli le 13 octobre 2026, compte Apple Developer actif)
 
 Google Play submit :
 - `serviceAccountKeyPath` : `./google-play-service-account.json` (à créer
@@ -116,7 +116,7 @@ eas build --profile development --platform ios
 - Compte Apple Developer Organization actif (DUNS reçu + enrollment validé)
 - App créée dans App Store Connect (nom "Raw Adventure", bundle
   `world.rawadventure.app`)
-- Apple Team ID récupéré → remplace `TO_BE_FILLED_AFTER_APPLE_DEV_ENROLLMENT`
+- Apple Team ID `LSF4FJC6JC` récupéré le 13 octobre 2026 → `eas.json` rempli, AASA rempli
   dans `eas.json` (3 endroits potentiels) + dans
   `legal-site/.well-known/apple-app-site-association` (activation Universal Link)
 - ASC App ID récupéré → remplace `TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION`

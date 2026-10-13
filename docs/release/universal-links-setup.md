@@ -1,7 +1,7 @@
 # Universal Links iOS + App Links Android — Setup
 
 **Date** : 6 juin 2026
-**Status** : Préparé, activation requiert credentials Apple/Google.
+**Status** : iOS — AASA rempli avec le Team ID `LSF4FJC6JC` le 13 octobre 2026 (format moderne `appIDs` + `components`, iOS 13+), à valider après déploiement GitHub Pages puis au premier build iOS (R6-17). Android — en attente du SHA256 (Play Console, R6-20).
 
 ---
 

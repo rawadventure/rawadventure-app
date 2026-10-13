@@ -682,9 +682,9 @@
         {
           "id": "R6-15",
           "label": "Compte Apple Developer — dossier Organization soumis 18 sept, échanges Apple en cours, papiers complémentaires à fournir (7 oct)",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-10-07T10:03:43.712490Z",
+          "updatedAt": "2026-10-13T10:09:13.000Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "externe"
@@ -722,9 +722,9 @@
         {
           "id": "R6-19",
           "label": "Apple Team ID + remplir AASA file",
-          "status": "todo",
+          "status": "doing",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-10-13T10:09:13.000Z",
           "priority": "bloquant",
           "estimateH": 1,
           "owner": "claude"
@@ -762,9 +762,9 @@
         {
           "id": "R6-23",
           "label": "Sentry compte + DSN + premier crash test prod",
-          "status": "doing",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-10-13T10:09:13.000Z",
           "priority": "important",
           "estimateH": 2,
           "owner": "claude"

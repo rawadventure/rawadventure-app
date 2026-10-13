@@ -46,7 +46,7 @@
       "ios": {
         "appleId": "admin@rawadventure.world",
         "ascAppId": "TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION",
-        "appleTeamId": "TO_BE_FILLED_AFTER_APPLE_DEV_ENROLLMENT"
+        "appleTeamId": "LSF4FJC6JC"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",

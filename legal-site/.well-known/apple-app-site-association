@@ -1,13 +1,23 @@
 {
   "applinks": {
-    "apps": [],
     "details": [
       {
-        "appID": "REPLACE_WITH_TEAMID.world.rawadventure.app",
-        "paths": [
-          "/app/*",
-          "/subscription-success",
-          "/checkout-success"
+        "appIDs": [
+          "LSF4FJC6JC.world.rawadventure.app"
+        ],
+        "components": [
+          {
+            "/": "/app/*",
+            "comment": "Deep links vers l'app"
+          },
+          {
+            "/": "/subscription-success",
+            "comment": "Retour Stripe abonnement"
+          },
+          {
+            "/": "/checkout-success",
+            "comment": "Retour Stripe checkout"
+          }
         ]
       }
     ]
