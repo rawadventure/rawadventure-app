@@ -156,13 +156,13 @@
         {
           "id": "R1-21",
           "label": "Hors ligne : lancement sans réseau affiche un compte vide (jour 1, série 0, parfois l'onboarding)",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "updatedAt": "2026-10-14T10:35:54.362879Z",
           "priority": "bloquant",
           "estimateH": 2,
           "owner": "claude",
-          "details": "**Pourquoi cette carte**\nUne testeuse (vocal 13 oct) a ouvert l'app sans données mobiles : page « jour zéro », elle a cru avoir tout perdu. Même symptôme probable chez deux autres testeuses (1er oct : « en relançant j'ai le questionnaire », 28 sept : « page jour 1 figée »).\n\n**Cause (vérifiée dans le code)**\n`src/lib/progressStore.ts`, `load()` : les lectures Supabase ne passent pas par `must()`. En cas d'échec réseau, toutes les valeurs reviennent `null` → le hub se rend comme un compte neuf. Aucune détection réseau dans `src/`.\n\n**Correctif proposé**\n1. Test de régression d'abord : `load()` en échec → l'état précédent est conservé, rien n'est écrasé.\n2. Dernier état connu gardé en local (AsyncStorage) et réutilisé si la lecture distante échoue.\n3. Bandeau sobre « Pas de connexion — tes données reviendront au prochain lancement connecté » plutôt qu'un état vide.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
+          "details": "**Pourquoi cette carte**\nUne testeuse (vocal 13 oct) a ouvert l'app sans données mobiles : page « jour zéro », elle a cru avoir tout perdu. Même symptôme probable chez deux autres testeuses (1er oct : « en relançant j'ai le questionnaire », 28 sept : « page jour 1 figée »).\n\n**Cause (vérifiée dans le code)**\n`src/lib/progressStore.ts`, `load()` : les lectures Supabase ne passent pas par `must()`. En cas d'échec réseau, toutes les valeurs reviennent `null` → le hub se rend comme un compte neuf. Aucune détection réseau dans `src/`.\n\n**Correctif proposé**\n1. Test de régression d'abord : `load()` en échec → l'état précédent est conservé, rien n'est écrasé.\n2. Dernier état connu gardé en local (AsyncStorage) et réutilisé si la lecture distante échoue.\n3. Bandeau sobre « Pas de connexion — tes données reviendront au prochain lancement connecté » plutôt qu'un état vide.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md).\n\n**Fait le 14 oct 2026** — commit 7d444c2 poussé sur main : cache de la progression par compte, drapeau `progressStale`, bandeau « Pas de connexion », cohérence suspendue hors ligne, 12 tests. Copy du bandeau à valider (Mimi & Jacky)."
         },
         {
           "id": "R1-22",
