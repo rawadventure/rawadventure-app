@@ -45,6 +45,11 @@
     "production": {
       "ios": {
         "appleId": "admin@rawadventure.world",
+        "ascAppId": "6822673707",
+        "companyName": "Raw Adventure Limited",
+        "appName": "Raw Adventure",
+        "language": "fr-FR",
+        "sku": "RAWADV001",
         "appleTeamId": "LSF4FJC6JC"
       },
       "android": {

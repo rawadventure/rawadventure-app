@@ -702,9 +702,9 @@
         {
           "id": "R6-17",
           "label": "Build prod iOS + submit TestFlight",
-          "status": "todo",
+          "status": "done",
           "sessionId": null,
-          "updatedAt": "2026-06-09T07:12:11.359Z",
+          "updatedAt": "2026-10-14T10:08:05.000Z",
           "priority": "bloquant",
           "estimateH": 4,
           "owner": "claude"

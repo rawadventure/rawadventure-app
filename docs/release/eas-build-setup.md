@@ -52,7 +52,7 @@ Exclut `docs/`, `kanban/`, `legal-site/`, `assets/store-screenshots/`,
 
 Placeholders pour Apple credentials :
 - `appleId` : `admin@rawadventure.world` (Apple ID gestionnaire org)
-- `ascAppId` : `TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION`
+- `ascAppId` : `6822673707` (app créée par `eas submit` le 14 octobre 2026)
 - `appleTeamId` : `LSF4FJC6JC` (rempli le 13 octobre 2026, compte Apple Developer actif)
 
 Google Play submit :
@@ -120,7 +120,7 @@ eas build --profile development --platform ios
   `eas.json` (`submit.production.ios.appleTeamId`) et dans
   `legal-site/.well-known/apple-app-site-association` (Universal Links,
   repris par le CDN Apple le jour même)
-- ASC App ID récupéré → remplace `TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION`
+- ASC App ID `6822673707` : l'app a été créée par `eas submit` lui-même le 14 octobre 2026 (pas à la main dans App Store Connect) — voir § 6
 
 ```bash
 eas build --profile production --platform ios
@@ -136,6 +136,18 @@ eas build --profile production --platform ios
 ```bash
 eas submit --profile production --platform ios --latest
 ```
+
+**Fait le 14 octobre 2026** (build 3, submission `6ac716ec`). Ce que le premier
+submit a réglé, à ne pas refaire :
+- Sans `ascAppId`, EAS crée lui-même l'app sur App Store Connect. Pour une
+  **organisation**, Apple exige `companyName` au premier envoi (erreur « You
+  must provide a value for the attribute 'companyName' ») → ajouté dans
+  `submit.production.ios` avec `appName`, `language: fr-FR`, `sku: RAWADV001`.
+- Clé **API App Store Connect** générée par EAS (rôle APP_MANAGER, moindre
+  privilège), stockée sur EAS : les submits suivants ne demandent plus le mot
+  de passe Apple.
+- Groupe TestFlight interne « Team (Expo) » créé, `admin@` dedans.
+- Suivi du traitement Apple : https://appstoreconnect.apple.com/apps/6822673707/testflight/ios
 
 - Upload .ipa vers App Store Connect via API
 - Notification email quand processing TestFlight terminé (~5-15 min)

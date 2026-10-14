@@ -1,7 +1,7 @@
 # Universal Links iOS + App Links Android — Setup
 
 **Date** : 6 juin 2026
-**Status** : iOS — AASA rempli avec le Team ID `LSF4FJC6JC` le 13 octobre 2026 (format moderne `appIDs` + `components`, iOS 13+), publié le même jour (legal-site `117dcfa`) et **déjà repris par le CDN Apple** (`https://app-site-association.cdn-apple.com/a/v1/rawadventure.world` renvoie le fichier en `application/json`, donc le `application/octet-stream` de GitHub Pages est accepté). Reste le test sur appareil au premier build iOS signé (R6-17). Android — en attente du SHA256 (Play Console, R6-20).
+**Status** : iOS — AASA rempli avec le Team ID `LSF4FJC6JC` le 13 octobre 2026 (format moderne `appIDs` + `components`, iOS 13+), publié le même jour (legal-site `117dcfa`) et **déjà repris par le CDN Apple** (`https://app-site-association.cdn-apple.com/a/v1/rawadventure.world` renvoie le fichier en `application/json`, donc le `application/octet-stream` de GitHub Pages est accepté). Testé sur iPhone le 14 octobre 2026 avec le build TestFlight 1.0.0 (3) : Safari affiche la bannière « Open in the Raw Adventure app » sur `rawadventure.world/checkout-success` (une URL tapée à la main n'ouvre jamais l'app directement, c'est le comportement Apple ; le saut direct se teste depuis un lien dans Notes, Messages ou Mail). Android — en attente du SHA256 (Play Console, R6-20).
 
 ---
 

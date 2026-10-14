@@ -139,6 +139,8 @@ Une fois compte actif :
 
 ### 4.5 App Store Connect — crée l'app
 
+*Fait autrement le 14 octobre 2026 : l'app a été créée par `eas submit` (voir `eas-build-setup.md` § 6). ASC App ID `6822673707`. Les étapes manuelles ci-dessous restent valables pour une app future.*
+
 1. https://appstoreconnect.apple.com
 2. "My Apps" → "+" → "New App"
 3. Bundle ID : `world.rawadventure.app` (déjà dans `app.json`)
