@@ -50,6 +50,9 @@ type ProgressLoadDeps = {
   setS8FinalCompleted: (v: boolean) => void;
   setPendingTierReachState: (v: PendingTierReach | null) => void;
   setPendingMigrationState: (v: PendingMigration | null) => void;
+  /** R1-21 : vrai quand l'état appliqué ne vient pas d'une lecture distante
+   *  réussie (hors ligne : cache du dernier chargement, ou secours local). */
+  setProgressStale: (v: boolean) => void;
 };
 
 export function createProgressLoader({
@@ -70,16 +73,38 @@ export function createProgressLoader({
   setS8FinalCompleted,
   setPendingTierReachState,
   setPendingMigrationState,
+  setProgressStale,
 }: ProgressLoadDeps) {
-  const loadData = async () => {
+  /**
+   * `silent` : recharge sans lever le flag global `loading` (relance au
+   * retour du réseau, R1-21) — évite que le RootNavigator repasse par le
+   * LoadingScreen et démonte la navigation. Le boot reste non-silent.
+   */
+  const loadData = async (opts?: { silent?: boolean }) => {
     const seq = ++loadSeqRef.current;
     const isLatest = () => seq === loadSeqRef.current;
-    setLoading(true);
+    if (!opts?.silent) setLoading(true);
     try {
       const local = await createAnonymousStore().load();
-      const remote = user ? await createRemoteStore(user.id).load() : null;
+      let remote: ProgressSnapshot | null = null;
+      let stale = false;
+      if (user) {
+        try {
+          remote = await createRemoteStore(user.id).load();
+          stale = remote.stale === true;
+        } catch (e) {
+          // R1-21 : lecture distante impossible et aucun cache pour ce
+          // compte — on garde le secours local (comptes d'avant F-04, ou
+          // onboarding fait sur cet appareil) plutôt qu'un état inventé,
+          // et on signale la progression périmée. Un reload() ultérieur
+          // (retour du réseau) retentera.
+          console.warn('[ProgressContext] lecture distante impossible, état périmé :', e);
+          stale = true;
+        }
+      }
       if (!isLatest()) return;
-      applySnapshots(local, remote, user?.id ?? null);
+      applySnapshots(local, remote, user?.id ?? null, stale);
+      setProgressStale(stale);
       // Sprint B email confirm — restaure pendingMigration (clé locale pure).
       const rawPM = await AsyncStorage.getItem(LOCAL_KEYS.pendingMigration);
       if (rawPM && isLatest()) setPendingMigrationState(JSON.parse(rawPM));
@@ -103,6 +128,7 @@ export function createProgressLoader({
     local: ProgressSnapshot,
     remote: ProgressSnapshot | null,
     userId: string | null,
+    stale = false,
   ) => {
     const primary = remote ?? local;
     // F-07/K1 : panneau DEV par compte — le flag suit le profil chargé et
@@ -119,6 +145,7 @@ export function createProgressLoader({
       if (!remote.accountCreatedAt && (remote.onboardingDone ?? false)) {
         const nowIso = new Date().toISOString();
         setAccountCreatedAtState(nowIso);
+        if (stale) return; // hors ligne : aucune écriture (R1-21)
         supabase
           .from('profiles')
           .update({ account_created_at: nowIso })

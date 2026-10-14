@@ -45,6 +45,7 @@ import {
 } from '../../test-utils/harness';
 import { addDays } from '../../lib/calendar';
 import { advanceDevClock } from '../../lib/devClock';
+import { progressCacheKey } from '../../lib/progressStore';
 
 const { __supabaseMock: sb } = jest.requireMock('../../lib/supabase') as {
   __supabaseMock: import('../../test-utils/supabaseMock').SupabaseMock;
@@ -1427,5 +1428,106 @@ describe('validateDay — garde journée déjà validée (D27, retours testeurs 
     expect(result.current.streak).toBe(3);
     expect(result.current.jokerAvailable).toBe(true);
     expect(result.current.streakHistory.filter((e) => e.local_date === today())).toHaveLength(1);
+  });
+});
+
+// ─── Mode connecté — hors ligne au lancement (carte R1-21) ──────────────────
+// Retour testeuse 13 oct 2026 : sans données mobiles, l'app ouvrait sur
+// « jour zéro ». Attendu : le dernier état chargé (cache local par compte,
+// écrit par le store — voir progressStore.test.ts) est conservé, le contexte
+// signale une progression périmée, et rien n'est écrit tant que le réseau
+// n'est pas revenu. Le cache est semé directement : rendre en ligne puis
+// démonter laisserait la cohérence calendaire en vol.
+
+describe('mode connecté — hors ligne au lancement (R1-21)', () => {
+  const USER = 'user-1';
+  const FLAGS = { welcome_video: '2026-10-12T08:00:00.000Z' };
+  const REMOTE_TABLES = {
+    profiles: {
+      id: USER,
+      onboarding_done: true,
+      onboarding_data: {},
+      profile_dynamic_id: null,
+      account_created_at: '2026-10-12T08:00:00.000Z',
+      narrative_flags: FLAGS,
+    },
+    joker_consumptions: [],
+    tier_reaches: [],
+    pillar_evaluations: [],
+  };
+
+  async function seedCache(history: ReturnType<typeof validatedRun>) {
+    await AsyncStorage.setItem(
+      progressCacheKey(USER),
+      JSON.stringify({
+        onboardingDone: true,
+        onboardingData: {},
+        profileDynamicId: null,
+        accountCreatedAt: '2026-10-12T08:00:00.000Z',
+        streakHistory: history,
+        jokerConsumptions: [],
+        tierReaches: [],
+        narrativeFlags: FLAGS,
+        currentPillarId: null,
+        pillarStartedAt: null,
+        pendingTierReach: null,
+        pillarEvaluations: [],
+        devToolsEnabled: false,
+      }),
+    );
+  }
+
+  beforeEach(() => {
+    mockUser = { id: USER };
+    sb.setTables({ ...REMOTE_TABLES, streak_history: validatedRun(3) });
+  });
+
+  test('en ligne : progressStale = false', async () => {
+    const { result } = await renderProgress();
+    expect(result.current.progressStale).toBe(false);
+  });
+
+  test('sans cache : le chargement se termine et signale une progression périmée', async () => {
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    const { result } = await renderProgress();
+    expect(result.current.progressStale).toBe(true);
+  });
+
+  test('avec cache : position et série du dernier chargement réussi, pas un compte neuf', async () => {
+    await seedCache(validatedRun(3));
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    const { result } = await renderProgress();
+    expect(result.current.progressStale).toBe(true);
+    expect(result.current.onboardingDone).toBe(true);
+    expect(result.current.streak).toBe(3);
+    expect(result.current.currentDay).toBe(4);
+    expect(result.current.narrativeFlags.welcome_video).toBe(FLAGS.welcome_video);
+  });
+
+  test('périmé : la cohérence calendaire n écrit rien (jours manqués non résolus hors ligne)', async () => {
+    // Historique qui s'arrête il y a 3 jours : en ligne, la cohérence
+    // résoudrait les jours manqués (joker puis cassure) par des upserts.
+    await seedCache(validatedRun(3, daysAgo(3)));
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    const { result } = await renderProgress();
+    expect(result.current.progressStale).toBe(true);
+    expect(sb.calls.filter((c) => c.op !== 'select')).toHaveLength(0);
+    expect(result.current.streak).toBe(3);
+    expect(result.current.streakHistory).toHaveLength(3);
+  });
+
+  test('reloadProgress() au retour du réseau : état à jour, drapeau baissé', async () => {
+    await seedCache(validatedRun(3));
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    const { result } = await renderProgress();
+    expect(result.current.progressStale).toBe(true);
+
+    sb.setTables({ ...REMOTE_TABLES, streak_history: validatedRun(5) });
+    await act(async () => {
+      await result.current.reloadProgress();
+    });
+    expect(result.current.progressStale).toBe(false);
+    expect(result.current.streak).toBe(5);
+    expect(result.current.loading).toBe(false);
   });
 });

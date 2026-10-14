@@ -42,6 +42,7 @@ import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { Check, CheckCircle2 } from 'lucide-react-native';
 import { Button, Card } from '../../components/primitives';
 import NotificationPermissionBanner from '../../components/NotificationPermissionBanner';
+import OfflineBanner from '../../components/OfflineBanner';
 import {
   NotifPrePromptModal,
   PillarHeader,
@@ -506,6 +507,9 @@ export default function Phase0HomeScreen() {
             {Platform.OS !== 'web' && notifPermission === 'denied' && (
               <NotificationPermissionBanner />
             )}
+
+            {/* R1-21 : progression servie depuis le cache (hors ligne). */}
+            <OfflineBanner />
 
             <Card title="Actions du jour" subtitle={`${checkedCount} / ${PHASE_0_TOTAL} cochées`} variant="forte">
               <View style={styles.actionsList}>

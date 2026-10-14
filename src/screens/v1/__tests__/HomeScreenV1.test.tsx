@@ -66,6 +66,7 @@ import {
   validatedRun,
 } from '../../../test-utils/harness';
 import { advanceDevClock } from '../../../lib/devClock';
+import { progressCacheKey } from '../../../lib/progressStore';
 
 const { __supabaseMock: sb } = jest.requireMock('../../../lib/supabase') as {
   __supabaseMock: import('../../../test-utils/supabaseMock').SupabaseMock;
@@ -775,5 +776,44 @@ describe('D45 — « Hier » : cases cochées de la veille en lecture seule', ()
 
     await waitFor(() => expect(screen.getByText('Jour 6 sur 14')).toBeTruthy());
     expect(await screen.findByText('Hier : Mes actions')).toBeTruthy();
+  });
+});
+
+// ─── Hors ligne (carte R1-21, retour testeuse 13 oct 2026) ──────────────────
+
+describe('hors ligne — bandeau « Pas de connexion » (R1-21)', () => {
+  test('progression périmée → le hub garde le jour et la série, et affiche le bandeau', async () => {
+    mockUser = { id: 'user-1' };
+    // Cache du dernier chargement réussi (écrit par le store, voir
+    // progressStore.test.ts) — la lecture distante échoue ensuite.
+    await AsyncStorage.setItem(
+      progressCacheKey('user-1'),
+      JSON.stringify({
+        onboardingDone: true,
+        onboardingData: {},
+        profileDynamicId: null,
+        accountCreatedAt: '2026-10-10T08:00:00.000Z',
+        streakHistory: validatedRun(4),
+        jokerConsumptions: [],
+        tierReaches: [],
+        narrativeFlags: { ...WELCOME_SEEN, j3_charniere: '2026-10-12T08:00:00.000Z' },
+        currentPillarId: null,
+        pillarStartedAt: null,
+        pendingTierReach: null,
+        pillarEvaluations: [],
+        devToolsEnabled: false,
+      }),
+    );
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    await renderHome();
+    // Position 5 = 4 jours validés servis depuis le cache (D38), pas « Jour 1 ».
+    expect(screen.getByText('Jour 5 sur 14')).toBeTruthy();
+    expect(screen.getByText('Pas de connexion')).toBeTruthy();
+  });
+
+  test('en ligne : aucun bandeau', async () => {
+    await seedAnonymousStorage({ history: validatedRun(4), narrativeFlags: WELCOME_SEEN });
+    await renderHome();
+    expect(screen.queryByText('Pas de connexion')).toBeNull();
   });
 });

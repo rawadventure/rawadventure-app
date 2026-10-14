@@ -31,6 +31,7 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { CheckCircle2, Sun, Clock, Moon, ClipboardCheck } from 'lucide-react-native';
 import { PillarHeader } from '../../components/compositions';
+import OfflineBanner from '../../components/OfflineBanner';
 import { Button, Card } from '../../components/primitives';
 import {
   brandColors,
@@ -264,6 +265,7 @@ export default function Phase1HomeScreen() {
           />
 
           <View style={styles.body}>
+            <OfflineBanner />
             {dayValidated && (
               <View style={styles.validatedBanner}>
                 <CheckCircle2 size={24} color={brandColors.alive} strokeWidth={2.5} />

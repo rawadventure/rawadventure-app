@@ -129,6 +129,13 @@ export type NarrativeEventId =
 export interface ProgressContextType {
   // ── état chargement
   loading: boolean;
+  /** R1-21 : vrai quand l'état vient du cache local ou du secours local
+   *  parce que la lecture distante a échoué (hors ligne). Le hub affiche
+   *  un bandeau, la cohérence calendaire est suspendue. */
+  progressStale: boolean;
+  /** R1-21 : recharge la progression sans repasser par le LoadingScreen
+   *  (retour du réseau, geste utilisateur). */
+  reloadProgress: () => Promise<void>;
 
   // ── onboarding
   onboardingDone: boolean;

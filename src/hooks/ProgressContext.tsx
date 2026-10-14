@@ -17,6 +17,7 @@ import React, {
   useState,
   type ReactNode,
 } from 'react';
+import { AppState, type AppStateStatus } from 'react-native';
 import { useAuth } from './AuthContext';
 import {
   createAnonymousStore,
@@ -78,6 +79,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   const [loadedFor, setLoadedFor] = useState<string | null | undefined>(undefined);
   const loading = loadingState || loadedFor !== (user?.id ?? null);
   const loadSeqRef = useRef(0);
+  // R1-21 (retour testeuse 13 oct 2026) : vrai quand l'état affiché ne vient
+  // pas d'une lecture distante réussie (hors ligne → cache du dernier
+  // chargement ou secours local). Tant que c'est vrai : bandeau sur le hub,
+  // aucune écriture de cohérence calendaire, relance au retour du réseau.
+  const [progressStale, setProgressStale] = useState(false);
 
   // Onboarding
   const [onboardingDone, setOnboardingDone] = useState(false);
@@ -195,6 +201,7 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     setS8FinalCompleted,
     setPendingTierReachState,
     setPendingMigrationState,
+    setProgressStale,
   });
 
   // ── Chargement initial / changement d'utilisateur ─────────────────────────
@@ -202,6 +209,25 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     void loadData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.id]);
+
+  // R1-21 : relance du chargement (retour du réseau). `loadData` est
+  // recréé à chaque render — la ref garde la dernière version pour exposer
+  // une fonction stable aux consommateurs et à l'écouteur AppState.
+  const loadDataRef = useRef(loadData);
+  useEffect(() => {
+    loadDataRef.current = loadData;
+  });
+  const reloadProgress = useCallback(async () => {
+    await loadDataRef.current({ silent: true });
+  }, []);
+  useEffect(() => {
+    if (!progressStale) return;
+    const onChange = (state: AppStateStatus) => {
+      if (state === 'active') void reloadProgress();
+    };
+    const sub = AppState.addEventListener('change', onChange);
+    return () => sub.remove();
+  }, [progressStale, reloadProgress]);
 
   const markNarrativeSeen = useCallback(
     async (id: NarrativeEventId) => {
@@ -286,11 +312,14 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
   // re-load post-migration) + changement de jour (clockEpoch). Les données
   // sont lues depuis dataRef AU DÉMARRAGE de la mutation (F-05.4) — pas de
   // dépendance sur streakHistory ici.
+  // R1-21 : hors ligne, la cohérence ne tourne pas — elle écrirait des jours
+  // manqués (joker, cassure) depuis un état peut-être périmé, et chaque
+  // écriture échouerait. Elle reprend dès qu'un chargement réussit.
   useEffect(() => {
-    if (loading) return;
+    if (loading || progressStale) return;
     void runCalendarCoherence(s8FinalCompleted);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loading, clockEpoch, user?.id, runCalendarCoherence]);
+  }, [loading, progressStale, clockEpoch, user?.id, runCalendarCoherence]);
 
   // ── Méthodes V1 ──────────────────────────────────────────────────────────
 
@@ -357,6 +386,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markPendingMigration,
       pendingMigration,
       clearPendingMigration,
+      progressStale,
+      reloadProgress,
     }),
     [
       loading,
@@ -391,6 +422,8 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
       markPendingMigration,
       pendingMigration,
       clearPendingMigration,
+      progressStale,
+      reloadProgress,
     ],
   );
 

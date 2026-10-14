@@ -16,6 +16,7 @@ import {
   createAnonymousStore,
   createRemoteStore,
   PROGRESS_LOCAL_KEYS,
+  progressCacheKey,
 } from '../progressStore';
 
 const { __supabaseMock: sb } = jest.requireMock('../supabase') as {
@@ -209,5 +210,91 @@ describe('RemoteStore (Supabase)', () => {
         'tier_reaches',
       ].sort(),
     );
+  });
+});
+
+// ─── Hors ligne (carte R1-21, retour testeuse 13 oct 2026) ──────────────────
+// Sans réseau, supabase-js résout `{ data: null, error }` sur chaque lecture :
+// le snapshot revenait entièrement null et le hub se rendait comme un compte
+// neuf (« jour zéro »). Le remote store doit lever l'erreur et servir le
+// dernier snapshot chargé avec succès, mis en cache par compte.
+
+describe('RemoteStore — hors ligne (R1-21)', () => {
+  function seedRemote(overrides: Record<string, unknown> = {}) {
+    sb.setTables({
+      profiles: {
+        id: 'u1',
+        onboarding_done: true,
+        onboarding_data: { q1: 'a' },
+        profile_dynamic_id: null,
+        account_created_at: '2026-10-01T08:00:00.000Z',
+        narrative_flags: { welcome_video: 'x' },
+        current_pillar_id: null,
+        pillar_started_at: null,
+        pending_tier_reach: null,
+        dev_tools_enabled: false,
+        ...overrides,
+      },
+      streak_history: [
+        {
+          user_id: 'u1',
+          local_date: '2026-10-14',
+          validation_status: 'valid_above_threshold',
+          phase: 'phase_0',
+          streak_value_after: 1,
+          joker_used: false,
+        },
+      ],
+      joker_consumptions: [],
+      tier_reaches: [],
+      pillar_evaluations: [],
+    });
+  }
+
+  test('lecture en erreur sans cache → throw, jamais un snapshot vide', async () => {
+    seedRemote();
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    await expect(createRemoteStore('u1').load()).rejects.toThrow(/Failed to fetch/);
+  });
+
+  test('lecture réussie → snapshot mis en cache sous une clé propre au compte', async () => {
+    seedRemote();
+    const snap = await createRemoteStore('u1').load();
+    expect(snap.stale).toBeFalsy();
+    const raw = await AsyncStorage.getItem(progressCacheKey('u1'));
+    expect(raw).not.toBeNull();
+    expect(JSON.parse(raw!).streakHistory).toHaveLength(1);
+  });
+
+  test('lecture en erreur avec cache → snapshot du cache, marqué périmé, panneau DEV coupé', async () => {
+    seedRemote({ dev_tools_enabled: true });
+    const store = createRemoteStore('u1');
+    const fresh = await store.load();
+    expect(fresh.devToolsEnabled).toBe(true);
+
+    sb.failNext('streak_history', 'select', { message: 'Failed to fetch' });
+    const snap = await store.load();
+    expect(snap.stale).toBe(true);
+    expect(snap.onboardingDone).toBe(true);
+    expect(snap.streakHistory).toHaveLength(1);
+    expect(snap.narrativeFlags).toEqual({ welcome_video: 'x' });
+    // Le flag DEV n'est jamais servi depuis le stockage local (manipulable
+    // depuis la console navigateur en PWA).
+    expect(snap.devToolsEnabled).toBeNull();
+  });
+
+  test('le cache d un autre compte n est jamais servi', async () => {
+    seedRemote();
+    await createRemoteStore('u1').load();
+    sb.failNext('profiles', 'select', { message: 'Failed to fetch' });
+    await expect(createRemoteStore('u2').load()).rejects.toThrow();
+  });
+
+  test('reset efface aussi le cache local', async () => {
+    seedRemote();
+    const store = createRemoteStore('u1');
+    await store.load();
+    await store.reset();
+    expect(await AsyncStorage.getItem(progressCacheKey('u1'))).toBeNull();
   });
 });

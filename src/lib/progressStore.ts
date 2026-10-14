@@ -65,6 +65,9 @@ export type ProgressSnapshot = {
   /** F-07/K1 : profiles.dev_tools_enabled — panneau DEV par compte.
    *  Null en anonyme (le mode anonyme n'a pas de compte à flagger). */
   devToolsEnabled: boolean | null;
+  /** R1-21 : vrai quand le snapshot vient du cache local parce que la
+   *  lecture distante a échoué (hors ligne). Absent/false sinon. */
+  stale?: boolean;
 };
 
 export interface ProgressStore {
@@ -104,6 +107,16 @@ export const PROGRESS_LOCAL_KEYS = {
   pendingTierReach: 'pending_tier_reach',
   pendingMigration: 'pending_migration',
 } as const;
+
+/**
+ * R1-21 (retour testeuse 13 oct 2026) : clé du dernier snapshot distant
+ * chargé avec succès, par compte. Servi quand la lecture Supabase échoue
+ * (hors ligne) à la place d'un snapshot vide qui rendait le hub comme un
+ * compte neuf (« jour zéro »).
+ */
+export function progressCacheKey(userId: string): string {
+  return `progress_cache:${userId}`;
+}
 
 async function readJson<T>(key: string): Promise<T | null> {
   const raw = await AsyncStorage.getItem(key);
@@ -217,49 +230,82 @@ export function mergeNarrativeFlags(
 // ─── Implémentation Supabase (mode connecté) ────────────────────────────────
 
 export function createRemoteStore(userId: string): ProgressStore {
+  const cacheKey = progressCacheKey(userId);
+
+  async function loadRemote(): Promise<ProgressSnapshot> {
+    // Chaque lecture passe par must() : supabase-js ne throw jamais, il
+    // résout `{ data: null, error }` — sans réseau, le snapshot revenait
+    // entièrement null (R1-21). Le profil est lu en maybeSingle : un compte
+    // dont la ligne n'existe pas encore n'est pas une panne réseau.
+    const [p, streakRows, jokerRows, tierRows, evalRows] = await Promise.all([
+      must(
+        supabase.from('profiles').select('*').eq('id', userId).maybeSingle(),
+      ) as Promise<Record<string, unknown> | null>,
+      must(
+        supabase
+          .from('streak_history')
+          .select(
+            'local_date, validation_status, phase, streak_value_after, joker_used',
+          )
+          .eq('user_id', userId)
+          .order('local_date', { ascending: true }),
+      ) as Promise<StoreStreakEntry[] | null>,
+      must(
+        supabase
+          .from('joker_consumptions')
+          .select('week_key, consumed_for_local_date')
+          .eq('user_id', userId),
+      ) as Promise<StoreJokerConsumption[] | null>,
+      must(
+        supabase.from('tier_reaches').select('*').eq('user_id', userId),
+      ) as Promise<StoreTierReach[] | null>,
+      must(
+        supabase
+          .from('pillar_evaluations')
+          .select('pillar_id, evaluation_type, completed_at')
+          .eq('user_id', userId),
+      ) as Promise<ProgressSnapshot['pillarEvaluations']>,
+    ]);
+    return {
+      onboardingDone: (p?.onboarding_done as boolean | undefined) ?? null,
+      onboardingData:
+        (p?.onboarding_data as Record<string, string> | undefined) ?? null,
+      profileDynamicId: (p?.profile_dynamic_id as string | undefined) ?? null,
+      accountCreatedAt: (p?.account_created_at as string | undefined) ?? null,
+      streakHistory: streakRows ?? null,
+      jokerConsumptions: jokerRows ?? null,
+      tierReaches: tierRows ?? null,
+      narrativeFlags:
+        (p?.narrative_flags as StoreNarrativeFlags | undefined) ?? null,
+      currentPillarId: (p?.current_pillar_id as string | undefined) ?? null,
+      pillarStartedAt: (p?.pillar_started_at as string | undefined) ?? null,
+      pendingTierReach:
+        (p?.pending_tier_reach as StorePendingTier | undefined) ?? null,
+      pillarEvaluations: evalRows ?? null,
+      devToolsEnabled: (p?.dev_tools_enabled as boolean | undefined) ?? null,
+    };
+  }
+
   return {
     async load() {
-      const [profileRes, streakRes, jokerRes, tierRes, evalRes] =
-        await Promise.all([
-          supabase.from('profiles').select('*').eq('id', userId).single(),
-          supabase
-            .from('streak_history')
-            .select(
-              'local_date, validation_status, phase, streak_value_after, joker_used',
-            )
-            .eq('user_id', userId)
-            .order('local_date', { ascending: true }),
-          supabase
-            .from('joker_consumptions')
-            .select('week_key, consumed_for_local_date')
-            .eq('user_id', userId),
-          supabase.from('tier_reaches').select('*').eq('user_id', userId),
-          supabase
-            .from('pillar_evaluations')
-            .select('pillar_id, evaluation_type, completed_at')
-            .eq('user_id', userId),
-        ]);
-      const p = (profileRes.data ?? null) as Record<string, unknown> | null;
-      return {
-        onboardingDone: (p?.onboarding_done as boolean | undefined) ?? null,
-        onboardingData:
-          (p?.onboarding_data as Record<string, string> | undefined) ?? null,
-        profileDynamicId: (p?.profile_dynamic_id as string | undefined) ?? null,
-        accountCreatedAt: (p?.account_created_at as string | undefined) ?? null,
-        streakHistory: (streakRes.data as StoreStreakEntry[] | null) ?? null,
-        jokerConsumptions:
-          (jokerRes.data as StoreJokerConsumption[] | null) ?? null,
-        tierReaches: (tierRes.data as StoreTierReach[] | null) ?? null,
-        narrativeFlags:
-          (p?.narrative_flags as StoreNarrativeFlags | undefined) ?? null,
-        currentPillarId: (p?.current_pillar_id as string | undefined) ?? null,
-        pillarStartedAt: (p?.pillar_started_at as string | undefined) ?? null,
-        pendingTierReach:
-          (p?.pending_tier_reach as StorePendingTier | undefined) ?? null,
-        pillarEvaluations:
-          (evalRes.data as ProgressSnapshot['pillarEvaluations']) ?? null,
-        devToolsEnabled: (p?.dev_tools_enabled as boolean | undefined) ?? null,
-      };
+      let snap: ProgressSnapshot;
+      try {
+        snap = await loadRemote();
+      } catch (e) {
+        // Hors ligne (ou panne) : dernier snapshot chargé avec succès pour
+        // CE compte, marqué périmé. Sans cache, l'erreur remonte — le
+        // chargeur ne doit jamais recevoir un snapshot vide.
+        const cached = await readJson<ProgressSnapshot>(cacheKey);
+        if (!cached) throw e;
+        // Le flag DEV n'est jamais servi depuis le stockage local :
+        // manipulable depuis la console navigateur en PWA (même posture
+        // que SubscriptionContext).
+        return { ...cached, devToolsEnabled: null, stale: true };
+      }
+      // Cache fire-and-forget : un échec d'écriture locale ne doit pas
+      // bloquer un chargement réussi.
+      AsyncStorage.setItem(cacheKey, JSON.stringify(snap)).catch(() => {});
+      return snap;
     },
 
     async saveStreakEntry(entry) {
@@ -373,6 +419,7 @@ export function createRemoteStore(userId: string): ProgressStore {
         must(
           supabase.from('level_adaptive_choices').delete().eq('user_id', userId),
         ),
+        AsyncStorage.removeItem(cacheKey),
       ]);
     },
   };

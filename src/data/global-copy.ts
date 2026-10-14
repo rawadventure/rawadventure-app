@@ -240,3 +240,19 @@ export function narrativeVideoTitle(id: NarrativeVideoId): string {
 export function narrativeVideosEmptyText(): string {
   return 'Les vidéos du parcours apparaîtront ici au fur et à mesure.';
 }
+
+/**
+ * Slot `copy.IA-11.hors-ligne` (R1-21, retour testeuse 13 oct 2026) :
+ * bandeau du hub quand la progression affichée vient du dernier chargement
+ * réussi (pas de réseau au lancement). Ton factuel, pas d'alarme : rien
+ * n'est perdu, l'app se remet à jour seule. Copy à faire valider par
+ * Mimi & Jacky.
+ */
+export function offlineBannerCopy(): { title: string; body: string } {
+  return {
+    title: 'Pas de connexion',
+    body:
+      "Tu vois ta progression telle qu'elle était à ta dernière ouverture connectée. " +
+      'Rien n\'est perdu : elle se mettra à jour dès que le réseau revient.',
+  };
+}
