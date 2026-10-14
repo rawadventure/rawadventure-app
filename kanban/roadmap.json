@@ -136,22 +136,66 @@
           "label": "Revoir la modale IA-15 (validation sous le seuil) — copy, pression par la perte, bannière après cassure",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-10-08T10:24:57.781015Z",
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
           "priority": "important",
           "estimateH": 2,
           "owner": "stephane",
-          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : elle a cru avoir tout perdu après une journée à 4 actions sur 7. Le message joker a été corrigé le jour même (commit b93c12a). Stéphane a gelé la réécriture de la modale IA-15 elle-même : il veut la revoir en entier plus tard.\n\n**Ce qui est à revoir**\n- Le corps de la modale sous le seuil : « un joker hebdomadaire est consommé si dispo, sinon la série casse » — pression par la perte, contraire à la grille de copy (§ 4).\n- Le titre « Tu peux faire mieux. » — à confirmer ou remplacer.\n- Après une vraie cassure (2e jour sous le seuil dans la même semaine), l'accueil affiche quand même la bannière « Journée validée » alors que la journée ne compte pas. Le hub regarde seulement si la date est dans l'historique, pas le statut.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nCopy définitif de la modale + choix de l'affichage du hub après cassure (bannière « Journée fermée » ou équivalent). Code ensuite : environ 1 h, avec tests de flow."
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : elle a cru avoir tout perdu après une journée à 4 actions sur 7. Le message joker a été corrigé le jour même (commit b93c12a). Stéphane a gelé la réécriture de la modale IA-15 elle-même : il veut la revoir en entier plus tard.\n\n**Ce qui est à revoir**\n- Le corps de la modale sous le seuil : « un joker hebdomadaire est consommé si dispo, sinon la série casse » — pression par la perte, contraire à la grille de copy (§ 4).\n- Le titre « Tu peux faire mieux. » — à confirmer ou remplacer.\n- Après une vraie cassure (2e jour sous le seuil dans la même semaine), l'accueil affiche quand même la bannière « Journée validée » alors que la journée ne compte pas. Le hub regarde seulement si la date est dans l'historique, pas le statut.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nCopy définitif de la modale + choix de l'affichage du hub après cassure (bannière « Journée fermée » ou équivalent). Code ensuite : environ 1 h, avec tests de flow.\n\n**Complément 14 oct (analyse WhatsApp)** : la bannière « Journée validée, Ta série : 0 jour » a été vue par deux testeurs (captures 30 sept et 3 oct), état incohérent pour l'utilisateur. Point B3 de l'analyse."
         },
         {
           "id": "R1-20",
           "label": "Revue du système joker + cassure (D6) — direction encourageante type Duolingo, pas punitive",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-10-08T11:58:11.098437Z",
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
           "priority": "important",
           "estimateH": 3,
           "owner": "stephane",
-          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : deux journées sous 5 actions sur 7 dans la même semaine remettent la série à zéro. Elle s'est sentie punie et a envisagé de lâcher jusqu'au lundi, alors que le but est justement de s'accrocher pour installer la routine. Stéphane (8 oct) : la revue doit aller vers une direction positive et encourageante, type Duolingo, pas répressive.\n\n**Règle actuelle (D6, Feature Spec Socle § 2.5)**\n- Un joker par semaine calendaire (lundi-dimanche, fuseau local) couvre un jour sous le seuil ou non validé : série conservée.\n- Deuxième jour raté dans la même semaine : série à zéro. La position dans le parcours (Jour X sur 14) ne recule jamais (D38).\n- Même mécanique en Phase 1 (seuil 1 session sur 3).\n\n**Pistes à instruire (aucune actée)**\n- Cassure qui ne remet pas à zéro : la série recule (par exemple à la moitié) au lieu de tomber à 0.\n- Deux jokers par semaine en Phase 0, un seul en Phase 1.\n- Joker qui se « gagne » (par exemple une journée complète 7/7 en recharge un), façon Duolingo.\n- Message de cassure tourné vers la relance plutôt que la perte.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nChoisir la mécanique, puis mise à jour de la Synthèse des décisions (D6 révisée) et de la Feature Spec Socle § 2.5. Code ensuite : src/lib/streak.ts (determineValidationStatus, resolveMissedDays) + tests qui verrouillent la décision, environ 3 h. À faire avec R1-19 (modale IA-15) pour un copy cohérent."
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (8 oct) : deux journées sous 5 actions sur 7 dans la même semaine remettent la série à zéro. Elle s'est sentie punie et a envisagé de lâcher jusqu'au lundi, alors que le but est justement de s'accrocher pour installer la routine. Stéphane (8 oct) : la revue doit aller vers une direction positive et encourageante, type Duolingo, pas répressive.\n\n**Règle actuelle (D6, Feature Spec Socle § 2.5)**\n- Un joker par semaine calendaire (lundi-dimanche, fuseau local) couvre un jour sous le seuil ou non validé : série conservée.\n- Deuxième jour raté dans la même semaine : série à zéro. La position dans le parcours (Jour X sur 14) ne recule jamais (D38).\n- Même mécanique en Phase 1 (seuil 1 session sur 3).\n\n**Pistes à instruire (aucune actée)**\n- Cassure qui ne remet pas à zéro : la série recule (par exemple à la moitié) au lieu de tomber à 0.\n- Deux jokers par semaine en Phase 0, un seul en Phase 1.\n- Joker qui se « gagne » (par exemple une journée complète 7/7 en recharge un), façon Duolingo.\n- Message de cassure tourné vers la relance plutôt que la perte.\n\n**Décision à prendre par Stéphane avec Mimi & Jacky**\nChoisir la mécanique, puis mise à jour de la Synthèse des décisions (D6 révisée) et de la Feature Spec Socle § 2.5. Code ensuite : src/lib/streak.ts (determineValidationStatus, resolveMissedDays) + tests qui verrouillent la décision, environ 3 h. À faire avec R1-19 (modale IA-15) pour un copy cohérent.\n\n**Complément 14 oct (analyse WhatsApp)** : deux testeuses demandent des **pauses volontaires** (vacances hors écran, job chronophage, travail intérieur de 2 jours) sans perdre la série — à instruire comme option (« mode pause »). Mimi (vocal 13 oct) : rigueur voulue sur les 15 jours, souplesse envisageable sur la longue durée seulement."
+        },
+        {
+          "id": "R1-21",
+          "label": "Hors ligne : lancement sans réseau affiche un compte vide (jour 1, série 0, parfois l'onboarding)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "bloquant",
+          "estimateH": 2,
+          "owner": "claude",
+          "details": "**Pourquoi cette carte**\nUne testeuse (vocal 13 oct) a ouvert l'app sans données mobiles : page « jour zéro », elle a cru avoir tout perdu. Même symptôme probable chez deux autres testeuses (1er oct : « en relançant j'ai le questionnaire », 28 sept : « page jour 1 figée »).\n\n**Cause (vérifiée dans le code)**\n`src/lib/progressStore.ts`, `load()` : les lectures Supabase ne passent pas par `must()`. En cas d'échec réseau, toutes les valeurs reviennent `null` → le hub se rend comme un compte neuf. Aucune détection réseau dans `src/`.\n\n**Correctif proposé**\n1. Test de régression d'abord : `load()` en échec → l'état précédent est conservé, rien n'est écrasé.\n2. Dernier état connu gardé en local (AsyncStorage) et réutilisé si la lecture distante échoue.\n3. Bandeau sobre « Pas de connexion — tes données reviendront au prochain lancement connecté » plutôt qu'un état vide.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
+        },
+        {
+          "id": "R1-22",
+          "label": "Vérifier le compte de la testeuse revenue à J1 après une pause de 2 jours (position reculée = contraire à D38 ?)",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "stephane",
+          "details": "**Pourquoi cette carte**\nUne testeuse (13 oct) dit être « retournée à J1 » après deux jours sans ouvrir l'app. D38 : la position ne recule jamais, elle pause. Stéphane a répondu « pas normal, je vais regarder » — aucune suite tracée.\n\n**À faire**\nLire son compte en base (streak_history, profiles) avec le GO de Stéphane. Deux issues : historique intact → c'était un lancement hors ligne (R1-21) ; historique amputé → vrai bug de position, test de régression + correctif.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
+        },
+        {
+          "id": "R1-23",
+          "label": "S0.2 : mot « respiration » orphelin sous la 2e vidéo après les 14 jours — reproduire et corriger",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "polish",
+          "estimateH": 0.5,
+          "owner": "claude",
+          "details": "**Pourquoi cette carte**\nUne testeuse (13 oct) a vu « un mot en petites lettres : respiration » sous la deuxième vidéo après les 14 jours, sans pouvoir prendre de capture.\n\n**Piste**\nTitre de vidéo placeholder « Intro — Respiration » (`src/data/narrative-videos.ts`) ou libellé du pilier S1 affiché sur `S02Screen`. À reproduire avec l'horloge virtuelle DEV à J16, puis corriger.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
+        },
+        {
+          "id": "R1-24",
+          "label": "Retirer les 30 mentions « [copy à valider] » visibles dans l'app",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "claude",
+          "details": "**Pourquoi cette carte**\nLes testeurs les voient partout (modales, charnières, paywall, S0). Stéphane a répondu le 13 oct : « je vais toutes les enlever, on fera la relecture au fur et à mesure ».\n\n**État**\n30 occurrences dans `src/` : 8 dans `global-copy.ts`, 4 paywall, 3 charnière, 3 consolidation, 2 S0.2, 2 récap pilier, 2 Phase 1, 1 session, 1 S0.1, 1 profil, 1 détail branche, 1 détail action, 1 `phase0-actions.ts`. L'inventaire copy pour Mimi & Jacky (F-13) reste la liste de relecture.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
         }
       ]
     },
@@ -280,6 +324,17 @@
           "priority": "important",
           "estimateH": 3,
           "owner": "claude"
+        },
+        {
+          "id": "R2-17",
+          "label": "Stripe TEST : description produit concaténée + « Économise 19 % » affiché sous les 3 offres — corriger dans le Dashboard, ne pas reproduire en LIVE",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "stephane",
+          "details": "**Pourquoi cette carte**\nCapture d'une testeuse (12 oct) sur la page de paiement Stripe : la description du produit mélange les trois offres (« Souplesse maximale.Annulable à tout moment. Économise 19 %. Engagement 6 mois.Idéal pour s'installer dans le rythme. »). Une autre testeuse (13 oct) voit « -19 % » sous chacun des trois choix.\n\n**Où**\nConfiguration Stripe Dashboard (produit + pricing table), pas le code : aucun « 19 % » dans `src/`. À corriger en TEST ; à vérifier lors de R2-14 (LIVE). Référence tarifs : docs/specs/feature-spec-abonnement-v1.md (6 mois = 19 %, annuel = 32 %).\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
         }
       ]
     },
@@ -496,12 +551,47 @@
           "label": "Fiches d'action Phase 0 : valider « Quand » et « Repère » + 7 questions (Jacky)",
           "status": "todo",
           "sessionId": null,
-          "updatedAt": "2026-10-01T13:07:53.000Z",
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
           "priority": "important",
           "estimateH": 1,
           "owner": "mimi-jacky",
           "trelloList": "Mimi & Jacky",
-          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (30 sept) sur la fiche « Défi froid » : elle voudrait savoir à quel moment faire le défi, et ce que « froid » veut dire (température ou critère). Le manque vaut pour les 7 fiches d'action de la Phase 0.\n\n**Ce qui est proposé**\nAjouter deux blocs sur chaque fiche, entre le sous-titre et « Pourquoi » :\n- **Quand** : le meilleur moment de la journée.\n- **Repère** : le critère concret qui dit « c'est fait ».\n\nLes textes « Pourquoi », « Comment » et « Astuce » ne changent pas, sauf l'astuce de « Mouvement ou récupération » (le mot « champions » est à remplacer).\n\n**Document à relire**\nPour chaque action, le texte actuel puis la version proposée. Les ajouts repris du document de Jacky « Challenge 14 jours — la base » sont marqués [Jacky], les autres [à valider]. Stéphane transmet le document.\n\n**Ce qu'on attend de Jacky**\nRépondre aux 7 questions de la liste à cocher. Quatre d'entre elles viennent d'écarts entre son document d'origine et ce que l'app affiche aujourd'hui.\n\nRien n'est codé tant que ce n'est pas validé. Côté code ensuite : environ 1 h."
+          "details": "**Pourquoi cette carte**\nRetour d'une testeuse beta (30 sept) sur la fiche « Défi froid » : elle voudrait savoir à quel moment faire le défi, et ce que « froid » veut dire (température ou critère). Le manque vaut pour les 7 fiches d'action de la Phase 0.\n\n**Ce qui est proposé**\nAjouter deux blocs sur chaque fiche, entre le sous-titre et « Pourquoi » :\n- **Quand** : le meilleur moment de la journée.\n- **Repère** : le critère concret qui dit « c'est fait ».\n\nLes textes « Pourquoi », « Comment » et « Astuce » ne changent pas, sauf l'astuce de « Mouvement ou récupération » (le mot « champions » est à remplacer).\n\n**Document à relire**\nPour chaque action, le texte actuel puis la version proposée. Les ajouts repris du document de Jacky « Challenge 14 jours — la base » sont marqués [Jacky], les autres [à valider]. Stéphane transmet le document.\n\n**Ce qu'on attend de Jacky**\nRépondre aux 7 questions de la liste à cocher. Quatre d'entre elles viennent d'écarts entre son document d'origine et ce que l'app affiche aujourd'hui.\n\nRien n'est codé tant que ce n'est pas validé. Côté code ensuite : environ 1 h.\n\n**Complément 14 oct (analyse WhatsApp)** : ajouter aux questions Jacky — « Activation matinale » : respiration par une narine ou les deux, idem à l'expiration (testeuse 1er oct). Prérequis matériels signalés (eau de mer, extracteur de jus : pas à disposition, délai d'achat) — préciser une alternative accessible dans la fiche."
+        },
+        {
+          "id": "R4-19",
+          "label": "Copy accueil J15/J16 (S0) : annoncer que les deux jours de transition gardent les 7 actions, S1 démarre ensuite",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "mimi-jacky",
+          "details": "**Pourquoi cette carte**\nUne testeuse abonnée pour un an (13 oct) revient au 15e jour : même page, mêmes 7 actions, « pas de nouveau contenu, est-ce normal ? ». C'est le design (S0 = 2 jours gratuits, D17) mais le hub affiche seulement « S0.1 · Transition » et le message générique (`Phase0HomeScreen.tsx`, `MESSAGES_DU_JOUR_PHASE_0` n'a pas de J15/J16).\n\n**À produire**\nDeux messages du jour (J15, J16) qui situent l'utilisateur : encore deux jours d'amorçage, le premier pilier commence après. Stéphane propose un brouillon, Mimi & Jacky valident. Code : 10 min.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md).",
+          "trelloList": "Mimi & Jacky"
+        },
+        {
+          "id": "R4-20",
+          "label": "Consigner la décision Mimi « pas de variété d'exercices en Phase 0 » (vocal 13 oct) — Synthèse des décisions (D46) + CLAUDE.md",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "stephane",
+          "details": "**Pourquoi cette carte**\nTrois testeuses sur onze ont demandé de varier les 7 actions (lassitude, « moins de dopamine », 4 obligatoires + 1 personnelle). Mimi a tranché dans un vocal WhatsApp du 13 oct : la Phase 0 est un challenge d'ancrage volontairement répétitif (« se laver les dents »), rigueur voulue sur 15 jours ; la variété arrive avec les piliers de Phase 1 et d'autres apps à venir. Mimi & Jacky vont refaire les vidéos de bienvenue pour mieux expliquer la consigne (R5-4).\n\n**À faire**\nÉcrire la décision dans la Synthèse des décisions (D46) et dans CLAUDE.md § 10, pour ne pas la rouvrir à chaque vague de testeurs. Ajouter au brief R5-4 : expliquer le « pourquoi la répétition ».\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md)."
+        },
+        {
+          "id": "R4-21",
+          "label": "Copy « valide ta journée avant de poser l'écran » — fiche Soirée sans écrans + rappel sous le bouton",
+          "status": "todo",
+          "sessionId": null,
+          "updatedAt": "2026-10-14T10:13:30.904797Z",
+          "priority": "important",
+          "estimateH": 0.5,
+          "owner": "mimi-jacky",
+          "details": "**Pourquoi cette carte**\nFriction la plus fréquente des fils WhatsApp (4 testeurs) : la dernière action est « pas d'écran le soir », donc ils valident le lendemain matin et perdent la journée ou un joker. Une testeuse a trouvé seule la parade (valider 1 h avant le coucher, au moment de poser l'écran) ; une autre a mis une alarme à 20h45. D44 rattrape le cas, mais la parade n'est écrite nulle part.\n\n**À produire**\nUne phrase sur la fiche « Soirée sans écrans » (bloc Comment ou Astuce) et éventuellement dans la ligne règle sous « Valider ma journée ». Validation Mimi & Jacky, code 10 min.\n\nSource : analyse des exports WhatsApp testeurs du 14 oct 2026 (vault, retours-testeurs/analyse-whatsapp-2026-10-14.md).",
+          "trelloList": "Mimi & Jacky"
         }
       ]
     },
