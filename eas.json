@@ -45,7 +45,6 @@
     "production": {
       "ios": {
         "appleId": "admin@rawadventure.world",
-        "ascAppId": "TO_BE_FILLED_AFTER_APP_STORE_CONNECT_CREATION",
         "appleTeamId": "LSF4FJC6JC"
       },
       "android": {

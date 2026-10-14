@@ -224,7 +224,13 @@ dans `app.json`.)
   Chemin UI pour voir le bundle (doc Sentry) : Settings → Projects →
   rawadventure → **Source Maps**, soit
   https://adventure-limitedraw.sentry.io/settings/projects/rawadventure/source-maps/
-- iOS : à contrôler au premier build R6-17 (dSYM en plus des source maps).
+- **iOS contrôlé le 13 octobre 2026** sur le build `production` `64588505`
+  (6,5 min, premier build iOS, log Xcode brut via `xcodeBuildLogsUrl`,
+  compressé brotli) : « Uploaded files to Sentry », « Release:
+  world.rawadventure.app@1.0.0+3 », « Source Map Upload Report » avec
+  `main.jsbundle` + `.map` (Debug ID `b5bbc9c4`), puis phase « Upload Debug
+  Symbols to Sentry » : « Found 5 debug information files » / « Uploaded 5
+  missing debug information files ». Les deux chaînes natives sont vérifiées.
 
 ## Trace audit
 

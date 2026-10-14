@@ -24,8 +24,12 @@
       "supportsTablet": true,
       "bundleIdentifier": "world.rawadventure.app",
       "associatedDomains": [
+        "applinks:rawadventure.world",
         "applinks:rawadventure.world"
-      ]
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "package": "world.rawadventure.app",
